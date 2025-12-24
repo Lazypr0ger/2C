@@ -16,7 +16,7 @@ public class OperationDto
 
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
-    public double TotalAmountDocument { get; set; }
+    public decimal TotalAmountDocument { get; set; }
 
     public required string Agent {  get; set; }
 
