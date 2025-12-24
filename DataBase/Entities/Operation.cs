@@ -20,10 +20,10 @@ public class Operation
     public string? DepartamentId { get; set; }
     public Departament? Departament { get; set;}
 
-    public double TotalAmountDocument { get; set; }
+    public decimal TotalAmountDocument { get; set; }
 
     public required string Agent { get; set; }
- 
+
     public required List<TransactionLog> TransactionLog { get; set; }
 
     public List<Element>? Element { get; set; }

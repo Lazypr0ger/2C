@@ -1,6 +1,6 @@
 ﻿namespace Contracts.DTO;
 
-public class DepartamentsDto
+public class DepartamentDto
 {
     public string Id { get; set; } = Guid.NewGuid().ToString(); 
 

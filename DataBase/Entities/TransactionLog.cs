@@ -6,14 +6,14 @@ public class TransactionLog
 
     public DateTime DateOperation { get; set; }
 
-    public double Subconto1Deb { get; set; }
+    public decimal Subconto1Deb { get; set; }
 
-    public double Subconto2Deb { get; set; }
-    public double Subconto1Cred { get; set; }
+    public decimal Subconto2Deb { get; set; }
+    public decimal Subconto1Cred { get; set; }
 
-    public double Subconto2Cred { get; set; }
+    public decimal Subconto2Cred { get; set; }
 
-    public double Amount { get; set; }
+    public decimal Amount { get; set; }
 
     public int Count { get; set; }
 

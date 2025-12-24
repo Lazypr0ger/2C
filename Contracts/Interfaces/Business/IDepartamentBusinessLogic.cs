@@ -4,12 +4,12 @@ namespace Contracts.Interfaces.Business;
 
 public interface IDepartamentBusinessLogic
 {
-    List<DepartamentsDto> GetAll();
-    DepartamentsDto GetById(int id);
-    DepartamentsDto GetByName(string name);
+    List<DepartamentDto> GetAll();
+    DepartamentDto GetById(int id);
+    DepartamentDto GetByName(string name);
 
-    void Create(DepartamentsDto departamentsDto);
-    void Update(DepartamentsDto departamentsDto);
+    void Create(DepartamentDto departamentsDto);
+    void Update(DepartamentDto departamentsDto);
     void Delete(int id);
 
 
