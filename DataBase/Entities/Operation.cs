@@ -24,7 +24,7 @@ public class Operation
 
     public required string Agent { get; set; }
  
-    public required List<TransactionLog> TransactionLogs { get; set; }
+    public required List<TransactionLog> TransactionLog { get; set; }
 
-    public List<Element>? Elements { get; set; }
+    public List<Element>? Element { get; set; }
 }

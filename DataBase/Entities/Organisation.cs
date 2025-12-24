@@ -8,7 +8,7 @@ public class Organisation
 
     public required string AccountNumOrg { get; set; }
 
-    public List<Operation>? Operations { get; set; }
+    public List<Operation>? Operation { get; set; }
 
     public required string ChartChartOfAccountId { get; set; }
     public required ChartOfAccount ChartOfAccount { get; set; }

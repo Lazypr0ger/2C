@@ -13,13 +13,13 @@ public class ChartOfAccount
     public string? Subconto1 { get; set; } 
     public string? Subconto2 { get; set; } 
 
-    public List<Departament>? Departaments { get; set; }
+    public List<Departament>? Departament { get; set; }
 
-    public List<Production>? Productions { get; set; }
+    public List<Production>? Production { get; set; }
 
-    public List<Organisation>? Organisations { get; set; } 
+    public List<Organisation>? Organisation { get; set; } 
 
-    public List<TransactionLog>? TransactionLogs1 { get; set; }
+    public List<TransactionLog>? TransactionLog1 { get; set; }
 
-    public List<TransactionLog>? TransactionLogs2 { get; set; }
+    public List<TransactionLog>? TransactionLog2 { get; set; }
 }
