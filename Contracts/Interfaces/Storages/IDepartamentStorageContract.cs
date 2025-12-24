@@ -2,7 +2,7 @@
 
 namespace Contracts.Interfaces.Storages;
 
-public interface IDepartamentStorageCointract
+public interface IDepartamentStorageContract
 {
     List<DepartamentDto> GetAll();
     DepartamentDto GetById(int id);
