@@ -17,6 +17,6 @@ public class Production
 
     public List<Element>? Elements { get; set; }
 
-    public required string ChartId { get; set; }
+    public required string ChartChartOfAccountId { get; set; }
     public required ChartOfAccount ChartOfAccount { get; set; }
 }

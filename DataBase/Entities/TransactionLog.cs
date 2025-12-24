@@ -22,4 +22,5 @@ public class TransactionLog
     public required Operation Operation { get; set; }
 
     public required ChartOfAccount ChartOfAccount { get; set; }
+    public required ChartOfAccount ChartOfAccount2 { get; set; }
 }
