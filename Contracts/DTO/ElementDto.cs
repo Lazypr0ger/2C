@@ -6,9 +6,9 @@ public class ElementDto
 
     public int CountProduct { get; set; }
 
-    public double CostRealisation { get; set; }
+    public decimal CostRealisation { get; set; }
 
-    public double TotalCostElement { get; set; }
+    public decimal TotalCostElement { get; set; }
 
 
 }

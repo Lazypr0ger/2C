@@ -10,6 +10,6 @@ public class ProductionDto
     public TypeProduct Type { get; set; }
     public required string Name { get; set; }
 
-    public double PlannedCost { get; set; }
+    public decimal PlannedCost { get; set; }
 
 }
