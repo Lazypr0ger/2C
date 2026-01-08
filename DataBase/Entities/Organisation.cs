@@ -12,4 +12,6 @@ public class Organisation
 
     public required string ChartChartOfAccountId { get; set; }
     public required ChartOfAccount ChartOfAccount { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

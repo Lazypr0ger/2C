@@ -4,8 +4,7 @@ namespace Contracts.DTO;
 
 public class OperationDto(string id, string nameDocument,
     TypeDocument typeDocument, DateTime dateOperation,
-    DateTime startDate, DateTime endDate,decimal totalAmountDocument, string agent
-    )
+    DateTime startDate, DateTime endDate,decimal totalAmountDocument, string agent, bool isDeleted)
 {
     public string Id { get; set; } = id;
 
@@ -22,5 +21,6 @@ public class OperationDto(string id, string nameDocument,
     public decimal TotalAmountDocument { get; set; } = totalAmountDocument;
 
     public required string Agent {  get; set; } = agent;
+    public bool IsDeleted { get; set; } = isDeleted;
 
 }

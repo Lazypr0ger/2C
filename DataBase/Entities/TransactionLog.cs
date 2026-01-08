@@ -23,4 +23,6 @@ public class TransactionLog
 
     public required ChartOfAccount ChartOfAccount { get; set; }
     public required ChartOfAccount ChartOfAccount2 { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

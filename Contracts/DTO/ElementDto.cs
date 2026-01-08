@@ -1,6 +1,6 @@
 ﻿namespace Contracts.DTO;
 
-public class ElementDto(string id, int countProduct, decimal costRealisation, decimal TotalCostElement)
+public class ElementDto(string id, int countProduct, decimal costRealisation, decimal TotalCostElement, bool isDeleted)
 {
     public string Id { get; set; } = id;
 
@@ -10,5 +10,5 @@ public class ElementDto(string id, int countProduct, decimal costRealisation, de
 
     public decimal TotalCostElement { get; set; } = TotalCostElement;
 
-
+    public bool IsDeleted { get; set; } = isDeleted;
 }

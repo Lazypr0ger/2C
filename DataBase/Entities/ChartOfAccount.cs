@@ -22,4 +22,5 @@ public class ChartOfAccount
     public List<TransactionLog>? TransactionLog1 { get; set; }
 
     public List<TransactionLog>? TransactionLog2 { get; set; }
+    public bool IsDeleted { get; set; }
 }

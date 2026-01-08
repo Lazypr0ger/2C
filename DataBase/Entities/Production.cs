@@ -16,4 +16,6 @@ public class Production
     public List<Element>? Elements { get; set; }
 
     public required ChartOfAccount ChartOfAccount { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

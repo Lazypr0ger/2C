@@ -23,7 +23,11 @@ public class TwoCDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<ChartOfAccount>().HasIndex(x => x.NumChart).IsUnique();
+        modelBuilder.Entity<ChartOfAccount>()
+            .HasMany(x => x.Departament)
+            .WithOne(y => y.ChartOfAccount);
     }
 
     public DbSet<ChartOfAccount> ChartOfAccount { get; set; }

@@ -27,4 +27,6 @@ public class Operation
     public required List<TransactionLog> TransactionLog { get; set; }
 
     public List<Element>? Element { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

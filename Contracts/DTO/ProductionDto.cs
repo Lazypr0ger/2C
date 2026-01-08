@@ -1,15 +1,17 @@
-﻿using Contracts.Enums;
+﻿using System.Globalization;
+using Contracts.Enums;
 
 namespace Contracts.DTO;
 
-public class ProductionDto
+public class ProductionDto(string id, string code, TypeProduct typeProduct, string name, decimal plannedCost, bool isDeleted)
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-    public required string Code { get; set; }
+    public string Id { get; set; } = id;
+    public required string Code { get; set; } = code;
 
-    public TypeProduct Type { get; set; }
-    public required string Name { get; set; }
+    public TypeProduct TypeProduct { get; set; } = typeProduct;
+    public required string Name { get; set; } = name;
 
-    public decimal PlannedCost { get; set; }
+    public decimal PlannedCost { get; set; } = plannedCost;
+    public bool IsDeleted { get; set; } = isDeleted;
 
 }

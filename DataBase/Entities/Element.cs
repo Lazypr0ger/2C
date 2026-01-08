@@ -13,4 +13,5 @@ public class Element
     public required Production Production { get; set; }
 
     public required Operation Operation { get; set; }
+    public bool IsDeleted { get; set; } 
 }
