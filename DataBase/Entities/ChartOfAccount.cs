@@ -17,10 +17,10 @@ public class ChartOfAccount
 
     public List<Production>? Production { get; set; }
 
-    public List<Organisation>? Organisation { get; set; } 
+    public List<Organisation>? Organisation { get; set; }
 
-    public List<TransactionLog>? TransactionLog1 { get; set; }
+    public List<TransactionLog> TransactionLog1 { get; set; } = new();
 
-    public List<TransactionLog>? TransactionLog2 { get; set; }
+    public List<TransactionLog> TransactionLog2 { get; set; } = new();
     public bool IsDeleted { get; set; }
 }

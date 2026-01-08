@@ -25,10 +25,11 @@ public class TransactionLog
     [ForeignKey("OperationId")]
     public Operation? Operation { get; set; }
     
-    [ForeignKey("ChartOfAccountId")]
-    public required ChartOfAccount ChartOfAccount { get; set; }
-    [ForeignKey("ChartOfAccount2Id")]
-    public required ChartOfAccount ChartOfAccount2 { get; set; }
+    public required string ChartOfAccountId { get; set; }
+    public ChartOfAccount? ChartOfAccount { get; set; }
+
+    public required string ChartOfAccount2Id { get; set; }
+    public ChartOfAccount? ChartOfAccount2 { get; set; }
 
     [DefaultValue(false)]
     public bool IsDeleted { get; set; }

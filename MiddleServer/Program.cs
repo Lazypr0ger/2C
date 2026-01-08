@@ -4,7 +4,6 @@ using DataBase;
 using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TwoCDbContext>();
-builder.Services.AddAutoMapper(typeof(EFtoDTOprofile));
 // Add services to the container.
 
 builder.Services.AddControllers();

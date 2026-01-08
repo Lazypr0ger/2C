@@ -33,7 +33,7 @@ public class TwoCDbContext : DbContext
             .WithMany(x => x.Departament)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Production>().HasIndex(x => new { x.Code, x.Name });
+        modelBuilder.Entity<Production>().HasIndex(x => new { x.Code, x.Name }).IsUnique();
         modelBuilder.Entity<Production>()
             .HasOne(x => x.Departament)
             .WithMany(x => x.Production)
@@ -63,11 +63,13 @@ public class TwoCDbContext : DbContext
 
         modelBuilder.Entity<TransactionLog>()
             .HasOne(x => x.ChartOfAccount)
-            .WithMany(x => x.TransactionLog1);
+            .WithMany(x => x.TransactionLog1)
+            .HasForeignKey(x => x.ChartOfAccountId);
 
         modelBuilder.Entity<TransactionLog>()
-            .HasOne(x => x.ChartOfAccount)
-            .WithMany(x => x.TransactionLog2);
+            .HasOne(x => x.ChartOfAccount2)
+            .WithMany(x => x.TransactionLog2)
+            .HasForeignKey(x => x.ChartOfAccount2Id);
 
     }
 
