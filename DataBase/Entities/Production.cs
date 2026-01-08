@@ -4,7 +4,7 @@ namespace DataBase.Entities;
 
 public class Production
 {
-    public required string Id { get; set; }
+    public required string Id { get; set; } = Guid.NewGuid().ToString();
     public required string Code { get; set; }
 
     public TypeProduct Type { get; set; }

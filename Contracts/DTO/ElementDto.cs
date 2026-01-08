@@ -1,14 +1,14 @@
 ﻿namespace Contracts.DTO;
 
-public class ElementDto
+public class ElementDto(string id, int countProduct, decimal costRealisation, decimal TotalCostElement)
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = id;
 
-    public int CountProduct { get; set; }
+    public int CountProduct { get; set; } = countProduct;
 
-    public decimal CostRealisation { get; set; }
+    public decimal CostRealisation { get; set; } = costRealisation;
 
-    public decimal TotalCostElement { get; set; }
+    public decimal TotalCostElement { get; set; } = TotalCostElement;
 
 
 }

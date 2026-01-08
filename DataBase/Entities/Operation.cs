@@ -4,7 +4,7 @@ namespace DataBase.Entities;
 
 public class Operation
 {
-    public required string Id { get; set; } 
+    public required string Id { get; set; } = Guid.NewGuid().ToString();
 
     public required string NameDocument { get; set; }
 

@@ -1,8 +1,8 @@
 ﻿namespace Contracts.DTO;
 
-public class DepartamentDto
+public class DepartamentDto(string id, string name)
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString(); 
+    public string Id { get; set; } = id;
 
-    public required string Name { get; set; }
+    public required string Name { get; set; } = name;
 }

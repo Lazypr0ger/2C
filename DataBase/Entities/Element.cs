@@ -2,7 +2,7 @@
 
 public class Element
 {
-    public required string Id { get; set; } 
+    public required string Id { get; set; }  = Guid.NewGuid().ToString();
 
     public int CountProduct { get; set; }
 

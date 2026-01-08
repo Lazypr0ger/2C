@@ -1,10 +1,12 @@
-﻿namespace Contracts.DTO;
+﻿using System.Globalization;
 
-public class OrganisationDto
+namespace Contracts.DTO;
+
+public class OrganisationDto(string id, string name)
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = id;
 
-    public required string Name { get; set; }
+    public required string Name { get; set; } = name;
 
 
 }
