@@ -1,4 +1,6 @@
-﻿namespace DataBase.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DataBase.Entities;
 
 public class Organisation
 {
@@ -10,7 +12,7 @@ public class Organisation
 
     public List<Operation>? Operation { get; set; }
 
-    public required string ChartChartOfAccountId { get; set; }
+    [ForeignKey("ChartOfAccountId")]
     public required ChartOfAccount ChartOfAccount { get; set; }
 
     public bool IsDeleted { get; set; }

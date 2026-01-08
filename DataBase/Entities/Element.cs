@@ -1,4 +1,7 @@
-﻿namespace DataBase.Entities;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DataBase.Entities;
 
 public class Element
 {
@@ -10,8 +13,12 @@ public class Element
 
     public decimal TotalCostElement { get; set; }
 
-    public required Production Production { get; set; }
+    [ForeignKey("ProductionId")]
+    public Production? Production { get; set; }
 
-    public required Operation Operation { get; set; }
+    [ForeignKey("OperationId")]
+    public Operation? Operation { get; set; }
+
+    [DefaultValue(false)]
     public bool IsDeleted { get; set; } 
 }

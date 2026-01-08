@@ -1,4 +1,7 @@
-﻿namespace DataBase.Entities;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DataBase.Entities;
 
 public class TransactionLog
 {
@@ -19,10 +22,14 @@ public class TransactionLog
 
     public string? Comment { get; set; }
 
-    public required Operation Operation { get; set; }
-
+    [ForeignKey("OperationId")]
+    public Operation? Operation { get; set; }
+    
+    [ForeignKey("ChartOfAccountId")]
     public required ChartOfAccount ChartOfAccount { get; set; }
+    [ForeignKey("ChartOfAccount2Id")]
     public required ChartOfAccount ChartOfAccount2 { get; set; }
 
+    [DefaultValue(false)]
     public bool IsDeleted { get; set; }
 }

@@ -1,8 +1,6 @@
 ﻿using Contracts;
 using DataBase.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Contracts;
-
 namespace DataBase;
 
 public class TwoCDbContext : DbContext
@@ -25,9 +23,52 @@ public class TwoCDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<ChartOfAccount>().HasIndex(x => x.NumChart).IsUnique();
-        modelBuilder.Entity<ChartOfAccount>()
-            .HasMany(x => x.Departament)
-            .WithOne(y => y.ChartOfAccount);
+
+        modelBuilder.Entity<Departament>()
+            .HasIndex(x => x.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Departament>()
+            .HasOne(x => x.ChartOfAccount)
+            .WithMany(x => x.Departament)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Production>().HasIndex(x => new { x.Code, x.Name });
+        modelBuilder.Entity<Production>()
+            .HasOne(x => x.Departament)
+            .WithMany(x => x.Production)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Production>()
+            .HasOne(x => x.ChartOfAccount)
+            .WithMany(x => x.Production);
+
+        modelBuilder.Entity<Element>()
+            .HasOne(x => x.Production)
+            .WithMany(x => x.Elements)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Element>()
+            .HasOne(x => x.Operation)
+            .WithMany(x => x.Element)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Operation>()
+            .HasOne(x => x.Organisation)
+            .WithMany(x => x.Operation);
+
+        modelBuilder.Entity<TransactionLog>()
+            .HasOne(x => x.Operation)
+            .WithMany(x => x.TransactionLog);
+
+        modelBuilder.Entity<TransactionLog>()
+            .HasOne(x => x.ChartOfAccount)
+            .WithMany(x => x.TransactionLog1);
+
+        modelBuilder.Entity<TransactionLog>()
+            .HasOne(x => x.ChartOfAccount)
+            .WithMany(x => x.TransactionLog2);
+
     }
 
     public DbSet<ChartOfAccount> ChartOfAccount { get; set; }
