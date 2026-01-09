@@ -13,7 +13,7 @@ public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
     private readonly IChartOfAccountBusinessLogic _chartOfAccountbusinessLogic;
     private readonly ILogger _logger;
 
-    private readonly Mapper _mapper;
+    private readonly IMapper _mapper;
     public ChartOfAccountAdapter(IChartOfAccountBusinessLogic chartOfAccountbusinessLogic, ILogger logger, Mapper mapper)
     {
         _chartOfAccountbusinessLogic = chartOfAccountbusinessLogic;
