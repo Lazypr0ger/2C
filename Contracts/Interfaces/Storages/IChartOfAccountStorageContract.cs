@@ -9,7 +9,7 @@ public interface IChartOfAccountStorageContract
     ChartOfAccountDto GetByNumChart(string NumChart);
     ChartOfAccountDto GetByNameChart(string NameChart);
 
-    void Create(ChartOfAccountDto hartOfAccountDto);
-    void Update(ChartOfAccountDto hartOfAccountDto);
+    void Create(ChartOfAccountDto chartOfAccountDto);
+    void Update(ChartOfAccountDto chartOfAccountDto);
     void Delete(string id);
 }

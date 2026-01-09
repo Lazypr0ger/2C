@@ -3,6 +3,9 @@ using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Storages;
 using DataBase.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Npgsql;
 
 namespace DataBase.Implementation;
 
@@ -13,12 +16,23 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
     public ChartOfAccountStorageContract(TwoCDbContext dbContext)
     {
         _dbContext = dbContext;
-        var config = new MapperConfiguration();
+        var config = new MapperConfiguration(cfg => {
+            cfg.CreateMap<ChartOfAccount, ChartOfAccountDto>().ReverseMap();
+        });
         _mapper = config.CreateMapper();
     }
-    public void Create(ChartOfAccountDto hartOfAccountDto)
+    public void Create(ChartOfAccountDto chartOfAccountDto)
     {
-        throw new NotImplementedException();
+        try
+        {
+            _dbContext.ChartOfAccount.Add(_mapper.Map<ChartOfAccount>(chartOfAccountDto));
+            _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
     }
 
     public void Delete(string id)
