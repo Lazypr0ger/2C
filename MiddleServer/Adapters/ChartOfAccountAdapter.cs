@@ -11,20 +11,15 @@ namespace MiddleServer.Adapters;
 public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
 {
     private readonly IChartOfAccountBusinessLogic _chartOfAccountbusinessLogic;
-    private readonly ILogger _logger;
-
+    private readonly ILogger<ChartOfAccountAdapter> _logger;
     private readonly IMapper _mapper;
-    public ChartOfAccountAdapter(IChartOfAccountBusinessLogic chartOfAccountbusinessLogic, ILogger logger, Mapper mapper)
+
+
+    public ChartOfAccountAdapter(IChartOfAccountBusinessLogic chartOfAccountbusinessLogic, ILogger<ChartOfAccountAdapter> logger, IMapper mapper)
     {
         _chartOfAccountbusinessLogic = chartOfAccountbusinessLogic;
-        _logger = logger;
-
-        var config = new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<ChartOfAccountVM, ChartOfAccountDto>().ReverseMap();
-
-        });
-        _mapper = new Mapper(config);
+        _logger =  logger;
+        _mapper = mapper;
     }
 
     public ChartOfAccountOperationResponse CreateChart(ChartOfAccountVM chrtmodel)

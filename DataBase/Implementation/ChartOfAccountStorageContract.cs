@@ -13,13 +13,10 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
 {
     private readonly TwoCDbContext _dbContext;
     private readonly IMapper _mapper;
-    public ChartOfAccountStorageContract(TwoCDbContext dbContext)
+    public ChartOfAccountStorageContract(TwoCDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
-        var config = new MapperConfiguration(cfg => {
-            cfg.CreateMap<ChartOfAccount, ChartOfAccountDto>().ReverseMap();
-        });
-        _mapper = config.CreateMapper();
+        _mapper = mapper;
     }
     public void Create(ChartOfAccountDto chartOfAccountDto)
     {

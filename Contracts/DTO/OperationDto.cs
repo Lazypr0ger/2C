@@ -6,16 +6,18 @@ public class OperationDto(string id, string nameDocument,
     TypeDocument typeDocument, DateTime dateOperation,
     DateTime startDate, DateTime endDate,decimal totalAmountDocument, string agent, bool isDeleted)
 {
+
     public string Id { get; set; } = id;
 
     public required string NameDocument { get; set; } = nameDocument;
 
     public TypeDocument Type {  get; set; } = typeDocument;
 
-    public DateTime DateOperation { get; set; } = startDate;
+    public DateTime DateOperation { get; set; } = dateOperation;
     public DateTime? StartDate { get; set; } = startDate;
     public DateTime? EndDate { get; set; } = endDate;
 
+    public List<ElementDto>? ElementDtos { get; set; }
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
     public decimal TotalAmountDocument { get; set; } = totalAmountDocument;

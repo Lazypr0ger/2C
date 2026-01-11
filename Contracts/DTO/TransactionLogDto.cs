@@ -14,6 +14,9 @@ public class TransactionLogDto(string id, DateTime dateOperation, decimal subcon
 
     public decimal Subconto2Cred { get; set; } = subconto2Cred;
 
+    public required ChartOfAccountDto ChartDebet { get; set; }
+    public required ChartOfAccountDto ChartCredit { get; set; }
+
     public decimal Amount { get; set; } = amount;
 
     public int Count { get; set; } = count;

@@ -5,19 +5,7 @@ namespace DataBase;
 
 public class TwoCDbContext : DbContext
 {
-    private readonly IConfigurationDatabase _configDatabase;
-    public TwoCDbContext(IConfigurationDatabase configurationDatabase) 
-    { 
-        _configDatabase = configurationDatabase;
-    }
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (_configDatabase == null || string.IsNullOrEmpty(_configDatabase.ConnectionString))
-            throw new InvalidOperationException("Database configuration is not set");
-
-        optionsBuilder.UseNpgsql(_configDatabase.ConnectionString, o => o.SetPostgresVersion(16, 2));
-        base.OnConfiguring(optionsBuilder);
-    }
+    public TwoCDbContext(DbContextOptions<TwoCDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

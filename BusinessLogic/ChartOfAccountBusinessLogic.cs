@@ -1,13 +1,18 @@
 ﻿using Contracts.DTO;
+using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
+using Contracts.Interfaces.Storages;
+using Microsoft.Extensions.Logging;
 
 namespace BusinessLogic;
 
-public class ChartOfAccountBusinessLogic : IChartOfAccountBusinessLogic
+public class ChartOfAccountBusinessLogic(IChartOfAccountStorageContract chartOfAccountStorageContract) : IChartOfAccountBusinessLogic
 {
-    public void Create(ChartOfAccountDto hartOfAccountDto)
+    private IChartOfAccountStorageContract? _chartOfAccount = chartOfAccountStorageContract;
+
+    public void Create(ChartOfAccountDto chartOfAccountDto)
     {
-        throw new NotImplementedException();
+        _chartOfAccount.Create(chartOfAccountDto);
     }
 
     public void Delete(string id)
@@ -17,7 +22,7 @@ public class ChartOfAccountBusinessLogic : IChartOfAccountBusinessLogic
 
     public List<ChartOfAccountDto> GetAll()
     {
-        throw new NotImplementedException();
+        return _chartOfAccount.GetAll() ?? throw new NullListException();
     }
 
     public ChartOfAccountDto GetById(int id)
