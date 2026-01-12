@@ -32,11 +32,6 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         }
     }
 
-    public void Delete(string id)
-    {
-        throw new NotImplementedException();
-    }
-
     public List<ChartOfAccountDto> GetAll()
     {
         try
@@ -54,23 +49,51 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         }
     }
 
-    public ChartOfAccountDto GetById(int id)
+    public ChartOfAccountDto GetById(string id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return _mapper
+                .Map<ChartOfAccountDto>(_dbContext
+                .ChartOfAccount
+                .FirstOrDefault(x => x.Id == id));
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
     }
 
-    public ChartOfAccountDto GetByNameChart(string NameChart)
+    public ChartOfAccountDto GetByNameChart(string Name)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return _mapper
+                .Map<ChartOfAccountDto>(_dbContext
+                .ChartOfAccount
+                .FirstOrDefault(x => x.Name == Name));
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
     }
 
     public ChartOfAccountDto GetByNumChart(string NumChart)
     {
-        throw new NotImplementedException();
-    }
-
-    public void Update(ChartOfAccountDto hartOfAccountDto)
-    {
-        throw new NotImplementedException();
+        try
+        {
+            return _mapper
+                .Map<ChartOfAccountDto>(_dbContext
+                .ChartOfAccount
+                .FirstOrDefault(x => x.NumChart == NumChart));
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
     }
 }

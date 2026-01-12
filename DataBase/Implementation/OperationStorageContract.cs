@@ -41,7 +41,7 @@ public class OperationStorageContract : IOperationStorageContract
         throw new NotImplementedException();
     }
 
-    public OperationDto GetById(Guid id)
+    public OperationDto GetById(string id)
     {
         throw new NotImplementedException();
     }

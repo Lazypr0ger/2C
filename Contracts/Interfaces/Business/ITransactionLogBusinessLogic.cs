@@ -6,9 +6,9 @@ public interface ITransactionLogBusinessLogic
 {
     List<TransactionLogDto> GetAll();
     List<TransactionLogDto> GetAllByDate(DateTime startDate , DateTime endDate);
-    TransactionLogDto GetById(int id);
+    TransactionLogDto GetById(string id);
 
     void Create(TransactionLogDto transactionLogDto);
     void Update(TransactionLogDto transactionLogDto);
-    void Delete(int id);
+    void Delete(string id);
 }

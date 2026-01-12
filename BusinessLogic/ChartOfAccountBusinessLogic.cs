@@ -6,42 +6,30 @@ using Microsoft.Extensions.Logging;
 
 namespace BusinessLogic;
 
-public class ChartOfAccountBusinessLogic(IChartOfAccountStorageContract chartOfAccountStorageContract) : IChartOfAccountBusinessLogic
+public class ChartOfAccountBusinessLogic(IChartOfAccountStorageContract chartOfAccount) : IChartOfAccountBusinessLogic
 {
-    private IChartOfAccountStorageContract? _chartOfAccount = chartOfAccountStorageContract;
 
     public void Create(ChartOfAccountDto chartOfAccountDto)
     {
-        _chartOfAccount.Create(chartOfAccountDto);
+        chartOfAccount.Create(chartOfAccountDto);
     }
-
-    public void Delete(string id)
-    {
-        throw new NotImplementedException();
-    }
-
     public List<ChartOfAccountDto> GetAll()
     {
-        return _chartOfAccount.GetAll() ?? throw new NullListException();
+        return chartOfAccount.GetAll() ?? throw new NullListException();
     }
 
-    public ChartOfAccountDto GetById(int id)
+    public ChartOfAccountDto GetById(string id)
     {
-        throw new NotImplementedException();
+        return chartOfAccount.GetById(id) ?? throw new ElementNotFoundException("Element with "+id+" not found");
     }
 
     public ChartOfAccountDto GetByNameChart(string NameChart)
     {
-        throw new NotImplementedException();
+        return chartOfAccount.GetByNameChart(NameChart) ?? throw new ElementNotFoundException("Element with " + NameChart + " not found");
     }
 
     public ChartOfAccountDto GetByNumChart(string NumChart)
     {
-        throw new NotImplementedException();
-    }
-
-    public void Update(ChartOfAccountDto hartOfAccountDto)
-    {
-        throw new NotImplementedException();
+        return chartOfAccount.GetByNumChart(NumChart) ?? throw new ElementNotFoundException("Element with " + NumChart + " not found");
     }
 }

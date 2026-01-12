@@ -11,7 +11,7 @@ public class ElementStorageContract : IElementStorageContract
         throw new NotImplementedException();
     }
 
-    public void Delete(int id)
+    public void Delete(string id)
     {
         throw new NotImplementedException();
     }
@@ -21,7 +21,7 @@ public class ElementStorageContract : IElementStorageContract
         throw new NotImplementedException();
     }
 
-    public ElementDto GetById(int id)
+    public ElementDto GetById(string id)
     {
         throw new NotImplementedException();
     }

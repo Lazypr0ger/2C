@@ -5,10 +5,10 @@ namespace Contracts.Interfaces.Storages;
 public interface IDepartamentStorageContract
 {
     List<DepartamentDto> GetAll();
-    DepartamentDto GetById(int id);
+    DepartamentDto GetById(string id);
     DepartamentDto GetByName(string name);
 
     void Create(DepartamentDto departamentsDto);
     void Update(DepartamentDto departamentsDto);
-    void Delete(int id);
+    void Delete(string id);
 }

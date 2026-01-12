@@ -11,7 +11,7 @@ public interface IOperationStorageContract
     List<OperationDto> GetOperationByDate(TypeDocument typeDocument, DateTime startDate, DateTime endTime);
     List<OperationDto> GetAllOperationByOrganisationIdByDate(TypeDocument typeDocument, string organisationId, DateTime startDate, DateTime endTime);
     List<OperationDto> GetAllOperationByDepartamentIdByDate(TypeDocument typeDocument, string departamentId, DateTime startDate, DateTime endTime);
-    OperationDto GetById(Guid id);
+    OperationDto GetById(string id);
     OperationDto GetByName(string name);
 
     void Create(OperationDto operationDto);

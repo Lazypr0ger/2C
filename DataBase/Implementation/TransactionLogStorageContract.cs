@@ -11,7 +11,7 @@ public class TransactionLogStorageContract : ITransactionLogStorageContract
         throw new NotImplementedException();
     }
 
-    public void Delete(int id)
+    public void Delete(string id)
     {
         throw new NotImplementedException();
     }
@@ -26,7 +26,7 @@ public class TransactionLogStorageContract : ITransactionLogStorageContract
         throw new NotImplementedException();
     }
 
-    public TransactionLogDto GetById(int id)
+    public TransactionLogDto GetById(string id)
     {
         throw new NotImplementedException();
     }

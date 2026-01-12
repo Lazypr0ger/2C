@@ -12,8 +12,5 @@ public interface IChartOfAccountAdapterContract
     ChartOfAccountOperationResponse GetChartByName(string name);
     ChartOfAccountOperationResponse GetChartByNum(string num);
     ChartOfAccountOperationResponse CreateChart(ChartOfAccountVM chrtmodel);
-
-    ChartOfAccountOperationResponse UpdateChart(ChartOfAccountVM chrtmodel);
-    ChartOfAccountOperationResponse MarkDeleteChart(string id);
 }
 

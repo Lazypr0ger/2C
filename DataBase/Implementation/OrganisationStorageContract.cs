@@ -21,7 +21,7 @@ public class OrganisationStorageContract : IOrganisationStorageContract
         throw new NotImplementedException();
     }
 
-    public OrganisationDto GetById(int id)
+    public OrganisationDto GetById(string id)
     {
         throw new NotImplementedException();
     }

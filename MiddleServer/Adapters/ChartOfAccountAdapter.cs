@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using Contracts.AdapterContracts;
 using Contracts.AdapterContracts.OperationResponses;
 using Contracts.DTO;
@@ -54,17 +55,71 @@ public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
 
     public ChartOfAccountOperationResponse GetChartByName(string name)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return ChartOfAccountOperationResponse.OK(_mapper.Map<ChartOfAccountVM>(_chartOfAccountbusinessLogic.GetByNameChart(name)));
+        }
+        catch (ElementNotFoundException ex)
+        {
+            _logger.LogError("ElementNotFoundException");
+            return ChartOfAccountOperationResponse.NotFound(ex.Value);
+        }
+        catch (StorageException ex)
+        {
+            _logger.LogError(ex, "StorageException");
+            return ChartOfAccountOperationResponse.InternalServerError($"Error while working with data storage: {ex.InnerException!.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return ChartOfAccountOperationResponse.InternalServerError(ex.Message);
+        }
     }
 
     public ChartOfAccountOperationResponse GetChartByNum(string num)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return ChartOfAccountOperationResponse.OK(_mapper.Map<ChartOfAccountVM>(_chartOfAccountbusinessLogic.GetByNumChart(num)));
+        }
+        catch (ElementNotFoundException ex)
+        {
+            _logger.LogError("ElementNotFoundException");
+            return ChartOfAccountOperationResponse.NotFound(ex.Value);
+        }
+        catch (StorageException ex)
+        {
+            _logger.LogError(ex, "StorageException");
+            return ChartOfAccountOperationResponse.InternalServerError($"Error while working with data storage: {ex.InnerException!.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return ChartOfAccountOperationResponse.InternalServerError(ex.Message);
+        }
     }
 
     public ChartOfAccountOperationResponse GetElement(string id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return ChartOfAccountOperationResponse.OK(_mapper.Map<ChartOfAccountVM>(_chartOfAccountbusinessLogic.GetById(id)));
+        }
+        catch (NullListException)
+        {
+            _logger.LogError("NullListException");
+            return ChartOfAccountOperationResponse.NotFound("The list is not initialized");
+        }
+        catch (StorageException ex)
+        {
+            _logger.LogError(ex, "StorageException");
+            return ChartOfAccountOperationResponse.InternalServerError($"Error while working with data storage: {ex.InnerException!.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return ChartOfAccountOperationResponse.InternalServerError(ex.Message);
+        }
     }
 
     public ChartOfAccountOperationResponse GetList()
@@ -88,15 +143,5 @@ public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
             _logger.LogError(ex, "Exception");
             return ChartOfAccountOperationResponse.InternalServerError(ex.Message);
         }
-    }
-
-    public ChartOfAccountOperationResponse MarkDeleteChart(string id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public ChartOfAccountOperationResponse UpdateChart(ChartOfAccountVM chrtmodel)
-    {
-        throw new NotImplementedException();
     }
 }

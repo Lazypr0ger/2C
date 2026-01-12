@@ -5,8 +5,8 @@ namespace Contracts.Interfaces.Storages;
 public interface IElementStorageContract
 {
     List<ElementDto> GetAll();
-    ElementDto GetById(int id);
+    ElementDto GetById(string id);
     void Create(ElementDto elementDto);
     void Update(ElementDto elementDto);
-    void Delete(int id);
+    void Delete(string id);
 }
