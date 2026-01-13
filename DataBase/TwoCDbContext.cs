@@ -61,13 +61,12 @@
 
         }
 
-        public DbSet<ChartOfAccount> ChartOfAccount { get; set; }
-        public DbSet<Departament> Departament {  get; set; }
-        public DbSet<Production> Production { get; set; }  
-        public DbSet<Organisation> Organisation { get; set; }
-        public DbSet<Element> Element { get; set; }
-
-        public DbSet<Operation> Operation { get; set; }
-        public DbSet<TransactionLog> TransactionLog { get; set; }
+        public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
+        public DbSet<Departament> Departaments {  get; set; }
+        public DbSet<Production> Productions { get; set; }  
+        public DbSet<Organisation> Organisations { get; set; }
+        public DbSet<Element> Elements { get; set; }
+        public DbSet<Operation> Operations { get; set; }
+        public DbSet<TransactionLog> TransactionLogs { get; set; }
 
     }

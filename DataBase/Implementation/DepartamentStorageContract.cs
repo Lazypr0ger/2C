@@ -25,7 +25,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     {
         try
         {
-            _dbContext.Departament.Add(_mapper.Map<Departament>(departamentsDto));
+            _dbContext.Departaments.Add(_mapper.Map<Departament>(departamentsDto));
             _dbContext.SaveChanges();
         }
         catch (Exception ex)
@@ -55,7 +55,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     {
         try
         {
-            var query = _dbContext.Departament.AsQueryable();
+            var query = _dbContext.Departaments.AsQueryable();
 
             return [.. query
                 .Select(x => _mapper
@@ -73,7 +73,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
         try
         {
             
-            return [.. _dbContext.Departament
+            return [.. _dbContext.Departaments
                 .AsQueryable()
                 .Select(x => _mapper
                 .Map<DepartamentDto>( x.ChartOfAccount.Id == chartNum))];
@@ -90,7 +90,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
         try
         {
             return _mapper.Map<DepartamentDto>(_dbContext
-                .Departament
+                .Departaments
                 .FirstOrDefault(x => x.Id == id));
         }
         catch (Exception ex)
@@ -103,7 +103,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     public DepartamentDto GetByName(string name)
     {
         return _mapper.Map<DepartamentDto>(_dbContext
-               .Departament
+               .Departaments
                .FirstOrDefault(x => x.Name == name));
     }
 
@@ -112,7 +112,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
         try
         {
             var element = GetDepartamentById(departamentsDto.Id) ?? throw new ElementNotFoundException(departamentsDto.Id);
-            _dbContext.Departament.Update(_mapper.Map(departamentsDto, element));
+            _dbContext.Departaments.Update(_mapper.Map(departamentsDto, element));
             _dbContext.SaveChanges();
         }
         catch (ElementNotFoundException ex)
@@ -128,5 +128,5 @@ public class DepartamentStorageContract : IDepartamentStorageContract
 
     }
 
-    private Departament GetDepartamentById(string id)=>_dbContext.Departament.FirstOrDefault(x => x.Id == id);
+    private Departament GetDepartamentById(string id)=>_dbContext.Departaments.FirstOrDefault(x => x.Id == id);
 }

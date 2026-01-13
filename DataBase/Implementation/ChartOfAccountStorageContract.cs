@@ -22,7 +22,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
     {
         try
         {
-            _dbContext.ChartOfAccount.Add(_mapper.Map<ChartOfAccount>(chartOfAccountDto));
+            _dbContext.ChartOfAccounts.Add(_mapper.Map<ChartOfAccount>(chartOfAccountDto));
             _dbContext.SaveChanges();
         }
         catch (Exception ex)
@@ -36,7 +36,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
     {
         try
         {
-            var query = _dbContext.ChartOfAccount.AsQueryable();
+            var query = _dbContext.ChartOfAccounts.AsQueryable();
 
             return [.. query
                 .Select(x => _mapper
@@ -55,7 +55,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         {
             return _mapper
                 .Map<ChartOfAccountDto>(_dbContext
-                .ChartOfAccount
+                .ChartOfAccounts
                 .FirstOrDefault(x => x.Id == id));
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         {
             return _mapper
                 .Map<ChartOfAccountDto>(_dbContext
-                .ChartOfAccount
+                .ChartOfAccounts
                 .FirstOrDefault(x => x.Name == Name));
         }
         catch (Exception ex)
@@ -87,7 +87,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         {
             return _mapper
                 .Map<ChartOfAccountDto>(_dbContext
-                .ChartOfAccount
+                .ChartOfAccounts
                 .FirstOrDefault(x => x.NumChart == NumChart));
         }
         catch (Exception ex)

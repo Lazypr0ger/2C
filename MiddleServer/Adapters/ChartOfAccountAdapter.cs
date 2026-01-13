@@ -27,9 +27,8 @@ public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
     {
         try
         {
-            var data = _mapper.Map<ChartOfAccountDto>(chrtmodel);
             _chartOfAccountbusinessLogic.Create(_mapper.Map<ChartOfAccountDto>(chrtmodel));
-            return  ChartOfAccountOperationResponse.NoContent();
+            return ChartOfAccountOperationResponse.NoContent();
         }
         catch (ArgumentNullException ex)
         {

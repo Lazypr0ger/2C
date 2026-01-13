@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DataBase.Migrations
 {
     /// <inheritdoc />
-    public partial class InitSchema : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ChartOfAccount",
+                name: "ChartOfAccounts",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -24,11 +24,11 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ChartOfAccount", x => x.Id);
+                    table.PrimaryKey("PK_ChartOfAccounts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Departament",
+                name: "Departaments",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -38,17 +38,17 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Departament", x => x.Id);
+                    table.PrimaryKey("PK_Departaments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Departament_ChartOfAccount_ChartOfAccountId",
+                        name: "FK_Departaments_ChartOfAccounts_ChartOfAccountId",
                         column: x => x.ChartOfAccountId,
-                        principalTable: "ChartOfAccount",
+                        principalTable: "ChartOfAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Organisation",
+                name: "Organisations",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -59,17 +59,17 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Organisation", x => x.Id);
+                    table.PrimaryKey("PK_Organisations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Organisation_ChartOfAccount_ChartOfAccountId",
+                        name: "FK_Organisations_ChartOfAccounts_ChartOfAccountId",
                         column: x => x.ChartOfAccountId,
-                        principalTable: "ChartOfAccount",
+                        principalTable: "ChartOfAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Production",
+                name: "Productions",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -83,23 +83,23 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Production", x => x.Id);
+                    table.PrimaryKey("PK_Productions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Production_ChartOfAccount_ChartOfAccountId",
+                        name: "FK_Productions_ChartOfAccounts_ChartOfAccountId",
                         column: x => x.ChartOfAccountId,
-                        principalTable: "ChartOfAccount",
+                        principalTable: "ChartOfAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Production_Departament_DepartamentId",
+                        name: "FK_Productions_Departaments_DepartamentId",
                         column: x => x.DepartamentId,
-                        principalTable: "Departament",
+                        principalTable: "Departaments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Operation",
+                name: "Operations",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -116,21 +116,21 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Operation", x => x.Id);
+                    table.PrimaryKey("PK_Operations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Operation_Departament_DepartamentId",
+                        name: "FK_Operations_Departaments_DepartamentId",
                         column: x => x.DepartamentId,
-                        principalTable: "Departament",
+                        principalTable: "Departaments",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Operation_Organisation_OrganisationId",
+                        name: "FK_Operations_Organisations_OrganisationId",
                         column: x => x.OrganisationId,
-                        principalTable: "Organisation",
+                        principalTable: "Organisations",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Element",
+                name: "Elements",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -143,23 +143,23 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Element", x => x.Id);
+                    table.PrimaryKey("PK_Elements", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Element_Operation_OperationId",
+                        name: "FK_Elements_Operations_OperationId",
                         column: x => x.OperationId,
-                        principalTable: "Operation",
+                        principalTable: "Operations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Element_Production_ProductionId",
+                        name: "FK_Elements_Productions_ProductionId",
                         column: x => x.ProductionId,
-                        principalTable: "Production",
+                        principalTable: "Productions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "TransactionLog",
+                name: "TransactionLogs",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -178,97 +178,97 @@ namespace DataBase.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TransactionLog", x => x.Id);
+                    table.PrimaryKey("PK_TransactionLogs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TransactionLog_ChartOfAccount_ChartOfAccount2Id",
+                        name: "FK_TransactionLogs_ChartOfAccounts_ChartOfAccount2Id",
                         column: x => x.ChartOfAccount2Id,
-                        principalTable: "ChartOfAccount",
+                        principalTable: "ChartOfAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TransactionLog_ChartOfAccount_ChartOfAccountId",
+                        name: "FK_TransactionLogs_ChartOfAccounts_ChartOfAccountId",
                         column: x => x.ChartOfAccountId,
-                        principalTable: "ChartOfAccount",
+                        principalTable: "ChartOfAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_TransactionLog_Operation_OperationId",
+                        name: "FK_TransactionLogs_Operations_OperationId",
                         column: x => x.OperationId,
-                        principalTable: "Operation",
+                        principalTable: "Operations",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChartOfAccount_NumChart",
-                table: "ChartOfAccount",
+                name: "IX_ChartOfAccounts_NumChart",
+                table: "ChartOfAccounts",
                 column: "NumChart",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Departament_ChartOfAccountId",
-                table: "Departament",
+                name: "IX_Departaments_ChartOfAccountId",
+                table: "Departaments",
                 column: "ChartOfAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Departament_Name",
-                table: "Departament",
+                name: "IX_Departaments_Name",
+                table: "Departaments",
                 column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Element_OperationId",
-                table: "Element",
+                name: "IX_Elements_OperationId",
+                table: "Elements",
                 column: "OperationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Element_ProductionId",
-                table: "Element",
+                name: "IX_Elements_ProductionId",
+                table: "Elements",
                 column: "ProductionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Operation_DepartamentId",
-                table: "Operation",
+                name: "IX_Operations_DepartamentId",
+                table: "Operations",
                 column: "DepartamentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Operation_OrganisationId",
-                table: "Operation",
+                name: "IX_Operations_OrganisationId",
+                table: "Operations",
                 column: "OrganisationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Organisation_ChartOfAccountId",
-                table: "Organisation",
+                name: "IX_Organisations_ChartOfAccountId",
+                table: "Organisations",
                 column: "ChartOfAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Production_ChartOfAccountId",
-                table: "Production",
+                name: "IX_Productions_ChartOfAccountId",
+                table: "Productions",
                 column: "ChartOfAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Production_Code_Name",
-                table: "Production",
+                name: "IX_Productions_Code_Name",
+                table: "Productions",
                 columns: new[] { "Code", "Name" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Production_DepartamentId",
-                table: "Production",
+                name: "IX_Productions_DepartamentId",
+                table: "Productions",
                 column: "DepartamentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransactionLog_ChartOfAccount2Id",
-                table: "TransactionLog",
+                name: "IX_TransactionLogs_ChartOfAccount2Id",
+                table: "TransactionLogs",
                 column: "ChartOfAccount2Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransactionLog_ChartOfAccountId",
-                table: "TransactionLog",
+                name: "IX_TransactionLogs_ChartOfAccountId",
+                table: "TransactionLogs",
                 column: "ChartOfAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransactionLog_OperationId",
-                table: "TransactionLog",
+                name: "IX_TransactionLogs_OperationId",
+                table: "TransactionLogs",
                 column: "OperationId");
         }
 
@@ -276,25 +276,25 @@ namespace DataBase.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Element");
+                name: "Elements");
 
             migrationBuilder.DropTable(
-                name: "TransactionLog");
+                name: "TransactionLogs");
 
             migrationBuilder.DropTable(
-                name: "Production");
+                name: "Productions");
 
             migrationBuilder.DropTable(
-                name: "Operation");
+                name: "Operations");
 
             migrationBuilder.DropTable(
-                name: "Departament");
+                name: "Departaments");
 
             migrationBuilder.DropTable(
-                name: "Organisation");
+                name: "Organisations");
 
             migrationBuilder.DropTable(
-                name: "ChartOfAccount");
+                name: "ChartOfAccounts");
         }
     }
 }

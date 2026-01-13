@@ -7,10 +7,10 @@ namespace Contracts;
 
 public class DtoToVmProfile : Profile
 {
-    public DtoToVmProfile() 
+    public DtoToVmProfile()
     {
-        CreateMap<ChartOfAccountDto, ChartOfAccountVM>().ReverseMap();
-        CreateMap<DepartamentVM, DepartamentDto>().ReverseMap();
+        CreateMap<ChartOfAccountVM,ChartOfAccountDto>().ReverseMap();
+        CreateMap<DepartamentDto, DepartamentVM>().ReverseMap();
         CreateMap<ProductionDto, ProductionVM>().ReverseMap();
         //CreateMap<ElementDto, ElementVM>().ReverseMap();
         //CreateMap<OperationDto, Operation>().ReverseMap();

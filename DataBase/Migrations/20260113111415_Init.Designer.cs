@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataBase.Migrations
 {
     [DbContext(typeof(TwoCDbContext))]
-    [Migration("20260108141044_InitSchema")]
-    partial class InitSchema
+    [Migration("20260113111415_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,7 +52,7 @@ namespace DataBase.Migrations
                     b.HasIndex("NumChart")
                         .IsUnique();
 
-                    b.ToTable("ChartOfAccount");
+                    b.ToTable("ChartOfAccounts");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Departament", b =>
@@ -78,7 +78,7 @@ namespace DataBase.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Departament");
+                    b.ToTable("Departaments");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Element", b =>
@@ -110,7 +110,7 @@ namespace DataBase.Migrations
 
                     b.HasIndex("ProductionId");
 
-                    b.ToTable("Element");
+                    b.ToTable("Elements");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Operation", b =>
@@ -156,7 +156,7 @@ namespace DataBase.Migrations
 
                     b.HasIndex("OrganisationId");
 
-                    b.ToTable("Operation");
+                    b.ToTable("Operations");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Organisation", b =>
@@ -183,7 +183,7 @@ namespace DataBase.Migrations
 
                     b.HasIndex("ChartOfAccountId");
 
-                    b.ToTable("Organisation");
+                    b.ToTable("Organisations");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Production", b =>
@@ -225,7 +225,7 @@ namespace DataBase.Migrations
                     b.HasIndex("Code", "Name")
                         .IsUnique();
 
-                    b.ToTable("Production");
+                    b.ToTable("Productions");
                 });
 
             modelBuilder.Entity("DataBase.Entities.TransactionLog", b =>
@@ -279,7 +279,7 @@ namespace DataBase.Migrations
 
                     b.HasIndex("OperationId");
 
-                    b.ToTable("TransactionLog");
+                    b.ToTable("TransactionLogs");
                 });
 
             modelBuilder.Entity("DataBase.Entities.Departament", b =>
