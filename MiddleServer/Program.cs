@@ -17,7 +17,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration));
+using var loggerFactory = new LoggerFactory();
+loggerFactory.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger());
+builder.Services.AddSingleton(loggerFactory.CreateLogger("Any"));
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<TwoCDbContext>((sp, options) =>
@@ -41,10 +43,18 @@ catch (ReflectionTypeLoadException ex)
 }
 builder.Services.AddSingleton<IConfigurationDatabase, ConfigurationDatabase>();
 
-builder.Services.AddTransient<IChartOfAccountStorageContract, ChartOfAccountStorageContract>();
+
 builder.Services.AddTransient<IChartOfAccountBusinessLogic, ChartOfAccountBusinessLogic>();
+builder.Services.AddTransient<IDepartamentBusinessLogic, DepartamentBusinessLogic>();
+
+
+builder.Services.AddTransient<IChartOfAccountStorageContract, ChartOfAccountStorageContract>();
+builder.Services.AddTransient<IDepartamentStorageContract, DepartamentStorageContract>();
+
+
 
 builder.Services.AddTransient<IChartOfAccountAdapterContract, ChartOfAccountAdapter>();
+builder.Services.AddTransient<IDepartamentAdapterContract, DepartamentAdapter>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

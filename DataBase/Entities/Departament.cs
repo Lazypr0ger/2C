@@ -9,7 +9,7 @@ public class Departament
     public required string Name { get; set; }
 
 
-    [ForeignKey("ChartOfAccountId")]
+    public required string ChartOfAccountId { get; set; }
     public required ChartOfAccount ChartOfAccount { get; set; }
 
     public List<Production>? Production { get; set; }

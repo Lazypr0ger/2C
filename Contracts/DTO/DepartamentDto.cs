@@ -1,15 +1,16 @@
 ﻿namespace Contracts.DTO;
 
-public class DepartamentDto(string id, string name, bool isDeleted)
+public class DepartamentDto(string id, string name, string сhartOfAccountId, string depChartNum, List<ProductionDto> production, bool isDeleted)
 {
-    private readonly ChartOfAccountDto? _chartOfAccountDto;
+
     public string Id { get; set; } = id;
 
-    public required string Name { get; set; } = name;
+    public string Name { get; set; } = name;
 
-    public string DepChartNum => _chartOfAccountDto?.NumChart ?? string.Empty;
+    public string ChartOfAccountId { get; set; } = сhartOfAccountId;
+    public string DepChartNum { get; set; } = depChartNum;
 
-    public List<ProductionDto>? ProductionDtos { get; set; }
+    public List<ProductionDto>? Production { get; set; } = production;
 
     public bool IsDeleted { get; set; } = isDeleted;
 }

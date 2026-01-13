@@ -8,6 +8,8 @@ public interface IDepartamentStorageContract
     DepartamentDto GetById(string id);
     DepartamentDto GetByName(string name);
 
+    List<DepartamentDto> GetByChartNum(string chartNum);
+
     void Create(DepartamentDto departamentsDto);
     void Update(DepartamentDto departamentsDto);
     void Delete(string id);

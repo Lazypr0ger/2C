@@ -15,11 +15,9 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     private readonly ChartOfAccountDto _chartOfAccountDto;
     private IMapper _mapper;
 
-    public DepartamentStorageContract(TwoCDbContext dbContext, DepartamentDto departement, ChartOfAccountDto chartOfAccountDto, IMapper mapper)
+    public DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
-        _departement = departement;
-        _chartOfAccountDto = chartOfAccountDto;
         _mapper = mapper;
     }
 
@@ -57,11 +55,28 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     {
         try
         {
-            var query = _dbContext.ChartOfAccount.AsQueryable();
+            var query = _dbContext.Departament.AsQueryable();
 
             return [.. query
                 .Select(x => _mapper
                 .Map<DepartamentDto>(x))];
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
+    }
+
+    public List<DepartamentDto> GetByChartNum(string chartNum)
+    {
+        try
+        {
+            
+            return [.. _dbContext.Departament
+                .AsQueryable()
+                .Select(x => _mapper
+                .Map<DepartamentDto>( x.ChartOfAccount.Id == chartNum))];
         }
         catch (Exception ex)
         {
