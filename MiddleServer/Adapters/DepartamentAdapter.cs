@@ -178,7 +178,12 @@ public class DepartamentAdapter : IDepartamentAdapterContract
     {
         try
         {
-            return DepartamentOperationResponse.OK([.. _departamentBusinessLogic.GetAll().Select(x => _mapper.Map<DepartamentVM>(x))]);
+            _logger.LogInformation("А МЫ СЮДА ЗАШЛИ???");
+            var getAll = _departamentBusinessLogic.GetAll();
+            _logger.LogInformation("А СЮДА ДОШЛИ??");
+            var result = getAll.Select(x => _mapper.Map<DepartamentVM>(x));
+            _logger.LogInformation("А ВОТ ЗДЕСЬ ТОЧНО КОСЯК");
+            return DepartamentOperationResponse.OK([.. result]);
         }
         catch (ArgumentNullException ex)
         {

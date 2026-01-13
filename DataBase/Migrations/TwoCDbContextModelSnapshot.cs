@@ -61,6 +61,10 @@ namespace DataBase.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("DepChartNum")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 

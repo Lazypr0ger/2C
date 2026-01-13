@@ -34,6 +34,7 @@ namespace DataBase.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     ChartOfAccountId = table.Column<string>(type: "text", nullable: false),
+                    DepChartNum = table.Column<string>(type: "text", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>

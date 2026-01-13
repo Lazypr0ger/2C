@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataBase.Migrations
 {
     [DbContext(typeof(TwoCDbContext))]
-    [Migration("20260113111415_Init")]
+    [Migration("20260113122522_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -61,6 +61,10 @@ namespace DataBase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ChartOfAccountId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DepChartNum")
                         .IsRequired()
                         .HasColumnType("text");
 

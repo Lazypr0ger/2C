@@ -10,6 +10,7 @@ public class Departament
 
 
     public required string ChartOfAccountId { get; set; }
+    public required string DepChartNum { get; set; }
     public required ChartOfAccount ChartOfAccount { get; set; }
 
     public List<Production>? Production { get; set; }

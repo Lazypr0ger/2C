@@ -41,6 +41,9 @@ catch (ReflectionTypeLoadException ex)
     File.WriteAllLines("typeload.txt", lines);
     throw;
 }
+
+builder.Services.AddTransient<TwoCDbContext>();
+
 builder.Services.AddSingleton<IConfigurationDatabase, ConfigurationDatabase>();
 
 
@@ -68,6 +71,11 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    //using var scope = app.Services.CreateScope();
+    //var context = scope.ServiceProvider.GetRequiredService<TwoCDbContext>;
+
+    //context.Database.Migarte();
+
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();

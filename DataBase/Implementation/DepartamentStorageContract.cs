@@ -4,22 +4,17 @@ using Contracts.Exceptions;
 using Contracts.Interfaces.Storages;
 using DataBase.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace DataBase.Implementation;
 
-public class DepartamentStorageContract : IDepartamentStorageContract
+public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,ILogger<DepartamentStorageContract> logger) : IDepartamentStorageContract
 {
-    private readonly TwoCDbContext _dbContext;
-    private readonly DepartamentDto _departement;
-    private readonly ChartOfAccountDto _chartOfAccountDto;
-    private IMapper _mapper;
-
-    public DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper)
-    {
-        _dbContext = dbContext;
-        _mapper = mapper;
-    }
+    private readonly TwoCDbContext _dbContext = dbContext;
+    //private readonly DepartamentDto _departement;
+    //private readonly ChartOfAccountDto _chartOfAccountDto;
+    private IMapper _mapper = mapper;
 
     public void Create(DepartamentDto departamentsDto)
     {
@@ -55,11 +50,9 @@ public class DepartamentStorageContract : IDepartamentStorageContract
     {
         try
         {
-            var query = _dbContext.Departaments.AsQueryable();
-
-            return [.. query
-                .Select(x => _mapper
-                .Map<DepartamentDto>(x))];
+            var result = _dbContext.Departaments.ToList();
+            logger.LogInformation("Упал в строаже");
+            return [.. result.Select(x => _mapper.Map<DepartamentDto>(x))];
         }
         catch (Exception ex)
         {
@@ -76,7 +69,7 @@ public class DepartamentStorageContract : IDepartamentStorageContract
             return [.. _dbContext.Departaments
                 .AsQueryable()
                 .Select(x => _mapper
-                .Map<DepartamentDto>( x.ChartOfAccount.Id == chartNum))];
+                .Map<DepartamentDto>( x.ChartOfAccount.NumChart == chartNum))];
         }
         catch (Exception ex)
         {
