@@ -42,7 +42,7 @@ public class DepartamentBusinessLogic(IDepartamentStorageContract departamentSto
 
     public void Update(DepartamentDto departamentsDto)
     {
-        departamentStorageContract.Update(GetById(departamentsDto.Id));
+        departamentStorageContract.Update(departamentsDto);
     }
 
 }

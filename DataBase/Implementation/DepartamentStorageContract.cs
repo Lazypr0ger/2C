@@ -12,8 +12,6 @@ namespace DataBase.Implementation;
 public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,ILogger<DepartamentStorageContract> logger) : IDepartamentStorageContract
 {
     private readonly TwoCDbContext _dbContext = dbContext;
-    //private readonly DepartamentDto _departement;
-    //private readonly ChartOfAccountDto _chartOfAccountDto;
     private IMapper _mapper = mapper;
 
     public void Create(DepartamentDto departamentsDto)
