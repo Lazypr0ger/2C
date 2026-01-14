@@ -26,7 +26,7 @@ public class DepartamentController(IDepartamentAdapterContract adapter) : Contro
         return adapter.GetDepartamentByName(name).GetResponse(Request, Response);
     }
 
-    [HttpGet("numChart/{numChat}")]
+    [HttpGet("depChartNum/{numChat}")]
     public IActionResult GetByNumChat(string numChat)
     {
         return adapter.GetDepartamentListByChartNum(numChat).GetResponse(Request, Response);

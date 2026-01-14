@@ -12,10 +12,10 @@ public class DtoToVmProfile : Profile
         CreateMap<ChartOfAccountVM,ChartOfAccountDto>().ReverseMap();
         CreateMap<DepartamentDto, DepartamentVM>().ReverseMap();
         CreateMap<ProductionDto, ProductionVM>().ReverseMap();
-        //CreateMap<ElementDto, ElementVM>().ReverseMap();
-        //CreateMap<OperationDto, Operation>().ReverseMap();
-        //CreateMap<OrganisationDto, Organisation>().ReverseMap();
-        //CreateMap<TransactionLogDto, TransactionLog>().ReverseMap();
+        CreateMap<ElementDto, ElementVM>().ReverseMap();
+        CreateMap<OperationDto, OperationVM>().ReverseMap();
+        CreateMap<OrganisationDto, OrganisationVM>().ReverseMap();
+        CreateMap<TransactionLogDto, TransactionLogVM>().ReverseMap();
     }
 
 }

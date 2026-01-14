@@ -46,18 +46,34 @@ builder.Services.AddTransient<TwoCDbContext>();
 
 builder.Services.AddSingleton<IConfigurationDatabase, ConfigurationDatabase>();
 
-
+//business registrate
 builder.Services.AddTransient<IChartOfAccountBusinessLogic, ChartOfAccountBusinessLogic>();
 builder.Services.AddTransient<IDepartamentBusinessLogic, DepartamentBusinessLogic>();
+builder.Services.AddTransient<IOrganisationBusinessLogic, OrganisationBusinessLogic>();
+builder.Services.AddTransient<IProductionBusinessLogic, ProductionBusinessLogic>();
+builder.Services.AddTransient<IElementBusinessLogic, ElementBusinessLogic>();
+builder.Services.AddTransient<IOperationBusinessLogic, OperationBusinessLogic>();
+builder.Services.AddTransient<ITransactionLogBusinessLogic, TransactionLogBusinessLogic>();
 
 
+//storages registrate
 builder.Services.AddTransient<IChartOfAccountStorageContract, ChartOfAccountStorageContract>();
 builder.Services.AddTransient<IDepartamentStorageContract, DepartamentStorageContract>();
+builder.Services.AddTransient<IOrganisationStorageContract, OrganisationStorageContract>();
+builder.Services.AddTransient<IProductionStorageContract, ProductionStorageContract>();
+builder.Services.AddTransient<IElementStorageContract, ElementStorageContract>();
+builder.Services.AddTransient<IOperationStorageContract, OperationStorageContract>();
+builder.Services.AddTransient<ITransactionLogStorageContract, TransactionLogStorageContract>();
 
 
-
+// Adapters registrate
 builder.Services.AddTransient<IChartOfAccountAdapterContract, ChartOfAccountAdapter>();
 builder.Services.AddTransient<IDepartamentAdapterContract, DepartamentAdapter>();
+builder.Services.AddTransient<IOrganisationAdapterContract, OrganisationAdapter>();
+builder.Services.AddTransient<IProductionAdapterContract, ProductionAdapter>();
+builder.Services.AddTransient<IElementAdapterContract, ElementAdapter>();
+builder.Services.AddTransient<IOperationAdapterContract, OperationAdapter>();
+builder.Services.AddTransient<ITransactionLogAdapterContract, TransactionLogAdapter>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

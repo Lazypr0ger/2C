@@ -67,9 +67,9 @@ public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,
         {
             
             return [.. _dbContext.Departaments
-                .AsQueryable()
+                .Where(x => x.DepChartNum == chartNum)
                 .Select(x => _mapper
-                .Map<DepartamentDto>( x.ChartOfAccount.NumChart == chartNum))];
+                .Map<DepartamentDto>(x))];
         }
         catch (Exception ex)
         {

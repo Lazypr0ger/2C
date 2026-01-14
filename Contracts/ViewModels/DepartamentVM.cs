@@ -8,6 +8,7 @@ public class DepartamentVM
 
     public required string ChartOfAccountId { get; set; }
     public required string DepChartNum { get; set; }
-    //public List<ProductionVM>? Production { get; set; }
+    
+    public List<ProductionVM>? Production { get; set; }
     public bool IsDeleted { get; set; }
 }

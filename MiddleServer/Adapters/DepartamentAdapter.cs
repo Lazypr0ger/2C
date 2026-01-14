@@ -117,22 +117,28 @@ public class DepartamentAdapter : IDepartamentAdapterContract
     {
         try
         {
-            return DepartamentOperationResponse.OK(_mapper.Map<DepartamentVM>(_departamentBusinessLogic.GetDepartamentsByChart(num)));
-        }
-        catch (ArgumentNullException ex)
-        {
-            _logger.LogError(ex, "ArgumentNullException");
-            return DepartamentOperationResponse.BadRequest("Data is empty");
+            var items = _departamentBusinessLogic
+                .GetDepartamentsByChart(num)
+                .Select(x => _mapper.Map<DepartamentVM>(x))
+                .ToList();
+
+            return DepartamentOperationResponse.OK(items);
         }
         catch (ValidationException ex)
         {
             _logger.LogError(ex, "ValidationException");
             return DepartamentOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
         }
+        catch (NullListException ex)
+        {
+            _logger.LogError(ex, "NullListException");
+            return DepartamentOperationResponse.NotFound(ex.Message);
+        }
         catch (StorageException ex)
         {
             _logger.LogError(ex, "StorageException");
-            return DepartamentOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
+            return DepartamentOperationResponse.BadRequest(
+                $"Error while working with data storage: {ex.InnerException?.Message ?? ex.Message}");
         }
         catch (Exception ex)
         {
@@ -140,6 +146,7 @@ public class DepartamentAdapter : IDepartamentAdapterContract
             return DepartamentOperationResponse.InternalServerError(ex.Message);
         }
     }
+
 
     public DepartamentOperationResponse GetDepartamentProductionListById(string id)
     {
