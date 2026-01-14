@@ -32,5 +32,5 @@ public class TransactionLog
     public ChartOfAccount? ChartOfAccount2 { get; set; }
 
     [DefaultValue(false)]
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;    
 }

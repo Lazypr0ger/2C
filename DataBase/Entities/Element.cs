@@ -20,5 +20,5 @@ public class Element
     public Operation? Operation { get; set; }
 
     [DefaultValue(false)]
-    public bool IsDeleted { get; set; } 
+    public bool IsDeleted { get; set; } = false;
 }

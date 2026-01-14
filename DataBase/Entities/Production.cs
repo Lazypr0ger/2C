@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using Contracts.Enums;
+using DataBase.Entities.HistoriesModel;
 
 namespace DataBase.Entities;
 
@@ -14,14 +15,14 @@ public class Production
 
     public decimal PlannedCost { get; set; }
 
-    [ForeignKey("DepartamentId")]
+    [ForeignKey("ProductionId")]
     public required Departament Departament { get; set; }
 
     public List<Element>? Elements { get; set; }
 
-    [ForeignKey("ChartOfAccountId")]
-    public required ChartOfAccount ChartOfAccount { get; set; }
+    [ForeignKey("ProductionId")]
+    public List<ProductionHistory> productionHistories { get; set; }
 
     [DefaultValue(false)]
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;
 }

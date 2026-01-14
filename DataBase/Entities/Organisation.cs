@@ -10,10 +10,7 @@ public class Organisation
 
     public required string AccountNumOrg { get; set; }
 
+    [ForeignKey("OrganisationId")]
     public List<Operation>? Operation { get; set; }
-
-    public required string ChartOfAccountId { get; set; }
-    public required ChartOfAccount ChartOfAccount { get; set; }
-
     public bool IsDeleted { get; set; }
 }

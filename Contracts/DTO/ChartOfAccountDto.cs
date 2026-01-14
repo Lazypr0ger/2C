@@ -2,7 +2,6 @@
 
 public class ChartOfAccountDto(string id, string numChart, string name, string subconto1, string subconto2, bool isDeleted)
 {
-    private readonly DepartamentDto? _departament;
     public string Id { get; set; } = id;
 
     public required string NumChart { get; set; } = numChart;

@@ -8,13 +8,8 @@ public class Departament
 
     public required string Name { get; set; }
 
-
-    public required string ChartOfAccountId { get; set; }
-    public required string DepChartNum { get; set; }
-    public required ChartOfAccount ChartOfAccount { get; set; }
-
     public List<Production>? Production { get; set; }
 
     [DefaultValue(false)]
-    public bool IsDeleted { get; set; }
+    public bool IsDeleted { get; set; } = false;
 }

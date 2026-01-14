@@ -10,14 +10,8 @@ public class ChartOfAccount
 
     public required string Name { get; set; }
 
-    public string? Subconto1 { get; set; } 
-    public string? Subconto2 { get; set; } 
-
-    public List<Departament>? Departament { get; set; }
-
-    public List<Production>? Production { get; set; }
-
-    public List<Organisation>? Organisation { get; set; }
+    public string? Subconto1 { get; set; } = string.Empty;
+    public string? Subconto2 { get; set; } = string.Empty;
 
     public List<TransactionLog> TransactionLog1 { get; set; } = new();
 

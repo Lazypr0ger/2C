@@ -1,6 +1,7 @@
 ﻿    using Contracts;
     using DataBase.Entities;
-    using Microsoft.EntityFrameworkCore;
+using DataBase.Entities.HistoriesModel;
+using Microsoft.EntityFrameworkCore;
     namespace DataBase;
 
     public class TwoCDbContext : DbContext
@@ -16,20 +17,12 @@
                 .HasIndex(x => x.Name)
                 .IsUnique();
 
-            modelBuilder.Entity<Departament>()
-                .HasOne(x => x.ChartOfAccount)
-                .WithMany(x => x.Departament)
-                .OnDelete(DeleteBehavior.Restrict);
-
             modelBuilder.Entity<Production>().HasIndex(x => new { x.Code, x.Name }).IsUnique();
             modelBuilder.Entity<Production>()
                 .HasOne(x => x.Departament)
                 .WithMany(x => x.Production)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Production>()
-                .HasOne(x => x.ChartOfAccount)
-                .WithMany(x => x.Production);
 
             modelBuilder.Entity<Element>()
                 .HasOne(x => x.Production)
