@@ -13,9 +13,12 @@ public class Element
 
     public decimal TotalCostElement { get; set; }
 
+   public string? ProductionId { get; set; }
     [ForeignKey("ProductionId")]
     public Production? Production { get; set; }
 
+ 
+    public string? OperationId { get; set; }
     [ForeignKey("OperationId")]
     public Operation? Operation { get; set; }
 

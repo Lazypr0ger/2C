@@ -11,7 +11,6 @@ public class DepartamentBusinessLogic(IDepartamentStorageContract departamentSto
 
     public void Create(DepartamentDto departamentsDto)
     {
-        logger.LogInformation("МЫ ЗАШЛИ В БИЗНЕС ЛОГИКУ");
         departamentStorageContract.Create(departamentsDto);
     }
 
@@ -35,9 +34,9 @@ public class DepartamentBusinessLogic(IDepartamentStorageContract departamentSto
         return departamentStorageContract.GetByName(name) ?? throw new ElementNotFoundException("Element with " + name + " not found");
     }
 
-    public List<DepartamentDto> GetDepartamentsByChart(string chartnum)
+    public void Recovery(string id)
     {
-        return departamentStorageContract.GetByChartNum(chartnum) ?? throw new NullListException();
+        departamentStorageContract.Recovery(id);
     }
 
     public void Update(DepartamentDto departamentsDto)

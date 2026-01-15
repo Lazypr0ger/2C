@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using DataBase.Entities.HistoriesModel;
 namespace DataBase.Entities;
 
 public class Departament
@@ -8,8 +9,12 @@ public class Departament
 
     public required string Name { get; set; }
 
-    public List<Production>? Production { get; set; }
+    public List<Production>? Productions { get; set; } 
 
     [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;
+
+    public List<DepartamentHistory>? DepartamentHistories { get; set; }
+
+
 }

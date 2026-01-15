@@ -10,11 +10,11 @@ public class ChartOfAccount
 
     public required string Name { get; set; }
 
-    public string? Subconto1 { get; set; } = string.Empty;
-    public string? Subconto2 { get; set; } = string.Empty;
+    public string? Subconto1 { get; set; }
+    public string? Subconto2 { get; set; }
 
-    public List<TransactionLog> TransactionLog1 { get; set; } = new();
+    public List<TransactionLog> TransactionLogDeb { get; set; } = new();
 
-    public List<TransactionLog> TransactionLog2 { get; set; } = new();
+    public List<TransactionLog> TransactionLogCred { get; set; } = new();
     public bool IsDeleted { get; set; }
 }

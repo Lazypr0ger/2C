@@ -1,4 +1,6 @@
-﻿namespace DataBase.Entities.HistoriesModel
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace DataBase.Entities.HistoriesModel
 {
     public class OrganisationHistory
     {
@@ -9,7 +11,9 @@
         public string? OldAccountNumOrg {get; set;}
 
         public DateTime ValidFrom { get; set; }
-        public DateTime ValidTo { get; set; }
+        public DateTime? ValidTo { get; set; }
+
+        [ForeignKey ("OrganisationId")]
 
         public Organisation? Organisation { get; set; }
     }

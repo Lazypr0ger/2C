@@ -59,23 +59,6 @@ public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,
         }
     }
 
-    public List<DepartamentDto> GetByChartNum(string chartNum)
-    {
-        try
-        {
-            
-            return [.. _dbContext.Departaments
-                .Where(x => x.DepChartNum == chartNum)
-                .Select(x => _mapper
-                .Map<DepartamentDto>(x))];
-        }
-        catch (Exception ex)
-        {
-            _dbContext.ChangeTracker.Clear();
-            throw new StorageException(ex);
-        }
-    }
-
     public DepartamentDto GetById(string id)
     {
         try
@@ -96,6 +79,28 @@ public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,
         return _mapper.Map<DepartamentDto>(_dbContext
                .Departaments
                .FirstOrDefault(x => x.Name == name));
+    }
+
+    public void Recovery(DepartamentDto departamentsDto)
+    {
+       var element = GetDepartamentById(departamentsDto.Id) ?? throw new ElementNotFoundException(departamentsDto.Id);
+        element.IsDeleted = false;
+        _dbContext.Departaments.Update(_mapper.Map(departamentsDto, element));
+    }
+
+    public void Recovery(string id)
+    {
+        try
+        {
+            var element = GetDepartamentById(id) ?? throw new ElementNotFoundException(id);
+            element.IsDeleted = false;
+            _dbContext.SaveChanges();
+        }
+        catch
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw;
+        }
     }
 
     public void Update(DepartamentDto departamentsDto)

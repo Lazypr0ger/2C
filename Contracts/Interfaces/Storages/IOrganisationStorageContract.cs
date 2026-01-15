@@ -9,6 +9,8 @@ namespace Contracts.Interfaces.Storages
         OrganisationDto GetByName(string name);
         void Create(OrganisationDto organisationDto);
         void Update(OrganisationDto organisationDto);
+
+        void Recovery(string id);
         void Delete(string id);
     }
 }

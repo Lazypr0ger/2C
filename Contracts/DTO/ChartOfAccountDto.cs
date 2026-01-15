@@ -13,7 +13,4 @@ public class ChartOfAccountDto(string id, string numChart, string name, string s
 
     public bool IsDeleted { get; set; } = isDeleted;
 
-    public List<DepartamentDto>? DepartamentDtos { get; private set; }
-    public List<ProductionDto>? ProductionDtos { get; private set; }
-
 }

@@ -13,5 +13,5 @@ public class ProductionHistoryDto(string productionId, string oldCode, TypeProdu
     public decimal? OldPlannedCost { get; set; } = oldPlannedCost;
 
     public DateTime ValidFrom { get; set; }
-    public DateTime ValidTo { get; set; }
+    public DateTime? ValidTo { get; set; }
 }

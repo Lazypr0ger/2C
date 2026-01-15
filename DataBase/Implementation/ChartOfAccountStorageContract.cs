@@ -37,7 +37,7 @@ public class ChartOfAccountStorageContract : IChartOfAccountStorageContract
         try
         {
             var query = _dbContext.ChartOfAccounts.AsQueryable();
-
+            var qtest = query.ToList();
             return [.. query
                 .Select(x => _mapper
                 .Map<ChartOfAccountDto>(x))];

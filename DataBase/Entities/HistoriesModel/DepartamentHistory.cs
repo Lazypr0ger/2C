@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,8 @@ public class DepartamentHistory
     public string? OldName { get; set; } 
 
     public DateTime ValidFrom { get; set; }
-    public DateTime ValidTo { get; set; }
+    public DateTime? ValidTo { get; set; }
 
+    [ForeignKey("DepartamentId")]
     public Departament? Departament { get; set; }
 }

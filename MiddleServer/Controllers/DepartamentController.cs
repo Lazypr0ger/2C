@@ -26,12 +26,6 @@ public class DepartamentController(IDepartamentAdapterContract adapter) : Contro
         return adapter.GetDepartamentByName(name).GetResponse(Request, Response);
     }
 
-    [HttpGet("depChartNum/{numChat}")]
-    public IActionResult GetByNumChat(string numChat)
-    {
-        return adapter.GetDepartamentListByChartNum(numChat).GetResponse(Request, Response);
-    }
-
     [HttpPost]
     public IActionResult Register([FromBody] DepartamentVM model)
     {
@@ -42,6 +36,12 @@ public class DepartamentController(IDepartamentAdapterContract adapter) : Contro
     public IActionResult ChangeInfo([FromBody] DepartamentVM model)
     {
         return adapter.UpdateDepartament(model).GetResponse(Request, Response);
+    }
+
+    [HttpPatch("{id}")]
+    public IActionResult Restore(string id)
+    {
+        return adapter.RecoveryDepartament(id).GetResponse(Request, Response);
     }
 
     [HttpDelete]

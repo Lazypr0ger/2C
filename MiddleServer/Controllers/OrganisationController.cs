@@ -38,6 +38,12 @@ public class OrganisationController(IOrganisationAdapterContract adapter) : Cont
     {
         return adapter.Update(model).GetResponse(Request, Response);
     }
+    
+    [HttpPatch("{id}")]
+    public IActionResult Restore(string id)
+    {
+        return adapter.RecoveryOrganisation(id).GetResponse(Request, Response);
+    }
 
     [HttpDelete]
     public IActionResult RemoveOrganisation(string id)

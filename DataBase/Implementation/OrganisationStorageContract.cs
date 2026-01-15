@@ -87,6 +87,21 @@ public class OrganisationStorageContract(TwoCDbContext dbContext, IMapper mapper
         }
     }
 
+    public void Recovery(string id)
+    {
+        try
+        {
+            var element = GetById(id) ?? throw new ElementNotFoundException(id);
+            element.IsDeleted = false;
+            _dbContext.SaveChanges();
+        }
+        catch
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw;
+        }
+    }
+
     public void Update(OrganisationDto organisationDto)
     {
         var entity = GetOrganisationById(organisationDto.Id);

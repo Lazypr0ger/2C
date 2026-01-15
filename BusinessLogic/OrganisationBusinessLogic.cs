@@ -33,6 +33,11 @@ public class OrganisationBusinessLogic(IOrganisationStorageContract organisation
         return organisationStorage.GetByName(name) ?? throw new ElementNotFoundException($"Организация с именем {name} не найдена");
     }
 
+    public void Recovery(string id)
+    {
+        organisationStorage.Recovery(id);
+    }
+
     public void Update(OrganisationDto organisationDto)
     {
         organisationStorage.Update(organisationDto);

@@ -7,6 +7,7 @@ using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
+using DataBase.Entities;
 
 namespace MiddleServer.Adapters;
 
@@ -136,6 +137,35 @@ public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusiness
         {
             _logger.LogError(ex, "StorageException");
             return OrganisationOperationResponse.InternalServerError($"Error while working with data storage: {ex.InnerException!.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return OrganisationOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public OrganisationOperationResponse RecoveryOrganisation(string id)
+    {
+        try
+        {
+            organisationBusinessLogic.Recovery(id);
+            return OrganisationOperationResponse.NoContent();
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogError(ex, "ArgumentNullException");
+            return OrganisationOperationResponse.BadRequest("Data is empty");
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogError(ex, "ValidationException");
+            return OrganisationOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
+        }
+        catch (StorageException ex)
+        {
+            _logger.LogError(ex, "StorageException");
+            return OrganisationOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
         }
         catch (Exception ex)
         {

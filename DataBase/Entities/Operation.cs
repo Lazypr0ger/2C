@@ -16,17 +16,24 @@ public class Operation
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 
+    
+    public string? OrganisationId { get; set; }
+
     [ForeignKey("OrganisationId")]
     public Organisation? Organisation { get; set; }
+
+    
+    public string? DepartamentId { get; set; }
 
     [ForeignKey("DepartamentId")]
     public Departament? Departament { get; set;}
 
+    
     public decimal TotalAmountDocument { get; set; }
 
     public required string Agent { get; set; }
 
-    public required List<TransactionLog> TransactionLog { get; set; }
+    public List<TransactionLog>? TransactionLog { get; set; }
 
     public List<Element>? Element { get; set; }
 

@@ -10,12 +10,11 @@ public interface IDepartamentAdapterContract
 
     DepartamentOperationResponse GetElement(string id);
     DepartamentOperationResponse GetDepartamentByName(string name);
-    DepartamentOperationResponse GetDepartamentListByChartNum(string num);
-
     DepartamentOperationResponse GetDepartamentProductionListById(string id);
     DepartamentOperationResponse CreateDepartament(DepartamentVM departament);
 
     DepartamentOperationResponse UpdateDepartament(DepartamentVM departament);
+    DepartamentOperationResponse RecoveryDepartament(string id);
 
     DepartamentOperationResponse DeleteDepartament(string id);
 }

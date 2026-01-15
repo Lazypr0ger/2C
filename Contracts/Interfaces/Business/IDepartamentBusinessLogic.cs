@@ -8,10 +8,9 @@ public interface IDepartamentBusinessLogic
     DepartamentDto GetById(string id);
     DepartamentDto GetByName(string name);
 
-    List<DepartamentDto> GetDepartamentsByChart(string chartnum);
-
     void Create(DepartamentDto departamentsDto);
     void Update(DepartamentDto departamentsDto);
+    void Recovery(string id);
     void Delete(string id);
 
 

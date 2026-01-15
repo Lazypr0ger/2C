@@ -9,6 +9,7 @@ public class TransactionLog
 
     public DateTime DateOperation { get; set; }
 
+    //subconto
     public decimal Subconto1Deb { get; set; }
 
     public decimal Subconto2Deb { get; set; }
@@ -16,20 +17,31 @@ public class TransactionLog
 
     public decimal Subconto2Cred { get; set; }
 
+    //amount
     public decimal Amount { get; set; }
 
     public int Count { get; set; }
 
     public string? Comment { get; set; }
 
+
+    //operation link
+    public string? OperationId { get; set; }
+    
     [ForeignKey("OperationId")]
     public Operation? Operation { get; set; }
     
-    public required string ChartOfAccountId { get; set; }
-    public ChartOfAccount? ChartOfAccount { get; set; }
 
-    public required string ChartOfAccount2Id { get; set; }
-    public ChartOfAccount? ChartOfAccount2 { get; set; }
+    //debit
+    public required string ChartOfAccountDebId { get; set; }
+    [ForeignKey("ChartOfAccountDebId")]
+    public ChartOfAccount? ChartOfAccountDeb { get; set; }
+
+
+    //credit
+    public required string ChartOfAccountCredId { get; set; }
+    [ForeignKey("ChartOfAccountCredId")]
+    public ChartOfAccount? ChartOfAccountCred { get; set; }
 
     [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;    

@@ -14,14 +14,15 @@ public class Production
     public required string Name { get; set; }
 
     public decimal PlannedCost { get; set; }
+    public required string DepartamentId { get; set; }
 
-    [ForeignKey("ProductionId")]
+    [ForeignKey("DepartamentId")]
     public required Departament Departament { get; set; }
+
 
     public List<Element>? Elements { get; set; }
 
-    [ForeignKey("ProductionId")]
-    public List<ProductionHistory> productionHistories { get; set; }
+    public List<ProductionHistory>? ProductionHistories { get; set; }
 
     [DefaultValue(false)]
     public bool IsDeleted { get; set; } = false;

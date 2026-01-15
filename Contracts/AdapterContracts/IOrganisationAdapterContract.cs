@@ -11,5 +11,6 @@ public interface IOrganisationAdapterContract
     OrganisationOperationResponse GetByName(string name);
     OrganisationOperationResponse Create(OrganisationVM organisation);
     OrganisationOperationResponse Update(OrganisationVM organisation);
+    OrganisationOperationResponse RecoveryOrganisation(string id);
     OrganisationOperationResponse Delete(string id);
 }

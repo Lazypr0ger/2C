@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
+using DataBase.Entities.HistoriesModel;
 
 namespace DataBase.Entities;
 
@@ -9,8 +11,12 @@ public class Organisation
     public required string Name { get; set; }
 
     public required string AccountNumOrg { get; set; }
-
-    [ForeignKey("OrganisationId")]
     public List<Operation>? Operation { get; set; }
-    public bool IsDeleted { get; set; }
+
+    [DefaultValue(false)]
+    public bool IsDeleted { get; set; } = false;
+
+    public List<OrganisationHistory>? OrganisationHistories { get; set; }
+
+
 }

@@ -113,40 +113,6 @@ public class DepartamentAdapter : IDepartamentAdapterContract
         }
     }
 
-    public DepartamentOperationResponse GetDepartamentListByChartNum(string num)
-    {
-        try
-        {
-            var items = _departamentBusinessLogic
-                .GetDepartamentsByChart(num)
-                .Select(x => _mapper.Map<DepartamentVM>(x))
-                .ToList();
-
-            return DepartamentOperationResponse.OK(items);
-        }
-        catch (ValidationException ex)
-        {
-            _logger.LogError(ex, "ValidationException");
-            return DepartamentOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-        }
-        catch (NullListException ex)
-        {
-            _logger.LogError(ex, "NullListException");
-            return DepartamentOperationResponse.NotFound(ex.Message);
-        }
-        catch (StorageException ex)
-        {
-            _logger.LogError(ex, "StorageException");
-            return DepartamentOperationResponse.BadRequest(
-                $"Error while working with data storage: {ex.InnerException?.Message ?? ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception");
-            return DepartamentOperationResponse.InternalServerError(ex.Message);
-        }
-    }
-
 
     public DepartamentOperationResponse GetDepartamentProductionListById(string id)
     {
@@ -185,11 +151,8 @@ public class DepartamentAdapter : IDepartamentAdapterContract
     {
         try
         {
-            _logger.LogInformation("А МЫ СЮДА ЗАШЛИ???");
             var getAll = _departamentBusinessLogic.GetAll();
-            _logger.LogInformation("А СЮДА ДОШЛИ??");
             var result = getAll.Select(x => _mapper.Map<DepartamentVM>(x));
-            _logger.LogInformation("А ВОТ ЗДЕСЬ ТОЧНО КОСЯК");
             return DepartamentOperationResponse.OK([.. result]);
         }
         catch (ArgumentNullException ex)
@@ -201,6 +164,45 @@ public class DepartamentAdapter : IDepartamentAdapterContract
         {
             _logger.LogError(ex, "ValidationException");
             return DepartamentOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
+        }
+        catch (StorageException ex)
+        {
+            _logger.LogError(ex, "StorageException");
+            return DepartamentOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return DepartamentOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public DepartamentOperationResponse RecoveryDepartament(string id)
+    {
+        try
+        {
+            _departamentBusinessLogic.Recovery(id);
+            return DepartamentOperationResponse.NoContent();
+        }
+        catch (ArgumentNullException ex)
+        {
+            _logger.LogError(ex, "ArgumentNullException");
+            return DepartamentOperationResponse.BadRequest("Data is empty");
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogError(ex, "ValidationException");
+            return DepartamentOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
+        }
+        catch (ElementNotFoundException ex)
+        {
+            _logger.LogError(ex, "ElementNotFoundException");
+            return DepartamentOperationResponse.BadRequest($"Not found element by Id {id}");
+        }
+        catch (ElementExistsException ex)
+        {
+            _logger.LogError(ex, "ElementExistsException");
+            return DepartamentOperationResponse.BadRequest(ex.Message);
         }
         catch (StorageException ex)
         {

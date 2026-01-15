@@ -14,15 +14,16 @@ public class OperationDto(string id, string nameDocument,
     public TypeDocument Type {  get; set; } = typeDocument;
 
     public DateTime DateOperation { get; set; } = dateOperation;
+
+    public decimal TotalAmountDocument { get; set; } = totalAmountDocument;
+
+    public required string Agent { get; set; } = agent;
+    public bool IsDeleted { get; set; } = isDeleted;
+
     public DateTime? StartDate { get; set; } = startDate;
     public DateTime? EndDate { get; set; } = endDate;
 
-    public List<ElementDto>? ElementDtos { get; set; }
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
-    public decimal TotalAmountDocument { get; set; } = totalAmountDocument;
-
-    public required string Agent {  get; set; } = agent;
-    public bool IsDeleted { get; set; } = isDeleted;
 
 }

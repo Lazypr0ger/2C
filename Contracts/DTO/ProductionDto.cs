@@ -10,7 +10,6 @@ public class ProductionDto(string id, string code, TypeProduct typeProduct, stri
     public TypeProduct TypeProduct { get; set; } = typeProduct;
     public string Name { get; set; } = name;
     public decimal PlannedCost { get; set; } = plannedCost;
-    public string DepartamentName { get; set; } = departamentName;
     public string DepartamentId { get; set; } = departamentId;
     public bool IsDeleted { get; set; } = isDeleted;
 }
