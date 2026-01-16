@@ -11,8 +11,12 @@ namespace Contracts.Interfaces.Business
     {
         List<ElementDto> GetAll();
         ElementDto GetById(string id);
+        decimal CalculateTotalCostElement(int countElement, ProductionDto productionDto);
+
         void Create(ElementDto elementDto);
         void Update(ElementDto elementDto);
         void Delete(string id);
+
+        void Recovery(string id);
     }
 }
