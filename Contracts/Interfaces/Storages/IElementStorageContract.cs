@@ -6,7 +6,12 @@ public interface IElementStorageContract
 {
     List<ElementDto> GetAll();
     ElementDto GetById(string id);
+
+    ElementDto GetByOrder(int id);
     void Create(ElementDto elementDto);
     void Update(ElementDto elementDto);
     void Delete(string id);
+
+    decimal CalculateTotalCostElement(int countElement, decimal RealisationCost);
+
 }

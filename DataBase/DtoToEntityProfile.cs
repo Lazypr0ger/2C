@@ -13,7 +13,7 @@ public class DtoToEntityProfile : Profile
         CreateMap<ProductionDto, Production>().ReverseMap();
         CreateMap<ElementDto, Element>().ReverseMap();
         CreateMap<OperationDto, Operation>().ReverseMap();
-        CreateMap<OrganisationDto, Organisation>().ReverseMap();
+        CreateMap<Organisation,OrganisationDto >().ReverseMap();
         CreateMap<TransactionLogDto, TransactionLog>().ReverseMap();
     }
 }

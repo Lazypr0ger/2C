@@ -14,7 +14,7 @@ public class Organisation
     public List<Operation>? Operation { get; set; }
 
     [DefaultValue(false)]
-    public bool IsDeleted { get; set; } = false;
+    public bool IsDeleted { get; set; }
 
     public List<OrganisationHistory>? OrganisationHistories { get; set; }
 

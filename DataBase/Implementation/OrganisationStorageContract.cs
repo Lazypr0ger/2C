@@ -47,7 +47,6 @@ public class OrganisationStorageContract(TwoCDbContext dbContext, IMapper mapper
         try
         {
             var result = _dbContext.Organisations.ToList();
-            logger.LogInformation("Упал в строаже");
             return [.. result.Select(x => _mapper.Map<OrganisationDto>(x))];
         }
         catch (Exception ex)
@@ -91,24 +90,29 @@ public class OrganisationStorageContract(TwoCDbContext dbContext, IMapper mapper
     {
         try
         {
-            var element = GetById(id) ?? throw new ElementNotFoundException(id);
+            var element = GetOrganisationById(id) ?? throw new ElementNotFoundException(id);
             element.IsDeleted = false;
             _dbContext.SaveChanges();
         }
-        catch
+        catch (Exception ex)
         {
             _dbContext.ChangeTracker.Clear();
-            throw;
+            throw new StorageException(ex);
         }
     }
 
     public void Update(OrganisationDto organisationDto)
     {
-        var entity = GetOrganisationById(organisationDto.Id);
         try
         {
+            var entity = GetOrganisationById(organisationDto.Id) ?? throw new ElementNotFoundException(organisationDto.Id);
             _dbContext.Organisations.Update(_mapper.Map(organisationDto, entity));
             _dbContext.SaveChanges();
+        }
+        catch (ElementNotFoundException ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw;
         }
         catch (Exception ex)
         {

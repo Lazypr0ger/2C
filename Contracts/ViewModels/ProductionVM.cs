@@ -7,7 +7,7 @@ public class ProductionVM
 {
     public required string Id { get; set; }
     public required string Code { get; set; }
-    public TypeProduct TypeProduct { get; set; }
+    public TypeProduct Type { get; set; }
     public required string Name { get; set; } 
     public decimal PlannedCost { get; set; } 
     public required string DepartamentId { get; set; } 

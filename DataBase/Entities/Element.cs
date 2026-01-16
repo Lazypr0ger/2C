@@ -11,8 +11,6 @@ public class Element
 
     public decimal CostRealisation { get; set; }
 
-    public decimal TotalCostElement { get; set; }
-
    public string? ProductionId { get; set; }
     [ForeignKey("ProductionId")]
     public Production? Production { get; set; }

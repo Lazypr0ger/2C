@@ -8,8 +8,6 @@ public class ElementVM
 
     public decimal CostRealisation { get; set; } 
 
-    public decimal TotalCostElement { get; set; }
-
     public string? ProductionId { get; set; }
     public string? OperationId { get; set; }
 

@@ -1,47 +1,61 @@
 ﻿using Contracts.DTO;
+using Contracts.Enums;
 using Contracts.Interfaces.Business;
+using Contracts.Interfaces.Storages;
+using Microsoft.Extensions.Logging;
 
 namespace BusinessLogic;
 
-public class ProductionBusinessLogic : IProductionBusinessLogic
+public class ProductionBusinessLogic(IProductionStorageContract productStorage, IDepartamentStorageContract departamentStorage,
+    ILogger<ProductionBusinessLogic> logger) : IProductionBusinessLogic
 {
     public void Create(ProductionDto productionDto)
     {
-        throw new NotImplementedException();
+        productStorage.Create(productionDto);
     }
 
     public void Delete(string id)
     {
-        throw new NotImplementedException();
+        productStorage.Delete(id);
     }
 
     public List<ProductionDto> GetAll()
     {
-        throw new NotImplementedException();
+        return productStorage.GetAll();
     }
 
     public ProductionDto GetByCode(string Code)
     {
-        throw new NotImplementedException();
+        return productStorage.GetByCode(Code);
     }
 
     public ProductionDto GetById(string Id)
     {
-        throw new NotImplementedException();
+        return productStorage.GetById(Id);
     }
 
     public ProductionDto GetByName(string Name)
     {
-        throw new NotImplementedException();
+        return productStorage.GetByName(Name);
     }
 
-    public List<ProductionDto> GetByType()
+    public List<ProductionDto> GetByType(TypeProduct typeProduct)
     {
-        throw new NotImplementedException();
+        return productStorage.GetByType(typeProduct);
+    }
+
+    public List<ProductionDto> GetproductByDepartamentName(string departamentName)
+    {
+       return productStorage.GetProductByDepartamentName(departamentStorage.GetByName(departamentName).Name);
+    }
+
+    public void Recovery(string id)
+    {
+        productStorage.Recovery(id);
     }
 
     public void Update(ProductionDto productionDto)
     {
-        throw new NotImplementedException();
+       productStorage.Update(productionDto);
     }
 }

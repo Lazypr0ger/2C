@@ -7,8 +7,6 @@ public class ElementDto(string id, int countProduct, decimal costRealisation, bo
     public int CountProduct { get; set; } = countProduct;
 
     public decimal CostRealisation { get; set; } = costRealisation;
-
-    public decimal TotalCostElement => CountProduct * CostRealisation;
         
     public string? ProductionId { get; set; }
     public string? OperationId { get; set; }

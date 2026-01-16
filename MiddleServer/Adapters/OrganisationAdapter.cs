@@ -105,11 +105,6 @@ public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusiness
         {
             return OrganisationOperationResponse.OK(_mapper.Map<OrganisationVM>(organisationBusinessLogic.GetById(id)));
         }
-        catch (NullListException)
-        {
-            _logger.LogError("NullListException");
-            return OrganisationOperationResponse.NotFound("The list is not initialized");
-        }
         catch (StorageException ex)
         {
             _logger.LogError(ex, "StorageException");
@@ -161,6 +156,16 @@ public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusiness
         {
             _logger.LogError(ex, "ValidationException");
             return OrganisationOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
+        }
+        catch (ElementNotFoundException ex)
+        {
+            _logger.LogError(ex, "ElementNotFoundException");
+            return OrganisationOperationResponse.BadRequest($"Not found element by Id {id}");
+        }
+        catch (ElementExistsException ex)
+        {
+            _logger.LogError(ex, "ElementExistsException");
+            return OrganisationOperationResponse.BadRequest(ex.Message);
         }
         catch (StorageException ex)
         {
