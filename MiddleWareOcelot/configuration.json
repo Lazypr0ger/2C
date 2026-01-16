@@ -1,0 +1,73 @@
+{
+    "Routes": [
+        {
+            "UpstreamPathTemplate": "/ms/api/ChartOfAccount",
+            "UpstreamHttpMethod": [ "GET", "POST" ],
+            "DownstreamPathTemplate": "/api/ChartOfAccount",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7070
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ChartOfAccount/id/{id}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/ChartOfAccount/id/{id}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7070
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ChartOfAccount/name/{name}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/ChartOfAccount/name/{name}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7070
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ChartOfAccount/num/{numChat}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/ChartOfAccount/num/{numChat}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 7070
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        }
+    ],
+
+    "SwaggerEndPoints": [
+        {
+            "Key": "middleserver",
+            "Config": [
+                {
+                    "Name": "MiddleServer API",
+                    "Version": "v1",
+                    "Url": "http://localhost:5218/swagger/v1/swagger.json"
+                }
+            ]
+        }
+    ],
+
+    "GlobalConfiguration": {
+        "BaseUrl": "http://localhost:7119"
+    }
+}
