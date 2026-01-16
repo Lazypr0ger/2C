@@ -2,7 +2,7 @@
 using Contracts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MiddleServer.Controllers;
+namespace MainServer.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class ChartOfAccountController(IChartOfAccountAdapterContract adapter) : ControllerBase

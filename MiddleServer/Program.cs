@@ -3,13 +3,13 @@ using Contracts.AdapterContracts;
 using Contracts.Interfaces.Storages;
 using DataBase;
 using DataBase.Implementation;
-using MiddleServer;
-using MiddleServer.Adapters;
 using Serilog;
 using BusinessLogic;
 using Contracts.Interfaces.Business;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using MainServer;
+using MainServer.Adapters;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.

@@ -9,7 +9,7 @@ using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
 using DataBase.Entities;
 
-namespace MiddleServer.Adapters;
+namespace MainServer.Adapters;
 
 public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusinessLogic, ILogger<OrganisationAdapter> logger, IMapper mapper) : IOrganisationAdapterContract
 {

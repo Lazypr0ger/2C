@@ -1,4 +1,4 @@
-﻿namespace MiddleServer.Controllers
+﻿namespace MainServer.Controllers
 {
     public class TransactionLogController
     {

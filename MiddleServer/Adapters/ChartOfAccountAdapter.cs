@@ -7,7 +7,7 @@ using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
 
-namespace MiddleServer.Adapters;
+namespace MainServer.Adapters;
 
 public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
 {

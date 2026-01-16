@@ -1,6 +1,6 @@
 ﻿using Contracts.AdapterContracts;
 
-namespace MiddleServer.Adapters;
+namespace MainServer.Adapters;
 
 public class TransactionLogAdapter : ITransactionLogAdapterContract
 {

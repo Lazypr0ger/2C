@@ -10,7 +10,7 @@ using Contracts.ViewModels;
 using DataBase.Entities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace MiddleServer.Adapters;
+namespace MainServer.Adapters;
 
 public class ProductionAdapter(IProductionBusinessLogic productionBusinessLogic,
     ILogger<ProductionAdapter> logger, IMapper mapper) : IProductionAdapterContract

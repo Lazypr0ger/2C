@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataBase", "DataBase\DataBa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLogic", "BusinessLogic\BusinessLogic.csproj", "{D5BDFB21-4DDC-430C-807B-128D1EF42D88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiddleServer", "MiddleServer\MiddleServer.csproj", "{386E8022-D22A-48A8-B664-04A13665109E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MainServer", "MiddleServer\MainServer.csproj", "{386E8022-D22A-48A8-B664-04A13665109E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2Cclient", "2Cclient\2Cclient.csproj", "{2DB5B92E-0A28-4D44-9BA2-38AB94A768CC}"
 EndProject

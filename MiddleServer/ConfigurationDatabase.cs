@@ -1,7 +1,7 @@
 ﻿using Contracts;
 using Microsoft.Extensions.Configuration;
 
-namespace MiddleServer;
+namespace MainServer;
 
 public class ConfigurationDatabase(IConfiguration configuration) : IConfigurationDatabase
 {

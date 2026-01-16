@@ -8,7 +8,7 @@ using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
 using DataBase.Entities;
 
-namespace MiddleServer.Adapters;
+namespace MainServer.Adapters;
 
 public class DepartamentAdapter : IDepartamentAdapterContract
 {
