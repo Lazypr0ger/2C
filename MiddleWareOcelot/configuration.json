@@ -11,7 +11,15 @@
                     "Port": 5218
                 }
             ],
-            "SwaggerKey": "middleserver"
+            "SwaggerKey": "middleserver",
+            "FileCacheOptions": {
+                "TtlSeconds": 0
+            },
+            "QoSOptions": {
+                "ExceptionsAllowedBeforeBreaking": 0,
+                "DurationOfBreak": 0,
+                "TimeoutValue": 0
+            }
         },
         {
             "UpstreamPathTemplate": "/ms/api/ChartOfAccount/id/{id}",
@@ -24,7 +32,15 @@
                     "Port": 5218
                 }
             ],
-            "SwaggerKey": "middleserver"
+            "SwaggerKey": "middleserver",
+            "FileCacheOptions": {
+                "TtlSeconds": 0
+            },
+            "QoSOptions": {
+                "ExceptionsAllowedBeforeBreaking": 0,
+                "DurationOfBreak": 0,
+                "TimeoutValue": 0
+            }
         },
         {
             "UpstreamPathTemplate": "/ms/api/ChartOfAccount/name/{name}",
@@ -37,7 +53,15 @@
                     "Port": 5218
                 }
             ],
-            "SwaggerKey": "middleserver"
+            "SwaggerKey": "middleserver",
+            "FileCacheOptions": {
+                "TtlSeconds": 0
+            },
+            "QoSOptions": {
+                "ExceptionsAllowedBeforeBreaking": 0,
+                "DurationOfBreak": 0,
+                "TimeoutValue": 0
+            }
         },
         {
             "UpstreamPathTemplate": "/ms/api/ChartOfAccount/num/{numChat}",
@@ -50,7 +74,15 @@
                     "Port": 5218
                 }
             ],
-            "SwaggerKey": "middleserver"
+            "SwaggerKey": "middleserver",
+            "FileCacheOptions": {
+                "TtlSeconds": 0
+            },
+            "QoSOptions": {
+                "ExceptionsAllowedBeforeBreaking": 0,
+                "DurationOfBreak": 0,
+                "TimeoutValue": 0
+            }
         }
     ],
 
@@ -68,6 +100,8 @@
     ],
 
     "GlobalConfiguration": {
-        "BaseUrl": "http://localhost:5119"
+        "BaseUrl": "http://localhost:5119",
+        "RequestIdKey": "X-Correlation-ID", // Добавляем ключ для ID запроса
+        "DownstreamScheme": "http"
     }
 }

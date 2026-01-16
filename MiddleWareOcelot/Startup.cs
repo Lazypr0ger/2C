@@ -1,6 +1,4 @@
-﻿using MMLib.SwaggerForOcelot.DependencyInjection;
-using MMLib.SwaggerForOcelot.Middleware;
-using Ocelot.DependencyInjection;
+﻿using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 
 namespace MiddleWareOcelot
@@ -17,12 +15,18 @@ namespace MiddleWareOcelot
 
             // Ocelot
             services.AddOcelot(Configuration);
+
+            // Регистрируем наш middleware
+            services.AddScoped<RequestLoggingMiddleware>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
+
+            // Добавляем middleware для логирования ВСЕХ запросов
+            app.UseMiddleware<RequestLoggingMiddleware>();
 
             // UI будет доступен по /swagger
             app.UseSwaggerForOcelotUI(opt =>
