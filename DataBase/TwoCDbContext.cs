@@ -109,10 +109,6 @@ public class TwoCDbContext : DbContext
             entity.Property(x => x.CostRealisation)
                   .HasPrecision(18, 4);
 
-            entity.Property(x => x.TotalCostElement)
-                  .HasPrecision(18, 4);
-
-
             entity.HasOne(x => x.Production)
                   .WithMany(x => x.Elements)
                   .HasForeignKey(x => x.ProductionId)

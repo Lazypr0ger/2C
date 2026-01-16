@@ -26,12 +26,7 @@ public class DepartamentAdapter : IDepartamentAdapterContract
     {
         try
         {
-            _logger.LogInformation("МЫ ЗАШЛИ В АДАПТЕР");
-            //todo mapper fuck
-            //var dto = new DepartamentDto(departament.Id, departament.Name, departament.ChartOfAccountId, departament.DepChartNum, departament.Production
-              // .Select(x => new ProductionDto(x.Id, x.Code,x.TypeProduct, x.Name, x.PlannedCost, x.IsDeleted)).ToList(), departament.IsDeleted);
             _departamentBusinessLogic.Create(_mapper.Map<DepartamentDto>(departament));
-           // _departamentBusinessLogic.Create(dto));
             return DepartamentOperationResponse.NoContent();
         }
         catch (ArgumentNullException ex)

@@ -14,4 +14,6 @@ public interface IElementStorageContract
     void Update(ElementDto elementDto);
     void Delete(string id);
 
+    void Recovery(string id);
+
 }

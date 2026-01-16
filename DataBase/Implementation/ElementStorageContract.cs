@@ -79,6 +79,21 @@ public class ElementStorageContract(TwoCDbContext dbContext,
         throw new NotImplementedException();
     }
 
+    public void Recovery(string id)
+    {
+        try
+        {
+            var element = _dbContext.Elements.FirstOrDefault(x => x.Id == id);
+            element.IsDeleted = false;
+            _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            _dbContext.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
+    }
+
     public void Update(ElementDto elementDto)
     {
         try
