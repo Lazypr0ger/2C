@@ -2,35 +2,41 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using _2Cclient.Services.Api;
 using Contracts.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages
 {
     public partial class DepartamentsPage : Page
     {
         private List<DepartamentVM> _items = new();
+        private readonly DepartamentApi _api;
 
         public DepartamentsPage()
         {
             InitializeComponent();
-            LoadStub();
+            _api = App.Services.GetRequiredService<DepartamentApi>();
+            Loaded += async (_, __) => await LoadFromServerAsync();
         }
-
-        private void LoadStub()
+        private async Task LoadFromServerAsync()
         {
-            _items = new List<DepartamentVM>
+            try
             {
-                new() { Id="d1", Name="Производство", IsDeleted=false },
-                new() { Id="d2", Name="Склад", IsDeleted=false },
-                new() { Id="d3", Name="Продажи", IsDeleted=false },
-                new() { Id="d4", Name="ИТ-отдел", IsDeleted=true },
-            };
+                // Можно добавить индикатор “loading” позже
+                var data = await _api.GetAllAsync();
+                _items = data ?? new List<DepartamentVM>();
 
-            DepartamentsList.ItemsSource = _items;
-            DepartamentsList.SelectedItem = null;
-            UpdateButtons();
+                DepartamentsList.ItemsSource = _items;
+                DepartamentsList.SelectedItem = null;
+                UpdateButtons();
+            }
+            catch (Exception ex)
+            {
+                // Пока просто сообщение (позже сделаем красивый баннер в UI)
+                MessageBox.Show($"Ошибка загрузки подразделений через Ocelot:\n{ex.Message}");
+            }
         }
-
         private void UpdateButtons()
         {
             if (DepartamentsList.SelectedItem is DepartamentVM selected)
