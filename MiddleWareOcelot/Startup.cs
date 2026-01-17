@@ -10,10 +10,10 @@ namespace MiddleWareOcelot
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // ВАЖНО: SwaggerForOcelot
+
             services.AddSwaggerForOcelot(Configuration);
 
-            // Ocelot
+           
             services.AddOcelot(Configuration);
 
             // Регистрируем наш middleware
@@ -25,10 +25,10 @@ namespace MiddleWareOcelot
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
-            // Добавляем middleware для логирования ВСЕХ запросов
+         
             app.UseMiddleware<RequestLoggingMiddleware>();
 
-            // UI будет доступен по /swagger
+            
             app.UseSwaggerForOcelotUI(opt =>
             {
                 opt.PathToSwaggerGenerator = "/swagger/docs";

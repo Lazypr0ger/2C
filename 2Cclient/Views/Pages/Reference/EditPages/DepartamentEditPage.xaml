@@ -1,0 +1,68 @@
+﻿<Page x:Class="_2Cclient.Views.Pages.DepartamentEditPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="Transparent">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock x:Name="TitleText"
+                       Text="Подразделение"
+                       Foreground="{StaticResource Text}"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock x:Name="SubtitleText"
+                       Text="Заполните поля"
+                       Foreground="{StaticResource Text2}"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="16">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Название" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
+                    <TextBox x:Name="NameBox"
+                             Height="38"
+                             VerticalContentAlignment="Center"
+                             Background="#0F141B"
+                             Foreground="{StaticResource Text}"
+                             BorderBrush="#243142"
+                             BorderThickness="1"
+                             Padding="12,0"/>
+                </StackPanel>
+
+                <CheckBox Grid.Row="2"
+                          x:Name="IsDeletedCheck"
+                          Content="Пометить как удалённое (неактивное)"
+                          Foreground="{StaticResource Text2}"
+                          Margin="2,8,0,0"/>
+            </Grid>
+        </Border>
+
+        <DockPanel Grid.Row="4" LastChildFill="False">
+            <Button Content="Отмена"
+                    Style="{StaticResource ToolbarButtonBase}"
+                    Width="140"
+                    Margin="0,0,10,0"
+                    Click="Cancel_Click"/>
+
+            <Button Content="Сохранить"
+                    Style="{StaticResource ToolbarButtonPrimary}"
+                    Width="160"
+                    Click="Save_Click"/>
+        </DockPanel>
+    </Grid>
+</Page>

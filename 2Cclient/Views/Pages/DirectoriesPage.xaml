@@ -1,0 +1,109 @@
+﻿<Page x:Class="_2Cclient.Views.Pages.DirectoriesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="Transparent">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Справочники"
+                       Foreground="{StaticResource Text}"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Выберите справочник"
+                       Foreground="{StaticResource Text2}"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <UniformGrid Grid.Row="2" Columns="3">
+            <Button Click="Organizations_Click" Margin="0,0,12,0"
+                    Background="#10151C" BorderBrush="#243142" BorderThickness="1" Cursor="Hand">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="16"
+                                Padding="18">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+
+                <StackPanel>
+                    <TextBlock Text="Организации" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Реквизиты и общие данные" Foreground="{StaticResource Text2}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button Click="Departaments_Click" Margin="12,0,12,0"
+                    Background="#10151C" BorderBrush="#243142" BorderThickness="1" Cursor="Hand">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="16"
+                                Padding="18">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+
+                <StackPanel>
+                    <TextBlock Text="Подразделения" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Структура компании" Foreground="{StaticResource Text2}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Button>
+
+            <Button Click="Products_Click" Margin="12,0,0,0"
+                    Background="#10151C" BorderBrush="#243142" BorderThickness="1" Cursor="Hand">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="16"
+                                Padding="18">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+
+                <StackPanel>
+                    <TextBlock Text="Продукты" Foreground="{StaticResource Text}" FontSize="16" FontWeight="SemiBold"/>
+                    <TextBlock Text="Номенклатура" Foreground="{StaticResource Text2}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Button>
+        </UniformGrid>
+    </Grid>
+</Page>

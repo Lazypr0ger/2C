@@ -1,5 +1,4 @@
-﻿using Contracts.Infrastructure;
-using Contracts.ViewModels;
+﻿using Contracts.ViewModels;
 
 namespace Contracts.AdapterContracts.OperationResponses
 {

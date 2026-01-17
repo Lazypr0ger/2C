@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 
-namespace Contracts.Infrastructure;
+namespace Contracts;
 
 public class OperationResponse
 {
