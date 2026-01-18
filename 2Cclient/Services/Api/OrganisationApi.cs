@@ -10,9 +10,11 @@ namespace _2Cclient.Services.Api
         public Task<List<OrganisationVM>> GetAllAsync(CancellationToken ct = default)
             => _api.GetAsync<List<OrganisationVM>>("/ms/api/Organisation", ct);
 
-        public Task CreateAsync(OrganisationVM vm, CancellationToken ct = default)
-            => _api.PostAsync("/ms/api/Organisation", vm, ct);
+        // CREATE: отправляем только необходимые поля (без Id)
+        public Task CreateAsync(string name, string accountNumOrg, CancellationToken ct = default)
+            => _api.PostAsync("/ms/api/Organisation", new { Name = name, AccountNumOrg = accountNumOrg }, ct);
 
+        // UPDATE: отправляем VM целиком
         public Task UpdateAsync(OrganisationVM vm, CancellationToken ct = default)
             => _api.PutAsync("/ms/api/Organisation", vm, ct);
 

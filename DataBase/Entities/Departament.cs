@@ -5,8 +5,7 @@ namespace DataBase.Entities;
 
 public class Departament
 {
-    public required string Id { get; set; } = Guid.NewGuid().ToString();
-
+    public required string Id { get; set; }
     public required string Name { get; set; }
 
     public List<Production>? Productions { get; set; } 

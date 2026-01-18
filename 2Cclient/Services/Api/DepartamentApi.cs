@@ -11,6 +11,10 @@ namespace _2Cclient.Services.Api
         public Task<List<DepartamentVM>> GetAllAsync(CancellationToken ct = default)
             => _api.GetAsync<List<DepartamentVM>>("/ms/api/Departament", ct);
 
+        public Task CreateAsync(string name, CancellationToken ct = default)
+            => _api.PostAsync("/ms/api/Departament", new { Name = name }, ct);
+
+
         public Task CreateAsync(DepartamentVM vm, CancellationToken ct = default)
             => _api.PostAsync("/ms/api/Departament", vm, ct);
 
