@@ -28,14 +28,22 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <!-- Code -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
+                    <!-- Name -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
+                    <!-- Type -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
+                    <!-- Departament -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
+                    <!-- Cost -->
+                    <RowDefinition Height="12"/>
+                    <RowDefinition Height="Auto"/>
+                    <!-- IsDeleted -->
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
@@ -65,14 +73,18 @@
                 <StackPanel Grid.Row="4">
                     <TextBlock Text="Тип продукта" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="TypeBox"
-                              Height="38"
-                              Background="#0F141B"
-                              Foreground="{StaticResource Text}"
-                              BorderBrush="#243142"
-                              BorderThickness="1"/>
+                              Style="{StaticResource DarkComboBoxStyle}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="6">
+                    <TextBlock Text="Подразделение" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
+                    <ComboBox x:Name="DepartamentBox"
+                              Style="{StaticResource DarkComboBoxStyle}"
+                              DisplayMemberPath="Name"
+                              SelectedValuePath="Id"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="8">
                     <TextBlock Text="Плановая стоимость" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="CostBox"
                              Height="38"
@@ -84,7 +96,7 @@
                              Padding="12,0"/>
                 </StackPanel>
 
-                <CheckBox Grid.Row="8"
+                <CheckBox Grid.Row="10"
                           x:Name="IsDeletedCheck"
                           Content="Пометить как удалённый (неактивный)"
                           Foreground="{StaticResource Text2}"

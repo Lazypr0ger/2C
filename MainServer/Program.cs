@@ -33,6 +33,7 @@ try
     {
         cfg.AddProfile<DtoToVmProfile>();
         cfg.AddProfile<DtoToEntityProfile>();
+        cfg.AddProfile<BindModelToDtoProfile>();
     });
 }
 catch (ReflectionTypeLoadException ex)

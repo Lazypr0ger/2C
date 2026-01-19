@@ -1,4 +1,5 @@
-﻿using Contracts.ViewModels;
+﻿using Contracts.BindingModels;
+using Contracts.ViewModels;
 
 namespace _2Cclient.Services.Api
 {
@@ -15,18 +16,17 @@ namespace _2Cclient.Services.Api
             => _api.PostAsync("/ms/api/Departament", new { Name = name }, ct);
 
 
-        public Task CreateAsync(DepartamentVM vm, CancellationToken ct = default)
+        public Task CreateAsync(DepartamentBM vm, CancellationToken ct = default)
             => _api.PostAsync("/ms/api/Departament", vm, ct);
 
-        public Task UpdateAsync(DepartamentVM vm, CancellationToken ct = default)
+        public Task UpdateAsync(DepartamentBM vm, CancellationToken ct = default)
             => _api.PutAsync("/ms/api/Departament", vm, ct);
 
-        // “Удалить” = пометить IsDeleted=true (через PATCH)
         public Task SoftDeleteAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Departament/{id}", new { IsDeleted = true }, ct);
+            => _api.DeleteAsync($"/ms/api/Departament/{id}", ct);
 
-        // “Восстановить” = IsDeleted=false (через PATCH)
         public Task RestoreAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Departament/{id}", new { IsDeleted = false }, ct);
+            => _api.PatchAsync($"/ms/api/Departament/{id}", ct);
+
     }
 }

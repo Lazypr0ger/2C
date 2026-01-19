@@ -81,13 +81,6 @@ public class DepartamentStorageContract(TwoCDbContext dbContext, IMapper mapper,
                .FirstOrDefault(x => x.Name == name));
     }
 
-    public void Recovery(DepartamentDto departamentsDto)
-    {
-       var element = GetDepartamentById(departamentsDto.Id) ?? throw new ElementNotFoundException(departamentsDto.Id);
-        element.IsDeleted = false;
-        _dbContext.Departaments.Update(_mapper.Map(departamentsDto, element));
-    }
-
     public void Recovery(string id)
     {
         try

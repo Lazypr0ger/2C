@@ -1,36 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Contracts.Enums;
+using _2Cclient.Services.Api;
 using Contracts.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages
 {
     public partial class ProductsPage : Page
     {
         private List<ProductionVM> _items = new();
+        private readonly ProductionApi _api;
 
         public ProductsPage()
         {
             InitializeComponent();
-            LoadStub();
+            _api = App.Services.GetRequiredService<ProductionApi>();
+            Loaded += async (_, __) => await LoadFromServerAsync();
         }
 
-        private void LoadStub()
+        private async Task LoadFromServerAsync()
         {
-            // Если enum TypeProduct у тебя с другими именами — поменяй значения.
-            _items = new List<ProductionVM>
+            try
             {
-                new() { Id="p1", Code="PR-001", Type=(TypeProduct)0, Name="Сталь листовая 2мм", PlannedCost=1200.50m, DepartamentId="d1", IsDeleted=false },
-                new() { Id="p2", Code="PR-002", Type=(TypeProduct)1, Name="Заготовка корпуса", PlannedCost=5400.00m, DepartamentId="d1", IsDeleted=false },
-                new() { Id="p3", Code="PR-003", Type=(TypeProduct)2, Name="Изделие А (готовая продукция)", PlannedCost=15999.99m, DepartamentId="d2", IsDeleted=false },
-                new() { Id="p4", Code="PR-004", Type=(TypeProduct)2, Name="Изделие B (архив)", PlannedCost=8900.00m, DepartamentId="d2", IsDeleted=true },
-            };
+                var data = await _api.GetAllAsync();
+                _items = data ?? new List<ProductionVM>();
 
-            ProductsList.ItemsSource = _items;
-            ProductsList.SelectedItem = null;
-            UpdateButtons();
+                ProductsList.ItemsSource = _items;
+                ProductsList.SelectedItem = null;
+                UpdateButtons();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки продуктов через Ocelot:\n{ex.Message}");
+            }
         }
 
         private void UpdateButtons()
@@ -73,7 +79,7 @@ namespace _2Cclient.Views.Pages
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
-             => NavigationService?.Navigate(new ProductEditPage());
+            => NavigationService?.Navigate(new ProductEditPage());
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
@@ -81,17 +87,48 @@ namespace _2Cclient.Views.Pages
             NavigationService?.Navigate(new ProductEditPage(selected));
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (ProductsList.SelectedItem is not ProductionVM selected) return;
+            if (selected.IsDeleted) return;
 
-            selected.IsDeleted = true;
+            try
+            {
+                SetBusy(true);
+                await _api.SoftDeleteAsync(selected.Id);
+                await LoadFromServerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка удаления:\n{ex.Message}");
+                UpdateButtons();
+            }
+            finally
+            {
+                SetBusy(false);
+            }
+        }
 
-            ProductsList.ItemsSource = null;
-            ProductsList.ItemsSource = _items;
+        private async void Restore_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProductsList.SelectedItem is not ProductionVM selected) return;
+            if (!selected.IsDeleted) return;
 
-            ProductsList.SelectedItem = null;
-            UpdateButtons();
+            try
+            {
+                SetBusy(true);
+                await _api.RestoreAsync(selected.Id);
+                await LoadFromServerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка восстановления:\n{ex.Message}");
+                UpdateButtons();
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
@@ -100,17 +137,23 @@ namespace _2Cclient.Views.Pages
                 NavigationService.GoBack();
         }
 
-        private void Restore_Click(object sender, RoutedEventArgs e)
+        private void SetBusy(bool isBusy)
         {
-            if (ProductsList.SelectedItem is not ProductionVM selected) return;
+            // без белого "disabled" эффекта
+            ProductsList.IsHitTestVisible = !isBusy;
 
-            selected.IsDeleted = false;
+            AddBtn.IsEnabled = !isBusy;
 
-            ProductsList.ItemsSource = null;
-            ProductsList.ItemsSource = _items;
-
-            ProductsList.SelectedItem = null;
-            UpdateButtons();
+            if (isBusy)
+            {
+                UpdateBtn.IsEnabled = false;
+                DeleteBtn.IsEnabled = false;
+                RestoreBtn.IsEnabled = false;
+            }
+            else
+            {
+                UpdateButtons();
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.Enums;
 using Contracts.ViewModels;
 
@@ -12,8 +13,8 @@ public interface IProductionAdapterContract
     ProductionOperationResponse GetByCode(string code);
     ProductionOperationResponse GetByType(TypeProduct product);
     ProductionOperationResponse GetProductsByDepartament(string departametnName);
-    ProductionOperationResponse Create(ProductionVM production);
-    ProductionOperationResponse Update(ProductionVM production);
+    ProductionOperationResponse Create(ProductionBM production);
+    ProductionOperationResponse Update(ProductionBM production);
     ProductionOperationResponse RecoveryProduct(string id);
     ProductionOperationResponse Delete(string id);
 }

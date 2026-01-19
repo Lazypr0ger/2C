@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Contracts.ViewModels;
+using Contracts.BindingModels;
 using Microsoft.Extensions.DependencyInjection;
 using _2Cclient.Services.Api;
 
@@ -11,7 +12,7 @@ namespace _2Cclient.Views.Pages
     {
         private readonly DepartamentApi _api;
 
-        private readonly bool _isEdit;
+        // если null → Create, если не null → Update
         private readonly DepartamentVM? _editing;
 
         // CREATE
@@ -20,23 +21,21 @@ namespace _2Cclient.Views.Pages
             InitializeComponent();
 
             _api = App.Services.GetRequiredService<DepartamentApi>();
+            _editing = null;
 
-            _isEdit = false;
             TitleText.Text = "Добавить подразделение";
             SubtitleText.Text = "Заполните поля и нажмите «Сохранить»";
 
             IsDeletedCheck.IsChecked = false;
-            IsDeletedCheck.IsEnabled = false; // при создании не даём удалять сразу
+            IsDeletedCheck.IsEnabled = false;
         }
 
-        // EDIT
+        // UPDATE
         public DepartamentEditPage(DepartamentVM vm)
         {
             InitializeComponent();
 
             _api = App.Services.GetRequiredService<DepartamentApi>();
-
-            _isEdit = true;
             _editing = vm;
 
             TitleText.Text = "Обновить подразделение";
@@ -60,35 +59,31 @@ namespace _2Cclient.Views.Pages
 
             try
             {
-                if (_isEdit)
+                if (_editing is null)
                 {
-                    if (_editing is null)
-                        throw new InvalidOperationException("Edit mode: editing VM is null");
+                    // CREATE
+                    var model = new DepartamentBM
+                    {
+                        Name = name
+                        // Id = null → сервер сам создаст
+                        // IsDeleted по умолчанию false
+                    };
 
-                    var updated = new DepartamentVM
+                    await _api.CreateAsync(model);
+                }
+                else
+                {
+                    // UPDATE
+                    var model = new DepartamentBM
                     {
                         Id = _editing.Id,
                         Name = name,
                         IsDeleted = IsDeletedCheck.IsChecked == true
                     };
 
-                    await _api.UpdateAsync(updated);
-                }
-                else
-                {
-                    // Id required => генерируем Guid
-                    var created = new DepartamentVM
-                    {
-                        
-                        Name = name,
-                        IsDeleted = false
-                    };
-
-                    await _api.CreateAsync(name);
-                    
+                    await _api.UpdateAsync(model);
                 }
 
-                // успех -> назад
                 if (NavigationService?.CanGoBack == true)
                     NavigationService.GoBack();
             }
@@ -108,9 +103,7 @@ namespace _2Cclient.Views.Pages
         private void SetBusy(bool isBusy)
         {
             NameBox.IsEnabled = !isBusy;
-
-            // чекбокс включаем только в режиме редактирования
-            IsDeletedCheck.IsEnabled = _isEdit && !isBusy;
+            IsDeletedCheck.IsEnabled = _editing != null && !isBusy;
         }
     }
 }

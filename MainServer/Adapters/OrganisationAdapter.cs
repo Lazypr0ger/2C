@@ -3,6 +3,7 @@ using AutoMapper;
 using BusinessLogic;
 using Contracts.AdapterContracts;
 using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
@@ -17,7 +18,7 @@ public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusiness
     private readonly ILogger<OrganisationAdapter> _logger = logger;
     private readonly IMapper _mapper = mapper;
 
-    public OrganisationOperationResponse Create(OrganisationVM organisation)
+    public OrganisationOperationResponse Create(OrganisationBM organisation)
     {
         try
         {
@@ -179,7 +180,7 @@ public class OrganisationAdapter(IOrganisationBusinessLogic organisationBusiness
         }
     }
 
-    public OrganisationOperationResponse Update(OrganisationVM organisation )
+    public OrganisationOperationResponse Update(OrganisationBM organisation )
     {
         try
         {

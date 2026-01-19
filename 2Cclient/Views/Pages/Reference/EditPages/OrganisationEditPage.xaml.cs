@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using Contracts.BindingModels;
 using Contracts.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using _2Cclient.Services.Api;
@@ -11,16 +12,15 @@ namespace _2Cclient.Views.Pages
     {
         private readonly OrganisationApi _api;
 
-        private readonly bool _isEdit;
+        // null -> Create, not null -> Update
         private readonly OrganisationVM? _editing;
 
+        // CREATE
         public OrganisationEditPage()
         {
             InitializeComponent();
 
             _api = App.Services.GetRequiredService<OrganisationApi>();
-
-            _isEdit = false;
             _editing = null;
 
             TitleText.Text = "Добавить организацию";
@@ -30,13 +30,12 @@ namespace _2Cclient.Views.Pages
             IsDeletedCheck.IsEnabled = false;
         }
 
+        // UPDATE
         public OrganisationEditPage(OrganisationVM vm)
         {
             InitializeComponent();
 
             _api = App.Services.GetRequiredService<OrganisationApi>();
-
-            _isEdit = true;
             _editing = vm;
 
             TitleText.Text = "Обновить организацию";
@@ -44,14 +43,15 @@ namespace _2Cclient.Views.Pages
 
             NameBox.Text = vm.Name;
             AccountBox.Text = vm.AccountNumOrg;
+
             IsDeletedCheck.IsChecked = vm.IsDeleted;
-            IsDeletedCheck.IsEnabled = true;
+            IsDeletedCheck.IsEnabled = false; // удаление/восстановление отдельными кнопками в списке
         }
 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
             var name = NameBox.Text.Trim();
-            var acc = AccountBox.Text.Trim();
+            var account = AccountBox.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -59,9 +59,9 @@ namespace _2Cclient.Views.Pages
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(acc))
+            if (string.IsNullOrWhiteSpace(account))
             {
-                MessageBox.Show("Счёт организации не должен быть пустым");
+                MessageBox.Show("Номер счёта не должен быть пустым");
                 return;
             }
 
@@ -69,25 +69,31 @@ namespace _2Cclient.Views.Pages
 
             try
             {
-                if (_isEdit)
+                if (_editing is null)
                 {
-                    if (_editing is null)
-                        throw new InvalidOperationException("Edit mode: editing VM is null");
-
-                    var updated = new OrganisationVM
+                    // CREATE
+                    var model = new OrganisationBM
                     {
-                        Id = _editing.Id,
                         Name = name,
-                        AccountNumOrg = acc,
-                        IsDeleted = IsDeletedCheck.IsChecked == true
+                        AccountNumOrg = account
+                        // Id = null -> генерит сервер
+                        // IsDeleted -> сервер выставит false
                     };
 
-                    await _api.UpdateAsync(updated);
+                    await _api.CreateAsync(model);
                 }
                 else
                 {
-                    // CREATE: без Id
-                    await _api.CreateAsync(name, acc);
+                    // UPDATE (IsDeleted не трогаем — отдельные трассы)
+                    var model = new OrganisationBM
+                    {
+                        Id = _editing.Id,
+                        Name = name,
+                        AccountNumOrg = account,
+                        IsDeleted = _editing.IsDeleted
+                    };
+
+                    await _api.UpdateAsync(model);
                 }
 
                 if (NavigationService?.CanGoBack == true)
@@ -109,8 +115,7 @@ namespace _2Cclient.Views.Pages
         private void SetBusy(bool isBusy)
         {
             NameBox.IsEnabled = !isBusy;
-            AccountBox.IsEnabled = !isBusy;
-            IsDeletedCheck.IsEnabled = _isEdit && !isBusy;
+            IsDeletedCheck.IsEnabled = _editing != null && !isBusy;
         }
     }
 }

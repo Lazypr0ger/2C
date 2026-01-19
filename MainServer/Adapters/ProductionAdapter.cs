@@ -7,6 +7,7 @@ using Contracts.Enums;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
+using Contracts.BindingModels;
 using DataBase.Entities;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -19,7 +20,7 @@ public class ProductionAdapter(IProductionBusinessLogic productionBusinessLogic,
     private readonly ILogger<ProductionAdapter> _logger = logger;
     private readonly IMapper _mapper = mapper;
 
-    public ProductionOperationResponse Create(ProductionVM production)
+    public ProductionOperationResponse Create(ProductionBM production)
     {
         try
         {
@@ -274,7 +275,7 @@ public class ProductionAdapter(IProductionBusinessLogic productionBusinessLogic,
         }
     }
 
-    public ProductionOperationResponse Update(ProductionVM production)
+    public ProductionOperationResponse Update(ProductionBM production)
     {
         try
         {

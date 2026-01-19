@@ -2,6 +2,7 @@
 using BusinessLogic;
 using Contracts.AdapterContracts;
 using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
@@ -22,7 +23,7 @@ public class DepartamentAdapter : IDepartamentAdapterContract
         _mapper = mapper;
     }
 
-    public DepartamentOperationResponse CreateDepartament(DepartamentVM departament)
+    public DepartamentOperationResponse CreateDepartament(DepartamentBM departament)
     {
         try
         {
@@ -211,7 +212,7 @@ public class DepartamentAdapter : IDepartamentAdapterContract
         }
     }
 
-    public DepartamentOperationResponse UpdateDepartament(DepartamentVM departament)
+    public DepartamentOperationResponse UpdateDepartament(DepartamentBM departament)
     {
         try
         {

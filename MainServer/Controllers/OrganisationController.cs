@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts;
+using Contracts.BindingModels;
 using Contracts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,13 +29,13 @@ public class OrganisationController(IOrganisationAdapterContract adapter) : Cont
     }
 
     [HttpPost]
-    public IActionResult RegisterOrganisation([FromBody] OrganisationVM model)
+    public IActionResult RegisterOrganisation([FromBody] OrganisationBM model)
     {
         return adapter.Create(model).GetResponse(Request, Response);
     }
 
     [HttpPut]
-    public IActionResult ChangeOrganisation([FromBody] OrganisationVM model)
+    public IActionResult ChangeOrganisation([FromBody] OrganisationBM model)
     {
         return adapter.Update(model).GetResponse(Request, Response);
     }
@@ -45,7 +46,7 @@ public class OrganisationController(IOrganisationAdapterContract adapter) : Cont
         return adapter.RecoveryOrganisation(id).GetResponse(Request, Response);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public IActionResult RemoveOrganisation(string id)
     {
         return adapter.Delete(id).GetResponse(Request, Response);

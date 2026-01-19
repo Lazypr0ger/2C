@@ -1,4 +1,5 @@
-﻿using Contracts.ViewModels;
+﻿using Contracts.BindingModels;
+using Contracts.ViewModels;
 
 namespace _2Cclient.Services.Api
 {
@@ -10,18 +11,16 @@ namespace _2Cclient.Services.Api
         public Task<List<OrganisationVM>> GetAllAsync(CancellationToken ct = default)
             => _api.GetAsync<List<OrganisationVM>>("/ms/api/Organisation", ct);
 
-        // CREATE: отправляем только необходимые поля (без Id)
-        public Task CreateAsync(string name, string accountNumOrg, CancellationToken ct = default)
-            => _api.PostAsync("/ms/api/Organisation", new { Name = name, AccountNumOrg = accountNumOrg }, ct);
+        public Task CreateAsync(OrganisationBM bm, CancellationToken ct = default)
+            => _api.PostAsync("/ms/api/Organisation", bm, ct);
 
-        // UPDATE: отправляем VM целиком
-        public Task UpdateAsync(OrganisationVM vm, CancellationToken ct = default)
-            => _api.PutAsync("/ms/api/Organisation", vm, ct);
+        public Task UpdateAsync(OrganisationBM bm, CancellationToken ct = default)
+            => _api.PutAsync("/ms/api/Organisation", bm, ct);
 
         public Task SoftDeleteAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Organisation/{id}", new { IsDeleted = true }, ct);
+            => _api.DeleteAsync($"/ms/api/Organisation/{id}", ct);
 
         public Task RestoreAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Organisation/{id}", new { IsDeleted = false }, ct);
+            => _api.PatchAsync($"/ms/api/Organisation/{id}", new { }, ct);
     }
 }

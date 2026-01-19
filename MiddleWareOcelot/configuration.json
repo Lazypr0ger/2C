@@ -134,9 +134,9 @@
             "SwaggerKey": "middleserver"
         },
         {
-            "UpstreamPathTemplate": "/ms/api/Departament",
+            "UpstreamPathTemplate": "/ms/api/Departament/{id}",
             "UpstreamHttpMethod": [ "DELETE" ],
-            "DownstreamPathTemplate": "/api/Departament",
+            "DownstreamPathTemplate": "/api/Departament/{id}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
@@ -320,9 +320,9 @@
             "SwaggerKey": "middleserver"
         },
         {
-            "UpstreamPathTemplate": "/ms/api/Organisation",
+            "UpstreamPathTemplate": "/ms/api/Organisation/{id}",
             "UpstreamHttpMethod": [ "DELETE" ],
-            "DownstreamPathTemplate": "/api/Organisation",
+            "DownstreamPathTemplate": "/api/Organisation/{id}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
@@ -426,9 +426,9 @@
             "SwaggerKey": "middleserver"
         },
         {
-            "UpstreamPathTemplate": "/ms/api/Production",
+            "UpstreamPathTemplate": "/ms/api/Production/{id}",
             "UpstreamHttpMethod": [ "DELETE" ],
-            "DownstreamPathTemplate": "/api/Production",
+            "DownstreamPathTemplate": "/api/Production/{id}",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {

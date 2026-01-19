@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts;
+using Contracts.BindingModels;
 using Contracts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,18 +40,18 @@ public class ProductionController(IProductionAdapterContract productionAdapter, 
     }
 
     [HttpPost]
-    public IActionResult CreateProduct([FromBody] ProductionVM production)
+    public IActionResult CreateProduct([FromBody] ProductionBM production)
     {
         return productionAdapter.Create(production).GetResponse(Request,Response);
     }
 
     [HttpPut]
-    public IActionResult UpdateProduct([FromBody] ProductionVM production)
+    public IActionResult UpdateProduct([FromBody] ProductionBM production)
     {
         return productionAdapter.Update(production).GetResponse(Request,Response);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public IActionResult DeleteProduct(string id)
     {
         return productionAdapter.Delete(id).GetResponse(Request,Response);

@@ -1,33 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using _2Cclient.Services.Api;
 using Contracts.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages
 {
     public partial class OrganizationsPage : Page
     {
         private List<OrganisationVM> _items = new();
+        private readonly OrganisationApi _api;
 
         public OrganizationsPage()
         {
             InitializeComponent();
-            LoadStub();
+            _api = App.Services.GetRequiredService<OrganisationApi>();
+            Loaded += async (_, __) => await LoadFromServerAsync();
         }
 
-        private void LoadStub()
+        private async Task LoadFromServerAsync()
         {
-            _items = new List<OrganisationVM>
+            try
             {
-                new() { Id="1", Name="ООО Ромашка", AccountNumOrg="40702810...", IsDeleted=false },
-                new() { Id="2", Name="АО Север", AccountNumOrg="40702811...", IsDeleted=false },
-                new() { Id="3", Name="ИП Иванов", AccountNumOrg="40802810...", IsDeleted=true },
-            };
+                var data = await _api.GetAllAsync();
+                _items = data ?? new List<OrganisationVM>();
 
-            OrganizationsList.ItemsSource = _items;
-            OrganizationsList.SelectedItem = null;
-            UpdateButtons();
+                OrganizationsList.ItemsSource = _items;
+                OrganizationsList.SelectedItem = null;
+                UpdateButtons();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки организаций через Ocelot:\n{ex.Message}");
+            }
         }
 
         private void UpdateButtons()
@@ -35,8 +44,8 @@ namespace _2Cclient.Views.Pages
             if (OrganizationsList.SelectedItem is OrganisationVM selected)
             {
                 UpdateBtn.IsEnabled = true;
-                DeleteBtn.IsEnabled = !selected.IsDeleted;   // удалять только активные
-                RestoreBtn.IsEnabled = selected.IsDeleted;   // восстанавливать только удаленные
+                DeleteBtn.IsEnabled = !selected.IsDeleted;
+                RestoreBtn.IsEnabled = selected.IsDeleted;
             }
             else
             {
@@ -54,7 +63,6 @@ namespace _2Cclient.Views.Pages
         {
             var depObj = (DependencyObject)e.OriginalSource;
 
-            // если клик НЕ по элементу строки
             if (FindAncestor<ListViewItem>(depObj) == null)
             {
                 OrganizationsList.SelectedItem = null;
@@ -73,9 +81,7 @@ namespace _2Cclient.Views.Pages
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
-        {
-            NavigationService?.Navigate(new OrganisationEditPage());
-        }
+            => NavigationService?.Navigate(new OrganisationEditPage());
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
@@ -83,18 +89,50 @@ namespace _2Cclient.Views.Pages
             NavigationService?.Navigate(new OrganisationEditPage(selected));
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (OrganizationsList.SelectedItem is not OrganisationVM selected) return;
             if (selected.IsDeleted) return;
-            selected.IsDeleted = true;
 
-            // обновим UI (пока VM без INPC)
-            OrganizationsList.ItemsSource = null;
-            OrganizationsList.ItemsSource = _items;
+            try
+            {
+                SetBusy(true);
 
-            OrganizationsList.SelectedItem = null;
-            UpdateButtons();
+                await _api.SoftDeleteAsync(selected.Id);
+                await LoadFromServerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка удаления:\n{ex.Message}");
+                UpdateButtons();
+            }
+            finally
+            {
+                SetBusy(false);
+            }
+        }
+
+        private async void Restore_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrganizationsList.SelectedItem is not OrganisationVM selected) return;
+            if (!selected.IsDeleted) return;
+
+            try
+            {
+                SetBusy(true);
+
+                await _api.RestoreAsync(selected.Id);
+                await LoadFromServerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка восстановления:\n{ex.Message}");
+                UpdateButtons();
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
@@ -103,17 +141,22 @@ namespace _2Cclient.Views.Pages
                 NavigationService.GoBack();
         }
 
-        private void Restore_Click(object sender, RoutedEventArgs e)
+        private void SetBusy(bool isBusy)
         {
-            if (OrganizationsList.SelectedItem is not OrganisationVM selected) return;
+            OrganizationsList.IsHitTestVisible = !isBusy;
 
-            selected.IsDeleted = false;
+            AddBtn.IsEnabled = !isBusy;
 
-            OrganizationsList.ItemsSource = null;
-            OrganizationsList.ItemsSource = _items;
-
-            OrganizationsList.SelectedItem = null;
-            UpdateButtons();
+            if (isBusy)
+            {
+                UpdateBtn.IsEnabled = false;
+                DeleteBtn.IsEnabled = false;
+                RestoreBtn.IsEnabled = false;
+            }
+            else
+            {
+                UpdateButtons();
+            }
         }
     }
 }

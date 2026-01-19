@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.DTO;
 using Contracts.ViewModels;
 
@@ -9,8 +10,8 @@ public interface IOrganisationAdapterContract
     OrganisationOperationResponse GetAll();
     OrganisationOperationResponse GetById(string id);
     OrganisationOperationResponse GetByName(string name);
-    OrganisationOperationResponse Create(OrganisationVM organisation);
-    OrganisationOperationResponse Update(OrganisationVM organisation);
+    OrganisationOperationResponse Create(OrganisationBM organisation);
+    OrganisationOperationResponse Update(OrganisationBM organisation);
     OrganisationOperationResponse RecoveryOrganisation(string id);
     OrganisationOperationResponse Delete(string id);
 }

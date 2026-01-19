@@ -1,4 +1,5 @@
-﻿using Contracts.Enums;
+﻿using Contracts.BindingModels;
+using Contracts.Enums;
 using Contracts.ViewModels;
 
 namespace _2Cclient.Services.Api
@@ -11,26 +12,16 @@ namespace _2Cclient.Services.Api
         public Task<List<ProductionVM>> GetAllAsync(CancellationToken ct = default)
             => _api.GetAsync<List<ProductionVM>>("/ms/api/Production", ct);
 
-        // CREATE: без Id
-        public Task CreateAsync(string code, TypeProduct type, string name, decimal plannedCost, string departamentId, CancellationToken ct = default)
-            => _api.PostAsync("/ms/api/Production", new
-            {
-                Code = code,
-                Type = type,
-                Name = name,
-                PlannedCost = plannedCost,
-                DepartamentId = departamentId,
-                IsDeleted = false
-            }, ct);
+        public Task CreateAsync(ProductionBM bm, CancellationToken ct = default)
+            => _api.PostAsync("/ms/api/Production", bm, ct);
 
-        // UPDATE: VM целиком
-        public Task UpdateAsync(ProductionVM vm, CancellationToken ct = default)
-            => _api.PutAsync("/ms/api/Production", vm, ct);
+        public Task UpdateAsync(ProductionBM bm, CancellationToken ct = default)
+            => _api.PutAsync("/ms/api/Production", bm, ct);
 
         public Task SoftDeleteAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Production/{id}", new { IsDeleted = true }, ct);
+            => _api.DeleteAsync($"/ms/api/Production/{id}", ct);
 
         public Task RestoreAsync(string id, CancellationToken ct = default)
-            => _api.PatchAsync($"/ms/api/Production/{id}", new { IsDeleted = false }, ct);
+            => _api.PatchAsync($"/ms/api/Production/{id}", new { }, ct);
     }
 }

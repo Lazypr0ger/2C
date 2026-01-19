@@ -27,7 +27,8 @@
         <!-- Toolbar: кнопки справа -->
         <DockPanel Grid.Row="2">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button Content="Добавить"
+                <Button x:Name="AddBtn"
+                        Content="Добавить"
                         Style="{StaticResource ToolbarButtonPrimary}"
                         Margin="0,0,8,0"
                         Click="Add_Click"/>

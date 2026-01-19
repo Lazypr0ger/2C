@@ -84,36 +84,50 @@ namespace _2Cclient.Views.Pages
             NavigationService?.Navigate(new DepartamentEditPage(selected));
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (DepartamentsList.SelectedItem is not DepartamentVM selected) return;
 
-            selected.IsDeleted = true;
+            try
+            {
+                DeleteBtn.IsEnabled = false;
+                RestoreBtn.IsEnabled = false;
+                UpdateBtn.IsEnabled = false;
 
-            DepartamentsList.ItemsSource = null;
-            DepartamentsList.ItemsSource = _items;
+                await _api.SoftDeleteAsync(selected.Id);
+                await LoadFromServerAsync(); // обновляем из БД
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка удаления:\n{ex.Message}");
+                UpdateButtons();
+            }
+        }
 
-            DepartamentsList.SelectedItem = null;
-            UpdateButtons();
+        private async void Restore_Click(object sender, RoutedEventArgs e)
+        {
+            if (DepartamentsList.SelectedItem is not DepartamentVM selected) return;
+
+            try
+            {
+                DeleteBtn.IsEnabled = false;
+                RestoreBtn.IsEnabled = false;
+                UpdateBtn.IsEnabled = false;
+
+                await _api.RestoreAsync(selected.Id);
+                await LoadFromServerAsync(); // обновляем из БД
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка восстановления:\n{ex.Message}");
+                UpdateButtons();
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             if (NavigationService?.CanGoBack == true)
                 NavigationService.GoBack();
-        }
-
-        private void Restore_Click(object sender, RoutedEventArgs e)
-        {
-            if (DepartamentsList.SelectedItem is not DepartamentVM selected) return;
-
-            selected.IsDeleted = false;
-
-            DepartamentsList.ItemsSource = null;
-            DepartamentsList.ItemsSource = _items;
-
-            DepartamentsList.SelectedItem = null;
-            UpdateButtons();
         }
     }
 }

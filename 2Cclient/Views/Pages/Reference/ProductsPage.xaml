@@ -26,9 +26,10 @@
 
         <DockPanel Grid.Row="2">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                <Button Content="Добавить"
+                <Button x:Name="AddBtn"
+                        Content="Добавить"
                         Style="{StaticResource ToolbarButtonPrimary}"
-                        Margin="0,0,10,0"
+                        Margin="0,0,8,0"
                         Click="Add_Click"/>
 
                 <Button x:Name="UpdateBtn"
@@ -44,13 +45,13 @@
                         Margin="0,0,8,0"
                         Click="Delete_Click"
                         IsEnabled="False"/>
+
                 <Button x:Name="RestoreBtn"
                         Content="Восстановить"
                         Style="{StaticResource ToolbarButtonSuccess}"
                         Margin="0,0,8,0"
                         Click="Restore_Click"
-                        IsEnabled="False"/> 
-
+                        IsEnabled="False"/>
             </StackPanel>
         </DockPanel>
 
@@ -64,18 +65,16 @@
 
                 <Grid Grid.Row="0" Margin="4,0,4,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="140"/>
-                        <ColumnDefinition Width="160"/>
+                        <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="160"/>
                         <ColumnDefinition Width="140"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Код" Foreground="{StaticResource Text2}"/>
-                    <TextBlock Grid.Column="1" Text="Тип" Foreground="{StaticResource Text2}"/>
-                    <TextBlock Grid.Column="2" Text="Название" Foreground="{StaticResource Text2}"/>
-                    <TextBlock Grid.Column="3" Text="План. стоимость" Foreground="{StaticResource Text2}"/>
-                    <TextBlock Grid.Column="4" Text="Статус" Foreground="{StaticResource Text2}"/>
+                    <TextBlock Grid.Column="1" Text="Название" Foreground="{StaticResource Text2}"/>
+                    <TextBlock Grid.Column="2" Text="Тип" Foreground="{StaticResource Text2}"/>
+                    <TextBlock Grid.Column="3" Text="Статус" Foreground="{StaticResource Text2}"/>
                 </Grid>
 
                 <ListView x:Name="ProductsList"
@@ -137,22 +136,19 @@
                         <DataTemplate>
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="140"/>
-                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="160"/>
                                     <ColumnDefinition Width="140"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="{Binding Code}" Foreground="{StaticResource Text}" FontSize="14"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Type}" Foreground="{StaticResource Text2}"/>
-                                <TextBlock Grid.Column="2" Text="{Binding Name}" Foreground="{StaticResource Text}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="{StaticResource Text}" FontSize="14"/>
 
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding PlannedCost, StringFormat={}{0:N2}}"
-                                           Foreground="{StaticResource Text2}"/>
+                                <!-- тип показываем как ToString() пока, русские названия будут в edit -->
+                                <TextBlock Grid.Column="2" Text="{Binding Type}" Foreground="{StaticResource Text2}"/>
 
-                                <TextBlock Grid.Column="4" FontWeight="SemiBold">
+                                <TextBlock Grid.Column="3" FontWeight="SemiBold">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Text" Value="Активно"/>

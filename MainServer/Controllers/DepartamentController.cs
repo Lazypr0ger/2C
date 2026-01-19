@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts;
+using Contracts.BindingModels;
 using Contracts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,13 +28,13 @@ public class DepartamentController(IDepartamentAdapterContract adapter) : Contro
     }
 
     [HttpPost]
-    public IActionResult Register([FromBody] DepartamentVM model)
+    public IActionResult Register([FromBody] DepartamentBM model)
     {
         return adapter.CreateDepartament(model).GetResponse(Request, Response);
     }
 
     [HttpPut]
-    public IActionResult ChangeInfo([FromBody] DepartamentVM model)
+    public IActionResult ChangeInfo([FromBody] DepartamentBM model)
     {
         return adapter.UpdateDepartament(model).GetResponse(Request, Response);
     }
@@ -44,7 +45,7 @@ public class DepartamentController(IDepartamentAdapterContract adapter) : Contro
         return adapter.RecoveryDepartament(id).GetResponse(Request, Response);
     }
 
-    [HttpDelete]
+    [HttpDelete("{id}")]
     public IActionResult Delete(string id)
     {
         return adapter.DeleteDepartament(id).GetResponse(Request, Response);
