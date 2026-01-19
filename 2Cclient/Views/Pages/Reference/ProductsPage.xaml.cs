@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
+using _2Cclient.Views.Pages.Reference.HistoryPages;
 using Contracts.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,12 +47,14 @@ namespace _2Cclient.Views.Pages
                 UpdateBtn.IsEnabled = true;
                 DeleteBtn.IsEnabled = !selected.IsDeleted;
                 RestoreBtn.IsEnabled = selected.IsDeleted;
+                HistoryBtn.IsEnabled = true;
             }
             else
             {
                 UpdateBtn.IsEnabled = false;
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
+                HistoryBtn.IsEnabled = false;
             }
         }
 
@@ -135,6 +138,11 @@ namespace _2Cclient.Views.Pages
         {
             if (NavigationService?.CanGoBack == true)
                 NavigationService.GoBack();
+        }
+        private void History_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProductsList.SelectedItem is not ProductionVM selected) return;
+            NavigationService?.Navigate(new ProductionHistoryPage(selected));
         }
 
         private void SetBusy(bool isBusy)

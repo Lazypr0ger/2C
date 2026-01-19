@@ -1,11 +1,11 @@
 ﻿namespace Contracts.DTO;
 
-public class DepartamentDto(string id, string name, bool isDeleted)
+public class DepartamentDto
 {
-    public string Id { get; set; } = id;
+    public string? Id { get; set; }
 
-    public string Name { get; set; } = name;
+    public string? Name { get; set; } 
 
-    public bool IsDeleted { get; set; } = isDeleted;
+    public bool IsDeleted { get; set; }
 
 }

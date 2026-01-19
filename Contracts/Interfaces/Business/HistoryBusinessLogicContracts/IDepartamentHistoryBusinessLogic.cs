@@ -12,5 +12,7 @@ namespace Contracts.Interfaces.Business.HistoryBusinessLogicContracts
     {
         List<DepartamentHistoryDto> GetHistory(string departamentId);
         DepartamentDto GetAsOf(string departamentId, DateTime atUtc);
+
+        void RestoreFromHistory(string historyId);
     }
 }

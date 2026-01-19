@@ -44,12 +44,19 @@
                         Margin="0,0,8,0"
                         Click="Delete_Click"
                         IsEnabled="False"/>
-                
+
                 <Button x:Name="RestoreBtn"
                         Content="Восстановить"
                         Style="{StaticResource ToolbarButtonSuccess}"
                         Margin="0,0,8,0"
                         Click="Restore_Click"
+                        IsEnabled="False"/>
+
+                <Button x:Name="HistoryBtn"
+                        Content="История"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        Margin="0,0,0,0"
+                        Click="History_Click"
                         IsEnabled="False"/>
             </StackPanel>
         </DockPanel>

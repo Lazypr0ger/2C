@@ -13,5 +13,8 @@ namespace Contracts.Interfaces.Storages.HistoryStorageContracts
         List<DepartamentHistoryDto> GetByDepartamentId(string departamentId);
 
         DepartamentDto GetAsOf(string departamentId, DateTime atUtc);
+
+        void RestoreFromHistory(string historyId);
+
     }
 }

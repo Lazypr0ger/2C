@@ -46,7 +46,6 @@ namespace DataBase.Implementation.HistoryImp
         {
             try
             {
-                // Ищем snapshot-версию на дату
                 var snap = _db.DepartamentHistories
                     .AsNoTracking()
                     .Where(x => x.DepartamentId == departamentId
@@ -65,15 +64,37 @@ namespace DataBase.Implementation.HistoryImp
                     };
                 }
 
-                // Если не было ни одной записи истории — значит сущность никогда не менялась
-                // Берем текущее состояние
                 var current = _db.Departaments
                     .AsNoTracking()
                     .FirstOrDefault(x => x.Id == departamentId);
 
-                if (current == null) throw new ElementNotFoundException(departamentId);
+                if (current == null)
+                    throw new ElementNotFoundException(departamentId);
 
                 return _mapper.Map<DepartamentDto>(current);
+            }
+            catch
+            {
+                _db.ChangeTracker.Clear();
+                throw;
+            }
+        }
+        public void RestoreFromHistory(string historyId)
+        {
+            try
+            {
+                var history = _db.DepartamentHistories
+                    .FirstOrDefault(x => x.Id == historyId)
+                    ?? throw new ElementNotFoundException(historyId);
+
+                var dep = _db.Departaments
+                    .FirstOrDefault(x => x.Id == history.DepartamentId)
+                    ?? throw new ElementNotFoundException(history.DepartamentId);
+
+                dep.Name = history.Name ?? dep.Name;
+                dep.IsDeleted = history.IsDeleted;
+
+                _db.SaveChanges();
             }
             catch
             {

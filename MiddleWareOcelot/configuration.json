@@ -450,7 +450,126 @@
                 }
             ],
             "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/DepartamentHistory/{departamentId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/DepartamentHistory/{departamentId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/DepartamentHistory/{departamentId}/asof",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/DepartamentHistory/{departamentId}/asof",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/DepartamentHistory/restore/{historyId}",
+            "UpstreamHttpMethod": [ "PATCH" ],
+            "DownstreamPathTemplate": "/api/DepartamentHistory/restore/{historyId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/OrganisationHistory/{organisationId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/OrganisationHistory/{organisationId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/OrganisationHistory/{organisationId}/asof",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/OrganisationHistory/{organisationId}/asof",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/OrganisationHistory/restore/{historyId}",
+            "UpstreamHttpMethod": [ "PATCH" ],
+            "DownstreamPathTemplate": "/api/OrganisationHistory/restore/{historyId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ProductionHistory/{productionId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/ProductionHistory/{productionId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ProductionHistory/{productionId}/asof",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/ProductionHistory/{productionId}/asof",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/ProductionHistory/restore/{historyId}",
+            "UpstreamHttpMethod": [ "PATCH" ],
+            "DownstreamPathTemplate": "/api/ProductionHistory/restore/{historyId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
         }
+
+
     ],
 
     "SwaggerEndPoints": [

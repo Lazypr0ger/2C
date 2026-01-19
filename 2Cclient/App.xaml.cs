@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Http.Headers;
 using System.Windows;
 using _2Cclient.Services.Api;
+using _2Cclient.Services.Api.HistoryApi;
 
 namespace _2Cclient
 {
@@ -38,6 +39,10 @@ namespace _2Cclient
             sc.AddTransient<DepartamentApi>();
             sc.AddTransient<OrganisationApi>();
             sc.AddTransient<ProductionApi>();
+            sc.AddTransient<DepartamentHistoryApi>();
+            sc.AddTransient<OrganisationHistoryApi>();
+            sc.AddTransient<ProductionHistoryApi>();
+
 
             Services = sc.BuildServiceProvider();
 

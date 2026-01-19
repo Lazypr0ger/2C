@@ -116,7 +116,10 @@ namespace DataBase.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("OldName")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -142,11 +145,14 @@ namespace DataBase.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("OldAccountNumOrg")
+                    b.Property<string>("AccountNumOrg")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("OldName")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
@@ -174,28 +180,32 @@ namespace DataBase.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<string>("OldCode")
+                    b.Property<string>("Code")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("OldDepartamentId")
+                    b.Property<string>("DepartamentId")
                         .HasColumnType("text");
 
-                    b.Property<string>("OldName")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<decimal?>("OldPlannedCost")
+                    b.Property<decimal>("PlannedCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
-
-                    b.Property<string>("OldType")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("ProductionId")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("ValidFrom")
                         .HasColumnType("timestamp with time zone");
@@ -306,7 +316,6 @@ namespace DataBase.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("DepartamentId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
@@ -317,12 +326,11 @@ namespace DataBase.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<decimal>("PlannedCost")
+                    b.Property<decimal?>("PlannedCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Type")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -472,8 +480,7 @@ namespace DataBase.Migrations
                     b.HasOne("DataBase.Entities.Departament", "Departament")
                         .WithMany("Productions")
                         .HasForeignKey("DepartamentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Departament");
                 });

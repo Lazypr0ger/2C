@@ -1,11 +1,12 @@
 ﻿
 namespace Contracts.DTO.HistoriesDto
 {
-    public class DepartamentHistoryDto(string departamentid, string oldName)
+    public class DepartamentHistoryDto
     {
-        public string DepartamentId { get; set; } = departamentid;
+        public string? Id { get; set; }
+        public string? DepartamentId { get; set; }
 
-        public string? Name { get; set; } = oldName;
+        public string? Name { get; set; }
 
         public DateTime ValidFrom { get; set; }
         public DateTime? ValidTo { get; set; }

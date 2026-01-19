@@ -46,13 +46,21 @@ namespace _2Cclient.Views.Pages
                 UpdateBtn.IsEnabled = true;
                 DeleteBtn.IsEnabled = !selected.IsDeleted;
                 RestoreBtn.IsEnabled = selected.IsDeleted;
+                HistoryBtn.IsEnabled = true;
             }
             else
             {
                 UpdateBtn.IsEnabled = false;
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
+                HistoryBtn.IsEnabled = false;
             }
+        }
+
+        private void History_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrganizationsList.SelectedItem is not OrganisationVM selected) return;
+            NavigationService?.Navigate(new OrganisationHistoryPage(selected));
         }
 
         private void List_SelectionChanged(object sender, SelectionChangedEventArgs e)

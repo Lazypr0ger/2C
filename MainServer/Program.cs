@@ -10,6 +10,12 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using MainServer;
 using MainServer.Adapters;
+using Contracts.AdapterContracts.HistoryIAdapterContracts;
+using Contracts.Interfaces.Business.HistoryBusinessLogicContracts;
+using Contracts.Interfaces.Storages.HistoryStorageContracts;
+using DataBase.Implementation.HistoryImp;
+using MainServer.Adapters.HistoryAdapters;
+using BusinessLogic.HistoryBusinessImp;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -55,8 +61,9 @@ builder.Services.AddTransient<IProductionBusinessLogic, ProductionBusinessLogic>
 builder.Services.AddTransient<IElementBusinessLogic, ElementBusinessLogic>();
 builder.Services.AddTransient<IOperationBusinessLogic, OperationBusinessLogic>();
 builder.Services.AddTransient<ITransactionLogBusinessLogic, TransactionLogBusinessLogic>();
-
-
+builder.Services.AddScoped<IDepartamentHistoryBusinessLogic, DepartamentHistoryBusinessLogic>();
+builder.Services.AddScoped<IOrganisationHistoryBusinessLogic, OrganisationHistoryBusinessLogic>();
+builder.Services.AddScoped<IProductionHistoryBusinessLogic, ProductionHistoryBusinessLogic>();
 //storages registrate
 builder.Services.AddTransient<IChartOfAccountStorageContract, ChartOfAccountStorageContract>();
 builder.Services.AddTransient<IDepartamentStorageContract, DepartamentStorageContract>();
@@ -65,7 +72,9 @@ builder.Services.AddTransient<IProductionStorageContract, ProductionStorageContr
 builder.Services.AddTransient<IElementStorageContract, ElementStorageContract>();
 builder.Services.AddTransient<IOperationStorageContract, OperationStorageContract>();
 builder.Services.AddTransient<ITransactionLogStorageContract, TransactionLogStorageContract>();
-
+builder.Services.AddScoped<IDepartamentHistoryStorageContract, DepartamentHistoryStorageContract>();
+builder.Services.AddScoped<IOrganisationHistoryStorageContract, OrganisationHistoryStorageContract>();
+builder.Services.AddScoped<IProductionHistoryStorageContract, ProductionHistoryStorageContract>();
 
 // Adapters registrate
 builder.Services.AddTransient<IChartOfAccountAdapterContract, ChartOfAccountAdapter>();
@@ -75,6 +84,9 @@ builder.Services.AddTransient<IProductionAdapterContract, ProductionAdapter>();
 builder.Services.AddTransient<IElementAdapterContract, ElementAdapter>();
 builder.Services.AddTransient<IOperationAdapterContract, OperationAdapter>();
 builder.Services.AddTransient<ITransactionLogAdapterContract, TransactionLogAdapter>();
+builder.Services.AddScoped<IDepartamentHistoryAdapterContract, DepartamentHistoryAdapter>();
+builder.Services.AddScoped<IOrganisationHistoryAdapterContract, OrganisationHistoryAdapter>();
+builder.Services.AddScoped<IProductionHistoryAdapterContract, ProductionHistoryAdapter>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -82,6 +94,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// adapters
+
+
+// business
+
+
+// storage
 
 
 

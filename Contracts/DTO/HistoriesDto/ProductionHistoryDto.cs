@@ -2,15 +2,16 @@
 
 namespace Contracts.DTO.HistoriesDto;
 
-public class ProductionHistoryDto(string productionId, string oldCode, TypeProduct oldType,string oldName, decimal oldPlannedCost)
+public class ProductionHistoryDto
 {
-    public string ProductionId { get; set; } = productionId;
-    public string? OldCode { get; set; } = oldCode;
+    public string? Id {get; set;}
+    public string? ProductionId { get; set; }
+    public string? Code { get; set; }
 
-    public TypeProduct? OldType { get; set; } = oldType;
-    public string? OldName { get; set; } = oldName;
+    public TypeProduct? Type { get; set; } 
+    public string? Name { get; set; } 
 
-    public decimal? OldPlannedCost { get; set; } = oldPlannedCost;
+    public decimal? PlannedCost { get; set; }
 
     public DateTime ValidFrom { get; set; }
     public DateTime? ValidTo { get; set; }

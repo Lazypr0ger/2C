@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
+using _2Cclient.Views.Pages.Reference.HistoryPages;
 using Contracts.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,12 +45,14 @@ namespace _2Cclient.Views.Pages
                 UpdateBtn.IsEnabled = true;
                 DeleteBtn.IsEnabled = !selected.IsDeleted;
                 RestoreBtn.IsEnabled = selected.IsDeleted;
+                HistoryBtn.IsEnabled = true;
             }
             else
             {
                 UpdateBtn.IsEnabled = false;
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
+                HistoryBtn.IsEnabled = false;
             }
         }
 
@@ -93,6 +96,7 @@ namespace _2Cclient.Views.Pages
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
                 UpdateBtn.IsEnabled = false;
+                HistoryBtn.IsEnabled = false;
 
                 await _api.SoftDeleteAsync(selected.Id);
                 await LoadFromServerAsync(); // обновляем из БД
@@ -113,6 +117,7 @@ namespace _2Cclient.Views.Pages
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
                 UpdateBtn.IsEnabled = false;
+                HistoryBtn.IsEnabled = false;
 
                 await _api.RestoreAsync(selected.Id);
                 await LoadFromServerAsync(); // обновляем из БД
@@ -122,6 +127,12 @@ namespace _2Cclient.Views.Pages
                 MessageBox.Show($"Ошибка восстановления:\n{ex.Message}");
                 UpdateButtons();
             }
+        }
+
+        private void History_Click(object sender, RoutedEventArgs e)
+        {
+            if (DepartamentsList.SelectedItem is not DepartamentVM selected) return;
+            NavigationService?.Navigate(new DepartamentHistoryPage(selected));
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

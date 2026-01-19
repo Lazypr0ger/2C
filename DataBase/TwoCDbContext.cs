@@ -194,6 +194,7 @@ public class TwoCDbContext : DbContext
         modelBuilder.Entity<DepartamentHistory>(entity =>
         {
             entity.HasKey(x => x.Id);
+            entity.HasKey(x => x.Id);
 
             entity.Property(x => x.Name)
                   .HasMaxLength(100);
@@ -207,16 +208,17 @@ public class TwoCDbContext : DbContext
             entity.HasIndex(x => x.DepartamentId);
             entity.HasIndex(x => x.ValidFrom);
             entity.HasIndex(x => x.ValidTo);
+
         });
 
         modelBuilder.Entity<OrganisationHistory>(entity =>
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.OldName)
+            entity.Property(x => x.Name)
                   .HasMaxLength(200);
 
-            entity.Property(x => x.OldAccountNumOrg)
+            entity.Property(x => x.AccountNumOrg)
                   .HasMaxLength(20);
 
             entity.HasOne(x => x.Organisation)
@@ -234,16 +236,16 @@ public class TwoCDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.OldCode)
+            entity.Property(x => x.Code)
                   .HasMaxLength(50);
 
-            entity.Property(x => x.OldName)
+            entity.Property(x => x.Name)
                   .HasMaxLength(200);
 
-            entity.Property(x => x.OldPlannedCost)
+            entity.Property(x => x.PlannedCost)
                   .HasPrecision(18, 2);
 
-            entity.Property(x => x.OldType)
+            entity.Property(x => x.Type)
                   .HasConversion<string>()
                   .HasMaxLength(50);
 
@@ -260,108 +262,183 @@ public class TwoCDbContext : DbContext
         });
     }
     public override int SaveChanges()
-    {
-        AddHistoryEntries();
+{
+        ApplyDepartamentHistory();
+        ApplyOrganisationHistory();
+        ApplyProductionHistory();
         return base.SaveChanges();
-    }
+}
 
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AddHistoryEntries();
-        return await base.SaveChangesAsync(cancellationToken);
-    }
+public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+{
+        ApplyDepartamentHistory();
+        ApplyOrganisationHistory();
+        ApplyProductionHistory();
+        return base.SaveChangesAsync(cancellationToken);
+}
 
-    private void AddHistoryEntries()
+    private void ApplyDepartamentHistory()
     {
         ChangeTracker.DetectChanges();
         var now = DateTime.UtcNow;
 
-        // Departament
-        foreach (var entry in ChangeTracker.Entries<Departament>())
+        var entries = ChangeTracker.Entries<Departament>().ToList(); // <-- ВАЖНО
+
+        foreach (var entry in entries)
         {
-            if (entry.State != EntityState.Modified) continue;
-
-            // фиксируем историю если поменялось имя или IsDeleted
-            var nameChanged = entry.Property(x => x.Name).IsModified;
-            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified;
-
-            if (!nameChanged && !isDeletedChanged) continue;
-
-            // закрываем предыдущую "открытую" запись (если хочешь цепочку версий)
-            var lastOpen = DepartamentHistories
-                .FirstOrDefault(h => h.DepartamentId == entry.Entity.Id && h.ValidTo == null);
-            if (lastOpen != null)
-                lastOpen.ValidTo = now;
-
-            DepartamentHistories.Add(new DepartamentHistory
+            if (entry.State == EntityState.Added)
             {
-                Id = Guid.NewGuid().ToString(),
-                DepartamentId = entry.Entity.Id,
-                Name = entry.OriginalValues.GetValue<string>(nameof(Departament.Name)),
-                ValidFrom = now,
-                ValidTo = null
-            });
-        }
+                DepartamentHistories.Add(new DepartamentHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DepartamentId = entry.Entity.Id,
+                    Name = entry.Entity.Name,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
 
-        // Organisation
-        foreach (var entry in ChangeTracker.Entries<Organisation>())
-        {
-            if (entry.State != EntityState.Modified) continue;
+                continue;
+            }
 
-            var nameChanged = entry.Property(x => x.Name).IsModified;
-            var accChanged = entry.Property(x => x.AccountNumOrg).IsModified;
-            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified; // если есть
-
-            if (!nameChanged && !accChanged && !isDeletedChanged) continue;
-
-            var lastOpen = OrganisationHistories
-                .FirstOrDefault(h => h.OrganisationId == entry.Entity.Id && h.ValidTo == null);
-            if (lastOpen != null)
-                lastOpen.ValidTo = now;
-
-            OrganisationHistories.Add(new OrganisationHistory
+            if (entry.State == EntityState.Modified)
             {
-                Id = Guid.NewGuid().ToString(),
-                OrganisationId = entry.Entity.Id,
-                OldName = entry.OriginalValues.GetValue<string>(nameof(Organisation.Name)),
-                OldAccountNumOrg = entry.OriginalValues.GetValue<string>(nameof(Organisation.AccountNumOrg)),
-                ValidFrom = now,
-                ValidTo = null
-            });
-        }
+                var nameChanged = entry.Property(x => x.Name).IsModified;
+                var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified;
+                if (!nameChanged && !isDeletedChanged) continue;
 
-        // Production
-        foreach (var entry in ChangeTracker.Entries<Production>())
-        {
-            if (entry.State != EntityState.Modified) continue;
+                var lastOpen = DepartamentHistories
+                    .FirstOrDefault(h => h.DepartamentId == entry.Entity.Id && h.ValidTo == null);
 
-            var codeChanged = entry.Property(x => x.Code).IsModified;
-            var nameChanged = entry.Property(x => x.Name).IsModified;
-            var costChanged = entry.Property(x => x.PlannedCost).IsModified;
-            var typeChanged = entry.Property(x => x.Type).IsModified;
-            var depChanged = entry.Property(x => x.DepartamentId).IsModified;
-            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified; // если есть
+                if (lastOpen != null)
+                    lastOpen.ValidTo = now;
 
-            if (!codeChanged && !nameChanged && !costChanged && !typeChanged && !depChanged && !isDeletedChanged) continue;
-
-            var lastOpen = ProductionHistories
-                .FirstOrDefault(h => h.ProductionId == entry.Entity.Id && h.ValidTo == null);
-            if (lastOpen != null)
-                lastOpen.ValidTo = now;
-
-            ProductionHistories.Add(new ProductionHistory
-            {
-                Id = Guid.NewGuid().ToString(),
-                ProductionId = entry.Entity.Id,
-                OldCode = entry.OriginalValues.GetValue<string>(nameof(Production.Code)),
-                OldName = entry.OriginalValues.GetValue<string>(nameof(Production.Name)),
-                OldPlannedCost = entry.OriginalValues.GetValue<decimal>(nameof(Production.PlannedCost)),
-                OldType = entry.OriginalValues.GetValue<Contracts.Enums.TypeProduct>(nameof(Production.Type)),
-                ValidFrom = now,
-                ValidTo = null
-            });
+                DepartamentHistories.Add(new DepartamentHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DepartamentId = entry.Entity.Id,
+                    Name = entry.Entity.Name,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
+            }
         }
     }
+
+    private void ApplyOrganisationHistory()
+    {
+        ChangeTracker.DetectChanges();
+        var now = DateTime.UtcNow;
+
+        var entries = ChangeTracker.Entries<Organisation>().ToList();
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                OrganisationHistories.Add(new DataBase.Entities.HistoriesModel.OrganisationHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OrganisationId = entry.Entity.Id,
+                    Name = entry.Entity.Name,
+                    AccountNumOrg = entry.Entity.AccountNumOrg,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
+                continue;
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                var nameChanged = entry.Property(x => x.Name).IsModified;
+                var accChanged = entry.Property(x => x.AccountNumOrg).IsModified;
+                var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified;
+
+                if (!nameChanged && !accChanged && !isDeletedChanged) continue;
+
+                var lastOpen = OrganisationHistories
+                    .FirstOrDefault(h => h.OrganisationId == entry.Entity.Id && h.ValidTo == null);
+
+                if (lastOpen != null)
+                    lastOpen.ValidTo = now;
+
+                OrganisationHistories.Add(new DataBase.Entities.HistoriesModel.OrganisationHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OrganisationId = entry.Entity.Id,
+                    Name = entry.Entity.Name,
+                    AccountNumOrg = entry.Entity.AccountNumOrg,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
+            }
+        }
+    }
+    private void ApplyProductionHistory()
+    {
+        ChangeTracker.DetectChanges();
+        var now = DateTime.UtcNow;
+
+        var entries = ChangeTracker.Entries<Production>().ToList();
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                ProductionHistories.Add(new DataBase.Entities.HistoriesModel.ProductionHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProductionId = entry.Entity.Id,
+                    Code = entry.Entity.Code,
+                    Name = entry.Entity.Name,
+                    PlannedCost = entry.Entity.PlannedCost ?? 0m,
+                    Type = entry.Entity.Type ?? Contracts.Enums.TypeProduct.None,
+                    DepartamentId = entry.Entity.DepartamentId,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
+                continue;
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                var codeChanged = entry.Property(x => x.Code).IsModified;
+                var nameChanged = entry.Property(x => x.Name).IsModified;
+                var costChanged = entry.Property(x => x.PlannedCost).IsModified;
+                var typeChanged = entry.Property(x => x.Type).IsModified;
+                var depChanged = entry.Property(x => x.DepartamentId).IsModified;
+                var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified;
+
+                if (!codeChanged && !nameChanged && !costChanged && !typeChanged && !depChanged && !isDeletedChanged)
+                    continue;
+
+                var lastOpen = ProductionHistories
+                    .FirstOrDefault(h => h.ProductionId == entry.Entity.Id && h.ValidTo == null);
+
+                if (lastOpen != null)
+                    lastOpen.ValidTo = now;
+
+                ProductionHistories.Add(new DataBase.Entities.HistoriesModel.ProductionHistory
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ProductionId = entry.Entity.Id,
+                    Code = entry.Entity.Code,
+                    Name = entry.Entity.Name,
+                    PlannedCost = entry.Entity.PlannedCost ?? 0m,
+                    Type = entry.Entity.Type ?? Contracts.Enums.TypeProduct.None,
+                    DepartamentId = entry.Entity.DepartamentId,
+                    IsDeleted = entry.Entity.IsDeleted,
+                    ValidFrom = now,
+                    ValidTo = null
+                });
+            }
+        }
+    }
+
 
     public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }
     public DbSet<Departament> Departaments { get; set; }

@@ -12,5 +12,7 @@ namespace Contracts.AdapterContracts.HistoryIAdapterContracts
         DepartamentHistoryOperationResponse GetHistory(string departamentId);
 
         DepartamentHistoryOperationResponse GetAsOf(string departamentId, DateTime atUtc);
+
+        DepartamentHistoryOperationResponse RestoreFromHistory(string historyId);
     }
 }
