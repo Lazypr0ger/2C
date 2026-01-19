@@ -16,7 +16,13 @@ public class ElementStorageContract(TwoCDbContext db, IMapper mapper) : IElement
     {
         try
         {
-            _db.Elements.Add(_mapper.Map<Element>(dto));
+            var entity = _mapper.Map<Operation>(dto);
+
+            // ВАЖНО: не даём EF вставлять строки/проводки вместе с шапкой
+            entity.Element = new();
+            entity.TransactionLog = new();
+
+            _db.Operations.Add(entity);
             _db.SaveChanges();
         }
         catch (Exception ex)

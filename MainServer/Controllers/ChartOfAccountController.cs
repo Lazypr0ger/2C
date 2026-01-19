@@ -1,4 +1,5 @@
 ﻿using Contracts.AdapterContracts;
+using Contracts.BindingModels;
 using Contracts.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +33,7 @@ public class ChartOfAccountController(IChartOfAccountAdapterContract adapter) : 
     }
 
     [HttpPost]
-    public IActionResult Register([FromBody] ChartOfAccountVM model)
+    public IActionResult Register([FromBody] ChartOfAccountBM model)
     {
         return adapter.CreateChart(model).GetResponse(Request, Response);
     }

@@ -42,7 +42,7 @@ namespace _2Cclient.Views
 
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                 await _apiClient.GetAsync<object>("/ms/api/Departament", cts.Token);
 
                 SetConnected(baseUrl);
@@ -114,7 +114,7 @@ namespace _2Cclient.Views
 
                 case "Ledger":
                     PageTitleText.Text = "Журнал проводок";
-                    MainFrame.Navigate(new LedgerPage());
+                    MainFrame.Navigate(new TransactionLogPage());
                     break;
             }
         }

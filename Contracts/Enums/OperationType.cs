@@ -8,3 +8,4 @@ public enum OperationType
     AllocateActualCost = 4,       // 4) Распределение факта (Дт43 Кт20, без количества)
     WriteOffDeviations = 5        // 5) Списание отклонений на 90 (Дт90 Кт43, без количества)
 }
+    

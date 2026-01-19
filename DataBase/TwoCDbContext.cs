@@ -184,7 +184,6 @@ public class TwoCDbContext : DbContext
         modelBuilder.Entity<DepartamentHistory>(entity =>
         {
             entity.HasKey(x => x.Id);
-            entity.HasKey(x => x.Id);
 
             entity.Property(x => x.Name)
                   .HasMaxLength(100);

@@ -170,4 +170,30 @@ public class TransactionLogAdapter(
             return TransactionLogOperationResponse.InternalServerError(ex.Message);
         }
     }
+
+    public TransactionLogOperationResponse GetView(DateTime? from = null, DateTime? to = null)
+    {
+        try
+        {
+            var list = bl.GetView(from, to);
+            return TransactionLogOperationResponse.OK(list.Select(mapper.Map<TransactionLogVM>).ToList());
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return TransactionLogOperationResponse.BadRequest(ex.Message);
+        }
+        catch (StorageException ex)
+        {
+            logger.LogError(ex, "StorageException");
+            return TransactionLogOperationResponse.BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return TransactionLogOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+
 }

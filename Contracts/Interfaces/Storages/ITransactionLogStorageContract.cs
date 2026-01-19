@@ -8,6 +8,7 @@ public interface ITransactionLogStorageContract
     TransactionLogDto GetById(string id);
 
     List<TransactionLogDto> GetByOperationId(string operationId);
+    List<TransactionLogDto> GetView(DateTime? from = null, DateTime? to = null);
 
     void Create(TransactionLogDto dto);
     void Update(TransactionLogDto dto);

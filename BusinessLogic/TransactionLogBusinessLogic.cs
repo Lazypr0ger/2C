@@ -15,7 +15,8 @@ public class TransactionLogBusinessLogic(
         var list = storage.GetAll(from, to);
         return list ?? throw new NullListException();
     }
-
+    public List<TransactionLogDto> GetView(DateTime? from = null, DateTime? to = null)
+        => storage.GetView(from, to) ?? throw new NullListException();
     public TransactionLogDto GetById(string id)
     {
         if (string.IsNullOrWhiteSpace(id))

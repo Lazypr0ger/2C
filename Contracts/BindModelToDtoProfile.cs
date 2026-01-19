@@ -15,6 +15,8 @@ namespace Contracts
             CreateMap<OperationBM, OperationDto>().ReverseMap();
             CreateMap<ElementBM, ElementDto>().ReverseMap();
             CreateMap<TransactionLogBM, TransactionLogDto>().ReverseMap();
+            CreateMap<ChartOfAccountBM, ChartOfAccountDto>().ReverseMap();
+
         }
     }
 }

@@ -49,8 +49,6 @@ catch (ReflectionTypeLoadException ex)
     throw;
 }
 
-builder.Services.AddTransient<TwoCDbContext>();
-
 builder.Services.AddSingleton<IConfigurationDatabase, ConfigurationDatabase>();
 
 //business registrate

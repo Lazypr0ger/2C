@@ -11,6 +11,19 @@ public class ChartOfAccountBusinessLogic(IChartOfAccountStorageContract chartOfA
 
     public void Create(ChartOfAccountDto chartOfAccountDto)
     {
+        if (chartOfAccountDto is null)
+            throw new ArgumentNullException(nameof(chartOfAccountDto));
+
+        if (string.IsNullOrWhiteSpace(chartOfAccountDto.NumChart))
+            throw new ValidationException("NumChart is empty");
+
+        if (string.IsNullOrWhiteSpace(chartOfAccountDto.Name))
+            throw new ValidationException("Name is empty");
+
+        if (string.IsNullOrWhiteSpace(chartOfAccountDto.Id))
+            chartOfAccountDto.Id = Guid.NewGuid().ToString();   // ✅ ВОТ ЭТО НЕ ХВАТАЛО
+
+
         chartOfAccount.Create(chartOfAccountDto);
     }
     public List<ChartOfAccountDto> GetAll()

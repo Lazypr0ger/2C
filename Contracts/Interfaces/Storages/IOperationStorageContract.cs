@@ -20,4 +20,16 @@ public interface IOperationStorageContract
     // справочные данные для формирования проводок
     Dictionary<string, string> GetAccountIdsByNums(IEnumerable<string> nums);
     Dictionary<string, decimal> GetPlannedCostsByProductIds(IEnumerable<string> productIds);
+
+    // Дт43 Кт20 по плану: productId -> (qty, sumPlan)
+    Dictionary<string, (int qty, decimal sum)> GetReceipts43_20_Plan(DateTime from, DateTime to, string acc43Id, string acc20Id);
+
+    // Дт43 Кт20 отклонения (операция 4): productId -> sumDelta (Count==0)
+    Dictionary<string, decimal> GetAllocDeltas43_20(DateTime from, DateTime to, string acc43Id, string acc20Id);
+
+    // Дт90 Кт43 по плану (списание себестоимости при продаже): productId -> (qtySold, sumPlanCogs)
+    Dictionary<string, (int qty, decimal sum)> GetSalesCogs90_43_Plan(DateTime from, DateTime to, string acc90Id, string acc43Id);
+
+    // Дебетовый оборот 20 за период
+    decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id);
 }

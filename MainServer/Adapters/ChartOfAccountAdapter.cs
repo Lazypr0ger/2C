@@ -2,6 +2,7 @@
 using AutoMapper;
 using Contracts.AdapterContracts;
 using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
@@ -23,7 +24,7 @@ public class ChartOfAccountAdapter : IChartOfAccountAdapterContract
         _mapper = mapper;
     }
 
-    public ChartOfAccountOperationResponse CreateChart(ChartOfAccountVM chrtmodel)
+    public ChartOfAccountOperationResponse CreateChart(ChartOfAccountBM chrtmodel)
     {
         try
         {

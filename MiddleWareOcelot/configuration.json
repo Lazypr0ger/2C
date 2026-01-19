@@ -147,99 +147,6 @@
             "SwaggerKey": "middleserver"
         },
 
-        // ElementController
-        {
-            "UpstreamPathTemplate": "/ms/api/Element",
-            "UpstreamHttpMethod": [ "GET" ],
-            "DownstreamPathTemplate": "/api/Element",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element/elementId/{elementId}",
-            "UpstreamHttpMethod": [ "GET" ],
-            "DownstreamPathTemplate": "/api/Element/elementId/{elementId}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element",
-            "UpstreamHttpMethod": [ "POST" ],
-            "DownstreamPathTemplate": "/api/Element",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element",
-            "UpstreamHttpMethod": [ "PUT" ],
-            "DownstreamPathTemplate": "/api/Element",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element",
-            "UpstreamHttpMethod": [ "DELETE" ],
-            "DownstreamPathTemplate": "/api/Element",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element/{elementId}",
-            "UpstreamHttpMethod": [ "PATCH" ],
-            "DownstreamPathTemplate": "/api/Element/{elementId}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-        {
-            "UpstreamPathTemplate": "/ms/api/Element/calculateTotalElementCost/{element}",
-            "UpstreamHttpMethod": [ "PUT" ],
-            "DownstreamPathTemplate": "/api/Element/calculateTotalElementCost/{element}",
-            "DownstreamScheme": "http",
-            "DownstreamHostAndPorts": [
-                {
-                    "Host": "localhost",
-                    "Port": 5218
-                }
-            ],
-            "SwaggerKey": "middleserver"
-        },
-
         // OrganisationController
         {
             "UpstreamPathTemplate": "/ms/api/Organisation",
@@ -663,6 +570,19 @@
             "UpstreamPathTemplate": "/ms/api/TransactionLog/{id}",
             "UpstreamHttpMethod": [ "DELETE", "PATCH" ],
             "DownstreamPathTemplate": "/api/TransactionLog/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/TransactionLog/view",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/TransactionLog/view",
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {

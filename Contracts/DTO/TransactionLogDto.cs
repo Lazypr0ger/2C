@@ -20,4 +20,15 @@ public class TransactionLogDto
     public string? ChartOfAccountCredId { get; set; }
 
     public bool IsDeleted { get; set; }
+
+
+    public string? ChartDebNum { get; set; }
+    public string? ChartDebName { get; set; }
+    public string? ChartCredNum { get; set; }
+    public string? ChartCredName { get; set; }
+
+    public string? Subconto1DebName { get; set; }
+    public string? Subconto2DebName { get; set; }
+    public string? Subconto1CredName { get; set; }
+    public string? Subconto2CredName { get; set; }
 }

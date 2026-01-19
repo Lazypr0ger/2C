@@ -36,4 +36,8 @@ public class TransactionLogController(ITransactionLogAdapterContract adapter) : 
     [HttpPatch("{id}")]
     public IActionResult Recovery(string id)
         => adapter.Recovery(id).GetResponse(Request, Response);
+
+    [HttpGet("view")]
+    public IActionResult GetView([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        => adapter.GetView(from, to).GetResponse(Request, Response);
 }

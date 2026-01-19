@@ -1,16 +1,16 @@
 ﻿namespace Contracts.DTO;
 
-public class ChartOfAccountDto(string id, string numChart, string name, string subconto1, string subconto2, bool isDeleted)
+public class ChartOfAccountDto
 {
-    public string Id { get; set; } = id;
+    public string? Id { get; set; }
 
-    public required string NumChart { get; set; } = numChart;
+    public required string NumChart { get; set; } 
 
-    public required string Name { get; set; } = name;
+    public required string Name { get; set; } 
 
-    public string? Subconto1 {  get; set; } = subconto1;
-    public string? Subconto2 { get; set; } = subconto2;
+    public string? Subconto1 {  get; set; } 
+    public string? Subconto2 { get; set; } 
 
-    public bool IsDeleted { get; set; } = isDeleted;
+    public bool IsDeleted { get; set; } 
 
 }

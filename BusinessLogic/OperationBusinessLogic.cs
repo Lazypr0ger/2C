@@ -24,7 +24,6 @@ public class OperationBusinessLogic(
 
         return storage.GetById(id) ?? throw new ElementNotFoundException(id);
     }
-
     public void Create(OperationDto dto)
     {
         if (dto is null) throw new ArgumentNullException(nameof(dto));
@@ -39,19 +38,20 @@ public class OperationBusinessLogic(
 
         dto.IsDeleted = false;
 
-        // 1) сохраняем шапку
+        // 1) сформировать проводки заранее (чтобы знать сумму)
+        var logs = BuildPostings(dto);
+
+        // 2) итог документа
+        dto.TotalAmountDocument = logs.Sum(x => x.Amount);
+
+        // 3) сохранить шапку ОДИН раз
         storage.Create(dto);
 
-        // 2) сохраняем строки (если есть)
+        // 4) сохранить строки
         storage.ReplaceElements(dto.Id, dto.Elements ?? new());
 
-        // 3) проводим (создаем проводки)
-        var logs = BuildPostings(dto);
+        // 5) сохранить проводки
         storage.ReplaceTransactionLogs(dto.Id, logs);
-
-        // 4) пересчитать итог по документу (как в 1С: сумма = сумма проводок? или по строкам?)
-        dto.TotalAmountDocument = logs.Sum(x => x.Amount);
-        storage.Update(dto);
 
         logger.LogInformation("Operation created and posted. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
@@ -107,6 +107,9 @@ public class OperationBusinessLogic(
             OperationType.ActualCosts => new[] { "20", "10" },
             OperationType.ReceiptFromProduction => new[] { "43", "20" },
             OperationType.Sale => new[] { "90", "43", "62" },
+
+            OperationType.AllocateActualCost => new[] { "43", "20" },
+            OperationType.WriteOffDeviations => new[] { "90", "43", "20" },
             _ => throw new ValidationException($"Operation type {op.Type} not supported yet")
         };
 
@@ -227,11 +230,135 @@ public class OperationBusinessLogic(
                     Comment = "Реализация: начисление выручки Дт62 Кт90",
                     IsDeleted = false
                 });
+               
+
             }
 
             return logs;
         }
+        if (op.Type == OperationType.AllocateActualCost)
+            return BuildOp4_DistributeActualCost(op, acc);
+
+        if (op.Type == OperationType.WriteOffDeviations)
+            return BuildOp5_WriteOffDeviationsTo90(op, acc);
 
         return logs;
     }
+
+    private List<TransactionLogDto> BuildOp4_DistributeActualCost(OperationDto op, Dictionary<string, string> acc)
+    {
+        var (from, to) = MonthRangeUtc(op.DateOperation);
+
+        var acc43 = acc["43"];
+        var acc20 = acc["20"];
+
+        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20); // product -> (qty, sumPlan)
+        if (receipts.Count == 0)
+            throw new ValidationException("Операция 4: нет поступлений Дт43 Кт20 за месяц");
+
+        var do20 = storage.GetDebitTurnover20(from, to, acc20); // дебетовый оборот 20
+        var sumPlanAll = receipts.Values.Sum(x => x.sum);
+        if (sumPlanAll == 0m)
+            throw new ValidationException("Операция 4: сумма плановых поступлений = 0");
+
+        var logs = new List<TransactionLogDto>();
+
+        foreach (var kv in receipts)
+        {
+            var productId = kv.Key;
+            var sumPlan = kv.Value.sum;
+
+            // Sum_F(i) = (DO / sumPlanAll) * sumPlan_i
+            var sumFact = (do20 / sumPlanAll) * sumPlan;
+
+            // delta = Sum_F - Sum_P
+            var delta = sumFact - sumPlan;
+            if (Math.Abs(delta) < 0.0001m) continue;
+
+            logs.Add(new TransactionLogDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                OperationId = op.Id,
+                DateOperation = op.DateOperation,
+                ChartOfAccountDebId = acc43,
+                ChartOfAccountCredId = acc20,
+                Subconto1Deb = productId, // 43 аналитика по продукту
+                Amount = delta,
+                Count = 0,
+                Comment = "Распределение фактической себестоимости: отклонение Дт43 Кт20",
+                IsDeleted = false
+            });
+        }
+
+        return logs;
+    }
+    private List<TransactionLogDto> BuildOp5_WriteOffDeviationsTo90(OperationDto op, Dictionary<string, string> acc)
+    {
+        var (from, to) = MonthRangeUtc(op.DateOperation);
+
+        var acc43 = acc["43"];
+        var acc20 = acc["20"];
+        var acc90 = acc["90"];
+
+        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20); // product -> (qtyF, sumPlanReceipts)
+        var alloc = storage.GetAllocDeltas43_20(from, to, acc43, acc20);      // product -> deltaAlloc
+        var sales = storage.GetSalesCogs90_43_Plan(from, to, acc90, acc43);   // product -> (qtySold, sumPlanCogs)
+
+        if (sales.Count == 0) return new List<TransactionLogDto>(); // нечего списывать
+
+        var logs = new List<TransactionLogDto>();
+
+        foreach (var s in sales)
+        {
+            var productId = s.Key;
+            var qtySold = s.Value.qty;
+            var sumPlanSold = s.Value.sum; // плановая себестоимость продаж (из Дт90 Кт43)
+
+            if (qtySold <= 0) continue;
+
+            if (!receipts.TryGetValue(productId, out var rec)) continue;
+            var qtyF = rec.qty;
+            var sumPlanReceipts = rec.sum;
+
+            if (qtyF <= 0) continue;
+
+            var deltaAlloc = alloc.TryGetValue(productId, out var da) ? da : 0m;
+            var sumFactReceipts = sumPlanReceipts + deltaAlloc;
+
+            // Фактическая себестоимость единицы = Sum_F / kol_F
+            var factUnit = sumFactReceipts / qtyF;
+
+            // Плановая себестоимость единицы по продажам = Sum_P_sold / kol_P_sold
+            var planUnit = sumPlanSold / qtySold;
+
+            // Отклонение при реализации = (factUnit - planUnit) * qtySold
+            var deltaSold = (factUnit - planUnit) * qtySold;
+            if (Math.Abs(deltaSold) < 0.0001m) continue;
+
+            logs.Add(new TransactionLogDto
+            {
+                Id = Guid.NewGuid().ToString(),
+                OperationId = op.Id,
+                DateOperation = op.DateOperation,
+                ChartOfAccountDebId = acc90,
+                ChartOfAccountCredId = acc43,
+                Subconto1Cred = productId, // 43 аналитика по продукту
+                Amount = deltaSold,
+                Count = 0,
+                Comment = "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43",
+                IsDeleted = false
+            });
+        }
+
+        return logs;
+    }
+
+    private static (DateTime from, DateTime to) MonthRangeUtc(DateTime dt)
+    {
+        // У тебя везде UtcNow, так что делаем UTC-границы
+        var from = new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var to = from.AddMonths(1).AddTicks(-1);
+        return (from, to);
+    }
+
 }

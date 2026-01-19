@@ -194,4 +194,66 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
 
     private Operation? GetEntity(string? id)
         => string.IsNullOrWhiteSpace(id) ? null : _db.Operations.FirstOrDefault(x => x.Id == id);
+
+    public Dictionary<string, (int qty, decimal sum)> GetReceipts43_20_Plan(DateTime from, DateTime to, string acc43Id, string acc20Id)
+    {
+        // Поступление из производства: Дт43 Кт20, Count>0, Subconto1Deb=productId
+        return _db.TransactionLogs
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation >= from && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc43Id
+                && t.ChartOfAccountCredId == acc20Id
+                && t.Count > 0
+                && t.Subconto1Deb != null)
+            .GroupBy(t => t.Subconto1Deb!)
+            .ToDictionary(
+                g => g.Key,
+                g => (qty: g.Sum(x => x.Count), sum: g.Sum(x => x.Amount))
+            );
+    }
+
+    public Dictionary<string, decimal> GetAllocDeltas43_20(DateTime from, DateTime to, string acc43Id, string acc20Id)
+    {
+        // Распределение отклонений: Дт43 Кт20, Count==0, Subconto1Deb=productId
+        return _db.TransactionLogs
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation >= from && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc43Id
+                && t.ChartOfAccountCredId == acc20Id
+                && t.Count == 0
+                && t.Subconto1Deb != null)
+            .GroupBy(t => t.Subconto1Deb!)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+    }
+
+    public Dictionary<string, (int qty, decimal sum)> GetSalesCogs90_43_Plan(DateTime from, DateTime to, string acc90Id, string acc43Id)
+    {
+        // Списание плановой себестоимости продаж: Дт90 Кт43, Count>0, Subconto1Cred=productId
+        return _db.TransactionLogs
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation >= from && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc90Id
+                && t.ChartOfAccountCredId == acc43Id
+                && t.Count > 0
+                && t.Subconto1Cred != null)
+            .GroupBy(t => t.Subconto1Cred!)
+            .ToDictionary(
+                g => g.Key,
+                g => (qty: g.Sum(x => x.Count), sum: g.Sum(x => x.Amount))
+            );
+    }
+
+    public decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id)
+    {
+        return _db.TransactionLogs
+            .AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation >= from && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc20Id)
+            .Sum(t => (decimal?)t.Amount) ?? 0m;
+    }
+
 }

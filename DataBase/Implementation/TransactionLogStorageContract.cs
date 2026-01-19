@@ -125,7 +125,112 @@ public class TransactionLogStorageContract(TwoCDbContext db, IMapper mapper) : I
             throw new StorageException(ex);
         }
     }
+    public List<TransactionLogDto> GetView(DateTime? from = null, DateTime? to = null)
+    {
+        try
+        {
+            var q = _db.TransactionLogs
+                .AsNoTracking()
+                .Where(t => !t.IsDeleted);
 
+            if (from.HasValue) q = q.Where(x => x.DateOperation >= from.Value);
+            if (to.HasValue) q = q.Where(x => x.DateOperation <= to.Value);
+
+            var query =
+                from t in q
+                join deb in _db.ChartOfAccounts.AsNoTracking() on t.ChartOfAccountDebId equals deb.Id
+                join cred in _db.ChartOfAccounts.AsNoTracking() on t.ChartOfAccountCredId equals cred.Id
+
+                // Organisation (покупатель) история — используем, когда Subconto содержит OrganisationId
+                let orgDebName =
+                    (from h in _db.OrganisationHistories.AsNoTracking()
+                     where h.OrganisationId == t.Subconto1Deb
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                let orgCredName =
+                    (from h in _db.OrganisationHistories.AsNoTracking()
+                     where h.OrganisationId == t.Subconto1Cred
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                // Departament история
+                let depDebName =
+                    (from h in _db.DepartamentHistories.AsNoTracking()
+                     where h.DepartamentId == t.Subconto1Deb
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                let depCredName =
+                    (from h in _db.DepartamentHistories.AsNoTracking()
+                     where h.DepartamentId == t.Subconto1Cred
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                // Production история
+                let prodDebName =
+                    (from h in _db.ProductionHistories.AsNoTracking()
+                     where h.ProductionId == t.Subconto1Deb
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                let prodCredName =
+                    (from h in _db.ProductionHistories.AsNoTracking()
+                     where h.ProductionId == t.Subconto1Cred
+                           && h.ValidFrom <= t.DateOperation
+                           && (h.ValidTo == null || t.DateOperation < h.ValidTo)
+                     orderby h.ValidFrom descending
+                     select h.Name).FirstOrDefault()
+
+                select new TransactionLogDto
+                {
+                    Id = t.Id,
+                    DateOperation = t.DateOperation,
+
+                    Subconto1Deb = t.Subconto1Deb,
+                    Subconto2Deb = t.Subconto2Deb,
+                    Subconto1Cred = t.Subconto1Cred,
+                    Subconto2Cred = t.Subconto2Cred,
+
+                    Amount = t.Amount,
+                    Count = t.Count,
+                    Comment = t.Comment,
+                    OperationId = t.OperationId,
+
+                    ChartOfAccountDebId = t.ChartOfAccountDebId,
+                    ChartOfAccountCredId = t.ChartOfAccountCredId,
+
+                    IsDeleted = t.IsDeleted,
+
+                    ChartDebNum = deb.NumChart,
+                    ChartDebName = deb.Name,
+                    ChartCredNum = cred.NumChart,
+                    ChartCredName = cred.Name,
+
+                    Subconto1DebName = orgDebName ?? depDebName ?? prodDebName,
+                    Subconto1CredName = orgCredName ?? depCredName ?? prodCredName,
+                };
+
+            return query
+                .OrderBy(x => x.DateOperation)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _db.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
+    }
     private TransactionLog? GetEntity(string? id)
         => string.IsNullOrWhiteSpace(id) ? null : _db.TransactionLogs.FirstOrDefault(x => x.Id == id);
 }

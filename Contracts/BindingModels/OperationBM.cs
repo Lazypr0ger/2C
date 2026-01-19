@@ -12,6 +12,8 @@ public class OperationBM
 
     public OperationType Type { get; set; }
 
+    public decimal? TotalAmountDocument { get; set; }
+
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
 
