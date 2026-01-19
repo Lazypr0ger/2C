@@ -210,15 +210,17 @@
         </Style.Triggers>
     </Style>
 
-    <!-- Dark ComboBox (поле + выпадашка) -->
     <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Height" Value="38"/>
-        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="MinWidth" Value="120"/>
+        <Setter Property="Padding" Value="12,0,12,0"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
         <Setter Property="Background" Value="#0F141B"/>
         <Setter Property="BorderBrush" Value="#243142"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
@@ -229,29 +231,35 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                            <DockPanel LastChildFill="True">
-                                <!-- стрелка -->
-                                <ToggleButton DockPanel.Dock="Right"
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- ✅ stable selected presenter -->
+                                <ContentPresenter x:Name="SelectedContent"
+                                              Grid.Column="0"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              RecognizesAccessKey="True"
+                                              Content="{TemplateBinding SelectedItem}"
+                                              ContentTemplate="{TemplateBinding ItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+
+                                <ToggleButton Grid.Column="1"
                                           Focusable="False"
                                           IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                           ClickMode="Press"
                                           Background="Transparent"
-                                          BorderThickness="0"
-                                          Width="36">
+                                          BorderThickness="0">
                                     <Path Data="M 0 0 L 6 6 L 12 0 Z"
                                       Fill="{StaticResource Text2}"
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center"/>
                                 </ToggleButton>
-
-                                <ContentPresenter Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Left"
-                                              RecognizesAccessKey="True"
-                                              Content="{TemplateBinding SelectionBoxItem}"
-                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-                            </DockPanel>
+                            </Grid>
                         </Border>
 
                         <Popup x:Name="PART_Popup"
@@ -266,7 +274,7 @@
                                 CornerRadius="10"
                                 Padding="6"
                                 SnapsToDevicePixels="True">
-                                <ScrollViewer Margin="0" SnapsToDevicePixels="True">
+                                <ScrollViewer Margin="0" MaxHeight="320">
                                     <ItemsPresenter/>
                                 </ScrollViewer>
                             </Border>
@@ -283,23 +291,34 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                         </Trigger>
+
+                        <!-- если SelectedItem = null, покажем заглушку -->
+                        <Trigger Property="SelectedItem" Value="{x:Null}">
+                            <Setter TargetName="SelectedContent" Property="Content">
+                                <Setter.Value>
+                                    <TextBlock Text="—" Foreground="{StaticResource Text2}"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
 
+        <!-- Dropdown items -->
         <Style.Resources>
-            <!-- стиль элементов выпадашки -->
             <Style TargetType="ComboBoxItem">
-                <Setter Property="Background" Value="#0F141B"/>
                 <Setter Property="Foreground" Value="{StaticResource Text}"/>
-                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="10,7"/>
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">
                             <Border x:Name="ItemBd"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="8">
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
                                 <ContentPresenter/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -317,7 +336,12 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <!-- на всякий случай: если внутри ItemTemplate TextBlock -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource Text}"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
         </Style.Resources>
     </Style>
-
 </ResourceDictionary>

@@ -1,5 +1,6 @@
 ﻿<Page x:Class="_2Cclient.Views.Pages.ProductsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:enums="clr-namespace:Contracts.Enums;assembly=Contracts"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="Transparent">
 
@@ -145,18 +146,29 @@
                                 <TextBlock Text="{Binding Code}" Foreground="{StaticResource Text}" FontSize="14"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="{StaticResource Text}" FontSize="14"/>
 
-                                <!-- тип показываем как ToString() пока, русские названия будут в edit -->
-                                <TextBlock Grid.Column="2" Text="{Binding Type}" Foreground="{StaticResource Text2}"/>
 
-                                <TextBlock Grid.Column="3" FontWeight="SemiBold">
+                                <TextBlock Grid.Column="2" Foreground="{StaticResource Text2}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="Активно"/>
-                                            <Setter Property="Foreground" Value="{StaticResource Success}"/>
+                                            <Setter Property="Text" Value="—"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsDeleted}" Value="True">
-                                                    <Setter Property="Text" Value="Удалён"/>
-                                                    <Setter Property="Foreground" Value="{StaticResource Danger}"/>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.None}">
+                                                    <Setter Property="Text" Value="— Не выбран —"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.product_1}">
+                                                    <Setter Property="Text" Value="Продукт 1"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.product_2}">
+                                                    <Setter Property="Text" Value="Продукт 2"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.product_3}">
+                                                    <Setter Property="Text" Value="Продукт 3"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.product_4}">
+                                                    <Setter Property="Text" Value="Продукт 4"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static enums:TypeProduct.product_5}">
+                                                    <Setter Property="Text" Value="Продукт 5"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
