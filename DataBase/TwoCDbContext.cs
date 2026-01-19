@@ -195,7 +195,7 @@ public class TwoCDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.OldName)
+            entity.Property(x => x.Name)
                   .HasMaxLength(100);
 
 
@@ -258,6 +258,109 @@ public class TwoCDbContext : DbContext
             entity.HasIndex(x => x.ValidFrom);
             entity.HasIndex(x => x.ValidTo);
         });
+    }
+    public override int SaveChanges()
+    {
+        AddHistoryEntries();
+        return base.SaveChanges();
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        AddHistoryEntries();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void AddHistoryEntries()
+    {
+        ChangeTracker.DetectChanges();
+        var now = DateTime.UtcNow;
+
+        // Departament
+        foreach (var entry in ChangeTracker.Entries<Departament>())
+        {
+            if (entry.State != EntityState.Modified) continue;
+
+            // фиксируем историю если поменялось имя или IsDeleted
+            var nameChanged = entry.Property(x => x.Name).IsModified;
+            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified;
+
+            if (!nameChanged && !isDeletedChanged) continue;
+
+            // закрываем предыдущую "открытую" запись (если хочешь цепочку версий)
+            var lastOpen = DepartamentHistories
+                .FirstOrDefault(h => h.DepartamentId == entry.Entity.Id && h.ValidTo == null);
+            if (lastOpen != null)
+                lastOpen.ValidTo = now;
+
+            DepartamentHistories.Add(new DepartamentHistory
+            {
+                Id = Guid.NewGuid().ToString(),
+                DepartamentId = entry.Entity.Id,
+                Name = entry.OriginalValues.GetValue<string>(nameof(Departament.Name)),
+                ValidFrom = now,
+                ValidTo = null
+            });
+        }
+
+        // Organisation
+        foreach (var entry in ChangeTracker.Entries<Organisation>())
+        {
+            if (entry.State != EntityState.Modified) continue;
+
+            var nameChanged = entry.Property(x => x.Name).IsModified;
+            var accChanged = entry.Property(x => x.AccountNumOrg).IsModified;
+            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified; // если есть
+
+            if (!nameChanged && !accChanged && !isDeletedChanged) continue;
+
+            var lastOpen = OrganisationHistories
+                .FirstOrDefault(h => h.OrganisationId == entry.Entity.Id && h.ValidTo == null);
+            if (lastOpen != null)
+                lastOpen.ValidTo = now;
+
+            OrganisationHistories.Add(new OrganisationHistory
+            {
+                Id = Guid.NewGuid().ToString(),
+                OrganisationId = entry.Entity.Id,
+                OldName = entry.OriginalValues.GetValue<string>(nameof(Organisation.Name)),
+                OldAccountNumOrg = entry.OriginalValues.GetValue<string>(nameof(Organisation.AccountNumOrg)),
+                ValidFrom = now,
+                ValidTo = null
+            });
+        }
+
+        // Production
+        foreach (var entry in ChangeTracker.Entries<Production>())
+        {
+            if (entry.State != EntityState.Modified) continue;
+
+            var codeChanged = entry.Property(x => x.Code).IsModified;
+            var nameChanged = entry.Property(x => x.Name).IsModified;
+            var costChanged = entry.Property(x => x.PlannedCost).IsModified;
+            var typeChanged = entry.Property(x => x.Type).IsModified;
+            var depChanged = entry.Property(x => x.DepartamentId).IsModified;
+            var isDeletedChanged = entry.Property(x => x.IsDeleted).IsModified; // если есть
+
+            if (!codeChanged && !nameChanged && !costChanged && !typeChanged && !depChanged && !isDeletedChanged) continue;
+
+            var lastOpen = ProductionHistories
+                .FirstOrDefault(h => h.ProductionId == entry.Entity.Id && h.ValidTo == null);
+            if (lastOpen != null)
+                lastOpen.ValidTo = now;
+
+            ProductionHistories.Add(new ProductionHistory
+            {
+                Id = Guid.NewGuid().ToString(),
+                ProductionId = entry.Entity.Id,
+                OldCode = entry.OriginalValues.GetValue<string>(nameof(Production.Code)),
+                OldName = entry.OriginalValues.GetValue<string>(nameof(Production.Name)),
+                OldPlannedCost = entry.OriginalValues.GetValue<decimal>(nameof(Production.PlannedCost)),
+                OldType = entry.OriginalValues.GetValue<Contracts.Enums.TypeProduct>(nameof(Production.Type)),
+                ValidFrom = now,
+                ValidTo = null
+            });
+        }
     }
 
     public DbSet<ChartOfAccount> ChartOfAccounts { get; set; }

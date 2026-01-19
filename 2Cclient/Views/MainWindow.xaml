@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="2Cclient"
-        Height="420" Width="1200"
+        Height="900" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}">
 
@@ -52,7 +52,6 @@
                     <ListBoxItem Tag="Reports">
                         <TextBlock Text="Отчёты" FontSize="14"/>
                     </ListBoxItem>
-                    
 
                     <ListBoxItem Tag="Ledger">
                         <TextBlock Text="Журнал проводок" FontSize="14"/>
@@ -64,17 +63,25 @@
                         Background="#0D1218"
                         CornerRadius="14"
                         Padding="12"
-                        Margin="0,14,0,0">
+                    Margin="0,14,0,0">  
                     <StackPanel>
                         <TextBlock Text="Подключение"
-                                   Foreground="{StaticResource Text}"
-                                   FontWeight="SemiBold"/>
-                        <TextBlock x:Name="ConnectionStatusText"
-                                   Text="Сервер: не проверено"
-                                   Foreground="{StaticResource Text2}"
-                                   Margin="0,6,0,0"/>
+                   Foreground="{StaticResource Text}"
+                   FontWeight="SemiBold"/>
+
+                        <TextBlock x:Name="ConnectionStateText"
+                   Text="НЕ ПРОВЕРЕНО"
+                   Foreground="{StaticResource Text2}"
+                   FontWeight="SemiBold"
+                   Margin="0,8,0,0"/>
+
+                        <TextBlock x:Name="ConnectionAddressText"
+                   Text="—"
+                   Foreground="{StaticResource Text2}"
+                   Margin="0,6,0,0"/>
                     </StackPanel>
                 </Border>
+
 
             </DockPanel>
         </Border>
@@ -105,7 +112,7 @@
                     </StackPanel>
 
                     <TextBox Grid.Column="1"
-                            Style="{StaticResource SearchBoxStyle}" />
+                             Style="{StaticResource SearchBoxStyle}"/>
                 </Grid>
 
                 <!-- Content -->

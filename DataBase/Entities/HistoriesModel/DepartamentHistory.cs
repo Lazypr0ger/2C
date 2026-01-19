@@ -13,11 +13,13 @@ public class DepartamentHistory
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public required string DepartamentId { get; set; }
 
-    public string? OldName { get; set; } 
+    public string? Name { get; set; } 
 
     public DateTime ValidFrom { get; set; }
     public DateTime? ValidTo { get; set; }
 
     [ForeignKey("DepartamentId")]
     public Departament? Departament { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

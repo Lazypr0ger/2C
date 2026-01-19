@@ -1,10 +1,10 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
+    <!-- Brushes -->
     <SolidColorBrush x:Key="Success">#49D17C</SolidColorBrush>
     <SolidColorBrush x:Key="Danger">#FF5A5A</SolidColorBrush>
     <SolidColorBrush x:Key="DangerRowBg">#2A1212</SolidColorBrush>
-    <!-- Brushes -->
+    <SolidColorBrush x:Key="Warning">#FFD166</SolidColorBrush>
     <SolidColorBrush x:Key="Bg">#0E1116</SolidColorBrush>
     <SolidColorBrush x:Key="Panel">#141A22</SolidColorBrush>
     <SolidColorBrush x:Key="Panel2">#10151C</SolidColorBrush>
