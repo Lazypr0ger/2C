@@ -3,26 +3,41 @@ using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Storages;
 using DataBase.Entities;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataBase.Implementation;
 
-public class ElementStorageContract(TwoCDbContext dbContext,
-    IMapper mapper,ILogger<ElementStorageContract> logger) : IElementStorageContract
+public class ElementStorageContract(TwoCDbContext db, IMapper mapper) : IElementStorageContract
 {
-    private readonly ILogger<ElementStorageContract> _logger = logger;
-    private readonly TwoCDbContext _dbContext = dbContext;
+    private readonly TwoCDbContext _db = db;
     private readonly IMapper _mapper = mapper;
-    public void Create(ElementDto elementDto)
+
+    public void Create(ElementDto dto)
     {
         try
         {
-            _dbContext.Elements.Add(_mapper.Map<Element>(elementDto));
-            _dbContext.SaveChanges();
+            _db.Elements.Add(_mapper.Map<Element>(dto));
+            _db.SaveChanges();
         }
-        catch(Exception ex) 
+        catch (Exception ex)
         {
-            _dbContext.ChangeTracker.Clear();
+            _db.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
+    }
+
+    public void Update(ElementDto dto)
+    {
+        try
+        {
+            var entity = GetEntity(dto.Id) ?? throw new ElementNotFoundException(dto.Id ?? "null");
+            _db.Elements.Update(_mapper.Map(dto, entity));
+            _db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            _db.ChangeTracker.Clear();
+            if (ex is ElementNotFoundException) throw;
             throw new StorageException(ex);
         }
     }
@@ -31,13 +46,30 @@ public class ElementStorageContract(TwoCDbContext dbContext,
     {
         try
         {
-            var element = GetElementById(id);
-            element.IsDeleted = true;
-            _dbContext.SaveChanges();
+            var entity = GetEntity(id) ?? throw new ElementNotFoundException(id);
+            entity.IsDeleted = true;
+            _db.SaveChanges();
         }
         catch (Exception ex)
         {
-            _dbContext.ChangeTracker.Clear();
+            _db.ChangeTracker.Clear();
+            if (ex is ElementNotFoundException) throw;
+            throw new StorageException(ex);
+        }
+    }
+
+    public void Recovery(string id)
+    {
+        try
+        {
+            var entity = GetEntity(id) ?? throw new ElementNotFoundException(id);
+            entity.IsDeleted = false;
+            _db.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            _db.ChangeTracker.Clear();
+            if (ex is ElementNotFoundException) throw;
             throw new StorageException(ex);
         }
     }
@@ -46,68 +78,48 @@ public class ElementStorageContract(TwoCDbContext dbContext,
     {
         try
         {
-            return [.. _dbContext.Elements.Select(x => _mapper.Map<ElementDto>(x))];
+            var list = _db.Elements.AsNoTracking().ToList();
+            return list.Select(_mapper.Map<ElementDto>).ToList();
         }
         catch (Exception ex)
         {
-            _dbContext.ChangeTracker.Clear();
+            _db.ChangeTracker.Clear();
             throw new StorageException(ex);
         }
-       
-    }
-
-    public List<ElementDto> GetAllByOperation(int id)
-    {
-        throw new NotImplementedException();
     }
 
     public ElementDto GetById(string id)
     {
         try
         {
-            return  _mapper.Map<ElementDto>(_dbContext.Elements.FirstOrDefault(x => x.Id == id));
-        }
-        catch(Exception ex)
-        {
-            _dbContext.ChangeTracker.Clear();
-            throw new StorageException(ex);
-        }
-    }
-
-    public ElementDto GetByOrder(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Recovery(string id)
-    {
-        try
-        {
-            var element = _dbContext.Elements.FirstOrDefault(x => x.Id == id);
-            element.IsDeleted = false;
-            _dbContext.SaveChanges();
+            var entity = _db.Elements.AsNoTracking().FirstOrDefault(x => x.Id == id);
+            return _mapper.Map<ElementDto>(entity);
         }
         catch (Exception ex)
         {
-            _dbContext.ChangeTracker.Clear();
+            _db.ChangeTracker.Clear();
             throw new StorageException(ex);
         }
     }
 
-    public void Update(ElementDto elementDto)
+    public List<ElementDto> GetByOperationId(string operationId)
     {
         try
         {
-            var element = GetElementById(elementDto.Id);
-            _dbContext.Elements.Update(_mapper.Map(elementDto, element));
-            _dbContext.SaveChanges();
+            var list = _db.Elements
+                .AsNoTracking()
+                .Where(x => x.OperationId == operationId)
+                .ToList();
+
+            return list.Select(_mapper.Map<ElementDto>).ToList();
         }
         catch (Exception ex)
         {
-            _dbContext.ChangeTracker.Clear();
+            _db.ChangeTracker.Clear();
             throw new StorageException(ex);
         }
     }
-    private Element GetElementById(string id) => _dbContext.Elements.FirstOrDefault(x => x.Id == id);
 
+    private Element? GetEntity(string? id)
+        => string.IsNullOrWhiteSpace(id) ? null : _db.Elements.FirstOrDefault(x => x.Id == id);
 }

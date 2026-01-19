@@ -1,16 +1,17 @@
 ﻿using Contracts.AdapterContracts.OperationResponses;
-using Contracts.ViewModels;
+using Contracts.BindingModels;
 
 namespace Contracts.AdapterContracts;
 
 public interface IElementAdapterContract
 {
-    ElementOperationResponse GetAllElement();
-    ElementOperationResponse GetElementById(string elementId);
-    ElementOperationResponse CreateElement(ElementVM element);
-    ElementOperationResponse UpdateElement(ElementVM element);
-    ElementOperationResponse DeleteElement(string elementId);
-    ElementOperationResponse RecoveryElement(string elementId);
+    ElementOperationResponse GetList();
+    ElementOperationResponse GetElement(string id);
+    ElementOperationResponse GetByOperationId(string operationId);
 
-    ElementOperationResponse CalculateTotalCostElement(int countelement, decimal realisationCost);
+    ElementOperationResponse Create(ElementBM bm);
+    ElementOperationResponse Update(ElementBM bm);
+
+    ElementOperationResponse Recovery(string id);
+    ElementOperationResponse Delete(string id);
 }

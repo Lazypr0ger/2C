@@ -10,7 +10,7 @@ namespace _2Cclient.Views.Pages.OperationsPages
 {
     public partial class SaleOperationEditPage : Page
     {
-        private readonly TypeDocument _type = TypeDocument.SalesDocument;
+        private readonly OperationType _type = OperationType.Sale;
 
         private readonly List<SaleRowVM> _rows = new();
 

@@ -1,20 +1,23 @@
 ﻿using Contracts.DTO;
-using Contracts.Enums;
 
 namespace Contracts.Interfaces.Storages;
 
 public interface IOperationStorageContract
 {
-    List<OperationDto> GetAllOperationDocument(TypeDocument typeDocument);
-    List<OperationDto> GetAllOperationByOrganisationId(TypeDocument typeDocument, string organisationId);
-    List<OperationDto> GetAllOperationByDepartamentId(TypeDocument typeDocument, string departamentId);
-    List<OperationDto> GetOperationByDate(TypeDocument typeDocument, DateTime startDate, DateTime endTime);
-    List<OperationDto> GetAllOperationByOrganisationIdByDate(TypeDocument typeDocument, string organisationId, DateTime startDate, DateTime endTime);
-    List<OperationDto> GetAllOperationByDepartamentIdByDate(TypeDocument typeDocument, string departamentId, DateTime startDate, DateTime endTime);
+    List<OperationDto> GetAll(DateTime? from = null, DateTime? to = null);
     OperationDto GetById(string id);
-    OperationDto GetByName(string name);
 
-    void Create(OperationDto operationDto);
-    void Update(OperationDto operationDto);
-    void Delete(string Id);
+    void Create(OperationDto dto);
+    void Update(OperationDto dto);
+
+    void Delete(string id);
+    void Recovery(string id);
+
+    // для проведения:
+    void ReplaceElements(string operationId, List<ElementDto> elements);
+    void ReplaceTransactionLogs(string operationId, List<TransactionLogDto> logs);
+
+    // справочные данные для формирования проводок
+    Dictionary<string, string> GetAccountIdsByNums(IEnumerable<string> nums);
+    Dictionary<string, decimal> GetPlannedCostsByProductIds(IEnumerable<string> productIds);
 }

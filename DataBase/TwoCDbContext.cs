@@ -106,7 +106,7 @@ public class TwoCDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.CostRealisation)
+            entity.Property(x => x.Price)
                   .HasPrecision(18, 4);
 
             entity.HasOne(x => x.Production)
@@ -117,7 +117,7 @@ public class TwoCDbContext : DbContext
             entity.HasOne(x => x.Operation)
                   .WithMany(x => x.Element)
                   .HasForeignKey(x => x.OperationId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
         });
         modelBuilder.Entity<Operation>(entity =>
         {
@@ -139,6 +139,11 @@ public class TwoCDbContext : DbContext
                   .HasForeignKey(x => x.OrganisationId)
                   .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(x => x.Departament)
+                  .WithMany()
+                  .HasForeignKey(x => x.DepartamentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasIndex(x => x.DateOperation);
             entity.HasIndex(x => new { x.Type, x.DateOperation });
         });
@@ -147,18 +152,6 @@ public class TwoCDbContext : DbContext
         modelBuilder.Entity<TransactionLog>(entity =>
         {
             entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Subconto1Deb)
-                  .HasPrecision(18, 4);
-
-            entity.Property(x => x.Subconto2Deb)
-                  .HasPrecision(18, 4);
-
-            entity.Property(x => x.Subconto1Cred)
-                  .HasPrecision(18, 4);
-
-            entity.Property(x => x.Subconto2Cred)
-                  .HasPrecision(18, 4);
 
             entity.Property(x => x.Amount)
                   .HasPrecision(18, 4);
@@ -181,10 +174,11 @@ public class TwoCDbContext : DbContext
                   .HasForeignKey(x => x.ChartOfAccountCredId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-
             entity.HasIndex(x => x.DateOperation);
             entity.HasIndex(x => new { x.ChartOfAccountDebId, x.DateOperation });
             entity.HasIndex(x => new { x.ChartOfAccountCredId, x.DateOperation });
+            entity.HasIndex(x => x.Subconto1Deb);
+            entity.HasIndex(x => x.Subconto1Cred);
         });
 
         modelBuilder.Entity<DepartamentHistory>(entity =>

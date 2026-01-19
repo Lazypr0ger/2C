@@ -11,7 +11,7 @@ namespace _2Cclient.Views.Pages.OperationsPages
 {
     public partial class IncomeOperationEditPage : Page
     {
-        private readonly TypeDocument _type = TypeDocument.SuppliesDocument;
+        private readonly OperationType _type = OperationType.ReceiptFromProduction;
 
         private readonly List<IncomeRowVM> _rows = new();
 

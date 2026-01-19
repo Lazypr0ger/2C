@@ -567,6 +567,149 @@
                 }
             ],
             "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Element",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT" ],
+            "DownstreamPathTemplate": "/api/Element",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Element/id/{id}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/Element/id/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Element/operationId/{operationId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/Element/operationId/{operationId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Element/{id}",
+            "UpstreamHttpMethod": [ "DELETE", "PATCH" ],
+            "DownstreamPathTemplate": "/api/Element/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/TransactionLog",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT" ],
+            "DownstreamPathTemplate": "/api/TransactionLog",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/TransactionLog/id/{id}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/TransactionLog/id/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/TransactionLog/operationId/{operationId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/TransactionLog/operationId/{operationId}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/TransactionLog/{id}",
+            "UpstreamHttpMethod": [ "DELETE", "PATCH" ],
+            "DownstreamPathTemplate": "/api/TransactionLog/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Operation",
+            "UpstreamHttpMethod": [ "GET", "POST", "PUT" ],
+            "DownstreamPathTemplate": "/api/Operation",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Operation/id/{id}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/Operation/id/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Operation/{id}",
+            "UpstreamHttpMethod": [ "DELETE", "PATCH" ],
+            "DownstreamPathTemplate": "/api/Operation/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
         }
 
 

@@ -7,13 +7,11 @@ public interface IElementStorageContract
     List<ElementDto> GetAll();
     ElementDto GetById(string id);
 
-    ElementDto GetByOrder(int id);
+    List<ElementDto> GetByOperationId(string operationId);
 
-    List<ElementDto> GetAllByOperation(int id);
-    void Create(ElementDto elementDto);
-    void Update(ElementDto elementDto);
-    void Delete(string id);
+    void Create(ElementDto dto);
+    void Update(ElementDto dto);
 
     void Recovery(string id);
-
+    void Delete(string id);
 }

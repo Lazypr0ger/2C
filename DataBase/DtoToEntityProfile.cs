@@ -8,17 +8,21 @@ namespace DataBase;
 
 public class DtoToEntityProfile : Profile
 {
-    public DtoToEntityProfile() 
+    public DtoToEntityProfile()
     {
         CreateMap<ChartOfAccountDto, ChartOfAccount>().ReverseMap();
-        CreateMap<Departament, DepartamentDto>().ReverseMap();
-        CreateMap<DepartamentHistory, DepartamentHistoryDto>().ReverseMap();
+
+        CreateMap<DepartamentDto, Departament>().ReverseMap();
+        CreateMap<DepartamentHistoryDto, DepartamentHistory>().ReverseMap();
+
         CreateMap<ProductionDto, Production>().ReverseMap();
-        CreateMap<ProductionHistory, ProductionHistoryDto>().ReverseMap();
-        CreateMap<ElementDto, Element>().ReverseMap();
+        CreateMap<ProductionHistoryDto, ProductionHistory>().ReverseMap();
+
+        CreateMap<OrganisationDto, Organisation>().ReverseMap();
+        CreateMap<OrganisationHistoryDto, OrganisationHistory>().ReverseMap();
+
         CreateMap<OperationDto, Operation>().ReverseMap();
-        CreateMap<Organisation,OrganisationDto >().ReverseMap();
-        CreateMap<OrganisationHistory, OrganisationHistoryDto>().ReverseMap();
+        CreateMap<ElementDto, Element>().ReverseMap();
         CreateMap<TransactionLogDto, TransactionLog>().ReverseMap();
     }
 }

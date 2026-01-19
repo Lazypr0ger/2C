@@ -7,7 +7,7 @@ namespace _2Cclient.Views.Pages.OperationsPages
 {
     public partial class WriteOffDeviationOperationEditPage : Page
     {
-        private readonly TypeDocument _type = TypeDocument.None; // позже подставим нужный enum
+        private readonly OperationType _type = OperationType.WriteOffDeviations; // позже подставим нужный enum
 
         public WriteOffDeviationOperationEditPage()
         {

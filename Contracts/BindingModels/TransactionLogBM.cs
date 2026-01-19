@@ -1,8 +1,9 @@
-﻿namespace Contracts.DTO;
+﻿namespace Contracts.BindingModels;
 
-public class TransactionLogDto
+public class TransactionLogBM
 {
     public string? Id { get; set; }
+
     public DateTime DateOperation { get; set; }
 
     public string? Subconto1Deb { get; set; }
@@ -12,6 +13,7 @@ public class TransactionLogDto
 
     public decimal Amount { get; set; }
     public int Count { get; set; }
+
     public string? Comment { get; set; }
 
     public string? OperationId { get; set; }

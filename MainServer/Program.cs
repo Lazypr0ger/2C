@@ -64,6 +64,7 @@ builder.Services.AddTransient<ITransactionLogBusinessLogic, TransactionLogBusine
 builder.Services.AddScoped<IDepartamentHistoryBusinessLogic, DepartamentHistoryBusinessLogic>();
 builder.Services.AddScoped<IOrganisationHistoryBusinessLogic, OrganisationHistoryBusinessLogic>();
 builder.Services.AddScoped<IProductionHistoryBusinessLogic, ProductionHistoryBusinessLogic>();
+
 //storages registrate
 builder.Services.AddTransient<IChartOfAccountStorageContract, ChartOfAccountStorageContract>();
 builder.Services.AddTransient<IDepartamentStorageContract, DepartamentStorageContract>();
@@ -87,6 +88,9 @@ builder.Services.AddTransient<ITransactionLogAdapterContract, TransactionLogAdap
 builder.Services.AddScoped<IDepartamentHistoryAdapterContract, DepartamentHistoryAdapter>();
 builder.Services.AddScoped<IOrganisationHistoryAdapterContract, OrganisationHistoryAdapter>();
 builder.Services.AddScoped<IProductionHistoryAdapterContract, ProductionHistoryAdapter>();
+
+
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

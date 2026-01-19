@@ -1,8 +1,8 @@
 ﻿using Contracts.Enums;
 
-namespace Contracts.DTO;
+namespace Contracts.BindingModels;
 
-public class OperationDto
+public class OperationBM
 {
     public string? Id { get; set; }
 
@@ -12,13 +12,10 @@ public class OperationDto
 
     public OperationType Type { get; set; }
 
-    public decimal TotalAmountDocument { get; set; }
-
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
 
     public bool IsDeleted { get; set; }
 
-    // строки документа
-    public List<ElementDto> Elements { get; set; } = new();
+    public List<ElementBM> Elements { get; set; } = new();
 }

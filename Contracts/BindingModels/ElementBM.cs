@@ -1,6 +1,6 @@
-﻿namespace Contracts.DTO;
+﻿namespace Contracts.BindingModels;
 
-public class ElementDto
+public class ElementBM
 {
     public string? Id { get; set; }
 

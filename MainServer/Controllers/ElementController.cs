@@ -1,54 +1,38 @@
 ﻿using Contracts.AdapterContracts;
-using Contracts.ViewModels;
+using Contracts.BindingModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MainServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ElementController(IElementAdapterContract elementAdapter,
-    ILogger<ElementController> logger) : ControllerBase
+public class ElementController(IElementAdapterContract adapter) : ControllerBase
 {
     [HttpGet]
-    public IActionResult GetAllElement()
-    {
-        return elementAdapter.GetAllElement().GetResponse(Request,Response);
-    }
+    public IActionResult GetAll()
+        => adapter.GetList().GetResponse(Request, Response);
 
-    [HttpGet("elementId/{elementId}")]
-    public IActionResult GetElement(string elementId)
-    {
-        return elementAdapter.GetElementById(elementId).GetResponse(Request,Response);
-    }
+    [HttpGet("id/{id}")]
+    public IActionResult GetById(string id)
+        => adapter.GetElement(id).GetResponse(Request, Response);
+
+    [HttpGet("operationId/{operationId}")]
+    public IActionResult GetByOperationId(string operationId)
+        => adapter.GetByOperationId(operationId).GetResponse(Request, Response);
 
     [HttpPost]
-    public IActionResult CreateElement([FromBody] ElementVM element)
-    {
-        return elementAdapter.CreateElement(element).GetResponse(Request, Response);
-    }
+    public IActionResult Create([FromBody] ElementBM bm)
+        => adapter.Create(bm).GetResponse(Request, Response);
 
     [HttpPut]
-    public IActionResult UpdateElement([FromBody] ElementVM element)
-    {
-        return elementAdapter.UpdateElement(element).GetResponse(Request, Response);
-    }
+    public IActionResult Update([FromBody] ElementBM bm)
+        => adapter.Update(bm).GetResponse(Request, Response);
 
-    [HttpDelete]
-    public IActionResult DeleteElement(string elementId)
-    {
-        return elementAdapter.DeleteElement(elementId).GetResponse(Request, Response);
-    }
+    [HttpPatch("{id}")]
+    public IActionResult Recovery(string id)
+        => adapter.Recovery(id).GetResponse(Request, Response);
 
-    [HttpPatch("{elementId}")]
-    public IActionResult RecoveryElement(string elementId)
-    {
-        return elementAdapter.RecoveryElement(elementId).GetResponse(Request, Response);
-    }
-
-    [HttpPut("calculateTotalElementCost/{element}")]
-    public IActionResult CalculateElementCost(int count, decimal costRealisation)
-    {
-        return elementAdapter.CalculateTotalCostElement(count, costRealisation).GetResponse(Request, Response);
-    }
-
+    [HttpDelete("{id}")]
+    public IActionResult Delete(string id)
+        => adapter.Delete(id).GetResponse(Request, Response);
 }

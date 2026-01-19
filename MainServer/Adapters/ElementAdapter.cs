@@ -1,224 +1,173 @@
-﻿using System.Xml.Linq;
-using AutoMapper;
-using BusinessLogic;
+﻿using AutoMapper;
 using Contracts.AdapterContracts;
 using Contracts.AdapterContracts.OperationResponses;
+using Contracts.BindingModels;
 using Contracts.DTO;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Business;
 using Contracts.ViewModels;
-using DataBase.Entities;
 
-namespace MainServer.Adapters
+namespace MainServer.Adapters;
+
+public class ElementAdapter(
+    IElementBusinessLogic bl,
+    ILogger<ElementAdapter> logger,
+    IMapper mapper) : IElementAdapterContract
 {
-    public class ElementAdapter : IElementAdapterContract
+    public ElementOperationResponse GetList()
     {
-        IElementBusinessLogic _elementBusinessLogic;
-        ILogger<ElementAdapter> _logger;
-        IMapper _mapper;
-
-        public ElementOperationResponse CalculateTotalCostElement(int countelement, decimal realisationCost)
+        try
         {
-            try
-            {
-               return ElementOperationResponse.OK(_elementBusinessLogic.CalculateTotalCostElement(countelement, realisationCost));
-
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            var list = bl.GetAll().Select(mapper.Map<ElementVM>).ToList();
+            return ElementOperationResponse.OK(list);
         }
-
-        public ElementOperationResponse CreateElement(ElementVM element)
+        catch (Exception ex)
         {
-            try
-            {
-                _elementBusinessLogic.Create(_mapper.Map<ElementDto>(element));
-                return ElementOperationResponse.NoContent();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
         }
+    }
 
-        public ElementOperationResponse DeleteElement(string elementId)
+    public ElementOperationResponse GetElement(string id)
+    {
+        try
         {
-            try
-            {
-                _elementBusinessLogic.Delete(elementId);
-                return ElementOperationResponse.NoContent();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            return ElementOperationResponse.OK(mapper.Map<ElementVM>(bl.GetById(id)));
         }
-
-        public ElementOperationResponse GetAllElement()
+        catch (ValidationException ex)
         {
-            try
-            {
-                var getAll = _elementBusinessLogic.GetAll();
-                var result = getAll.Select(x => _mapper.Map<ElementVM>(x));
-                return ElementOperationResponse.OK([.. result]);
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
         }
-
-        public ElementOperationResponse GetElementById(string elementId)
+        catch (ElementNotFoundException ex)
         {
-            try
-            {
-                return ElementOperationResponse.OK(_mapper.Map<ElementVM>(_elementBusinessLogic.GetById(elementId)));
-        
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            logger.LogError(ex, "ElementNotFoundException");
+            return ElementOperationResponse.NotFound(ex.Message);
         }
-
-        public ElementOperationResponse RecoveryElement(string elementId)
+        catch (Exception ex)
         {
-            try
-            {
-                _elementBusinessLogic.Recovery(elementId);
-                return ElementOperationResponse.NoContent();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
         }
+    }
 
-        public ElementOperationResponse UpdateElement(ElementVM element)
+    public ElementOperationResponse GetByOperationId(string operationId)
+    {
+        try
         {
-            try
-            {
-                _elementBusinessLogic.Update(_mapper.Map<ElementDto>(element));
-                return ElementOperationResponse.NoContent();
-            }
-            catch (ArgumentNullException ex)
-            {
-                _logger.LogError(ex, "ArgumentNullException");
-                return ElementOperationResponse.BadRequest("Data is empty");
-            }
-            catch (ValidationException ex)
-            {
-                _logger.LogError(ex, "ValidationException");
-                return ElementOperationResponse.BadRequest($"Incorrect data transmitted: {ex.Message}");
-            }
-            catch (StorageException ex)
-            {
-                _logger.LogError(ex, "StorageException");
-                return ElementOperationResponse.BadRequest($"Error while working with data storage: {ex.InnerException!.Message}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception");
-                return ElementOperationResponse.InternalServerError(ex.Message);
-            }
+            var list = bl.GetByOperationId(operationId).Select(mapper.Map<ElementVM>).ToList();
+            return ElementOperationResponse.OK(list);
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public ElementOperationResponse Create(ElementBM bm)
+    {
+        try
+        {
+            bl.Create(mapper.Map<ElementDto>(bm));
+            return ElementOperationResponse.NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
+        }
+        catch (StorageException ex)
+        {
+            logger.LogError(ex, "StorageException");
+            return ElementOperationResponse.BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public ElementOperationResponse Update(ElementBM bm)
+    {
+        try
+        {
+            bl.Update(mapper.Map<ElementDto>(bm));
+            return ElementOperationResponse.NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
+        }
+        catch (ElementNotFoundException ex)
+        {
+            logger.LogError(ex, "ElementNotFoundException");
+            return ElementOperationResponse.NotFound(ex.Message);
+        }
+        catch (StorageException ex)
+        {
+            logger.LogError(ex, "StorageException");
+            return ElementOperationResponse.BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public ElementOperationResponse Recovery(string id)
+    {
+        try
+        {
+            bl.Recovery(id);
+            return ElementOperationResponse.NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
+        }
+        catch (ElementNotFoundException ex)
+        {
+            logger.LogError(ex, "ElementNotFoundException");
+            return ElementOperationResponse.NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
+        }
+    }
+
+    public ElementOperationResponse Delete(string id)
+    {
+        try
+        {
+            bl.Delete(id);
+            return ElementOperationResponse.NoContent();
+        }
+        catch (ValidationException ex)
+        {
+            logger.LogError(ex, "ValidationException");
+            return ElementOperationResponse.BadRequest(ex.Message);
+        }
+        catch (ElementNotFoundException ex)
+        {
+            logger.LogError(ex, "ElementNotFoundException");
+            return ElementOperationResponse.NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Exception");
+            return ElementOperationResponse.InternalServerError(ex.Message);
         }
     }
 }
