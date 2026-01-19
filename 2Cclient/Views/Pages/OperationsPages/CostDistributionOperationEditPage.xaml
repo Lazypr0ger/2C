@@ -63,14 +63,14 @@
                         <TextBlock Grid.Row="4" Text="Дата операции" Foreground="{StaticResource Text2}"/>
                         <DatePicker Grid.Row="6" x:Name="DateOperationPicker"/>
 
-                        <TextBlock Grid.Row="8" Text="Подразделение" Foreground="{StaticResource Text2}"/>
+                        <TextBlock Grid.Row="8" Text="Подразделение (необязательно)" Foreground="{StaticResource Text2}"/>
                         <ComboBox Grid.Row="10"
                                   x:Name="DepartamentBox"
                                   Style="{StaticResource DarkComboBoxStyle}"
                                   Width="320"
                                   HorizontalAlignment="Left"/>
 
-                        <TextBlock Grid.Row="12" Text="Период расчёта" Foreground="{StaticResource Text2}"/>
+                        <TextBlock Grid.Row="12" Text="Период расчёта (пока не используется сервером)" Foreground="{StaticResource Text2}"/>
 
                         <Grid Grid.Row="14">
                             <Grid.ColumnDefinitions>
@@ -80,8 +80,8 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <DatePicker x:Name="StartDatePicker" Grid.Column="0"/>
-                            <DatePicker x:Name="EndDatePicker" Grid.Column="2"/>
+                            <DatePicker x:Name="StartDatePicker" Grid.Column="0" IsEnabled="False"/>
+                            <DatePicker x:Name="EndDatePicker" Grid.Column="2" IsEnabled="False"/>
                         </Grid>
                     </Grid>
                 </Border>

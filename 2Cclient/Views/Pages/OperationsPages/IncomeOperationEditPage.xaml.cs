@@ -2,159 +2,217 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using _2Cclient.Services.Api;
+using Contracts.BindingModels;
 using Contracts.Enums;
 using Contracts.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages.OperationsPages
 {
     public partial class IncomeOperationEditPage : Page
     {
-        private readonly OperationType _type = OperationType.ReceiptFromProduction;
+        private readonly OperationApi _opApi;
+        private readonly ProductionApi _prodApi;
+        private readonly DepartamentApi _depApi;
 
-        private readonly List<IncomeRowVM> _rows = new();
+        private readonly OperationVM? _editing;
+        private readonly List<RowVM> _rows = new();
 
-        // CREATE
         public IncomeOperationEditPage()
         {
             InitializeComponent();
-            InitCommon();
-            DateOperationPicker.SelectedDate = DateTime.Today;
+            _opApi = App.Services.GetRequiredService<OperationApi>();
+            _prodApi = App.Services.GetRequiredService<ProductionApi>();
+            _depApi = App.Services.GetRequiredService<DepartamentApi>();
+            _editing = null;
 
-            ItemsList.ItemsSource = _rows;
+            Loaded += async (_, __) => await InitAsync();
         }
 
-        // REPOST / EDIT
         public IncomeOperationEditPage(OperationVM vm)
         {
             InitializeComponent();
-            InitCommon();
+            _opApi = App.Services.GetRequiredService<OperationApi>();
+            _prodApi = App.Services.GetRequiredService<ProductionApi>();
+            _depApi = App.Services.GetRequiredService<DepartamentApi>();
+            _editing = vm;
 
-            NameDocumentBox.Text = vm.NameDocument;
-            DateOperationPicker.SelectedDate = vm.DateOperation;
-
-            // Заглушка: строки документа (позже получим по vm.Id через API)
-            ItemsList.ItemsSource = _rows;
+            Loaded += async (_, __) => await InitAsync();
         }
 
-        private void InitCommon()
+        private async Task InitAsync()
         {
-            // Заглушка: позже сюда придут продукты с API (/Production)
-            ProductBox.ItemsSource = new List<SimpleProductVM>
+            try
             {
-                new() { Id="1", Name="Продукт 1" },
-                new() { Id="2", Name="Продукт 2" },
-                new() { Id="3", Name="Продукт 3" }
-            };
-            ProductBox.DisplayMemberPath = "Name";
-            ProductBox.SelectedValuePath = "Id";
+                var products = await _prodApi.GetAllAsync();
+                ProductBox.ItemsSource = products ?? new List<ProductionVM>();
+                ProductBox.DisplayMemberPath = "Name";
+                ProductBox.SelectedValuePath = "Id";
+
+                var deps = await _depApi.GetAllAsync();
+                DepartamentBox.ItemsSource = deps ?? new List<DepartamentVM>();
+                DepartamentBox.DisplayMemberPath = "Name";
+                DepartamentBox.SelectedValuePath = "Id";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки справочников:\n{ex.Message}");
+            }
+
+            if (_editing != null)
+            {
+                NameDocumentBox.Text = _editing.NameDocument;
+                DateOperationPicker.SelectedDate = _editing.DateOperation.ToLocalTime().Date;
+                DepartamentBox.SelectedValue = _editing.DepartamentId;
+
+                _rows.Clear();
+                foreach (var e in _editing.Elements ?? new List<ElementVM>())
+                {
+                    _rows.Add(new RowVM
+                    {
+                        Id = e.Id,
+                        ProductionId = e.ProductionId,
+                        Count = e.CountElement
+                    });
+                }
+
+                ItemsList.ItemsSource = _rows;
+            }
+            else
+            {
+                NameDocumentBox.Text = "Поступление ГП";
+                DateOperationPicker.SelectedDate = DateTime.Today;
+                ItemsList.ItemsSource = _rows;
+            }
         }
 
         private void AddRow_Click(object sender, RoutedEventArgs e)
         {
-            if (ProductBox.SelectedItem is not SimpleProductVM product)
+            if (ProductBox.SelectedValue is not string prodId || string.IsNullOrWhiteSpace(prodId))
             {
                 MessageBox.Show("Выберите продукт");
                 return;
             }
 
-            var rawCount = CountBox.Text.Trim();
-            if (!int.TryParse(rawCount, NumberStyles.Integer, CultureInfo.InvariantCulture, out var count) || count <= 0)
+            if (!int.TryParse(CountBox.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var cnt) || cnt <= 0)
             {
                 MessageBox.Show("Количество должно быть целым числом > 0");
                 return;
             }
 
-            var existing = _rows.FirstOrDefault(x => x.ProductId == product.Id);
+            var existing = _rows.FirstOrDefault(x => x.ProductionId == prodId);
             if (existing != null)
-            {
-                existing.Count += count;
-                RefreshRows();
-            }
+                existing.Count += cnt;
             else
-            {
-                _rows.Add(new IncomeRowVM
-                {
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    Count = count
-                });
-                RefreshRows();
-            }
+                _rows.Add(new RowVM { ProductionId = prodId, Count = cnt });
 
-            CountBox.Text = "";
-            ProductBox.SelectedItem = null;
-        }
+            CountBox.Text = string.Empty;
 
-        private void RowDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is not Button btn) return;
-            if (btn.Tag is not IncomeRowVM row) return;
-
-            _rows.Remove(row);
-            RefreshRows();
-        }
-
-        private void ItemsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // оставлено намеренно: логика удаления в строке
-        }
-
-        private void RefreshRows()
-        {
             ItemsList.ItemsSource = null;
             ItemsList.ItemsSource = _rows;
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void RowDelete_Click(object sender, RoutedEventArgs e)
         {
-            var name = NameDocumentBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name))
+            if ((sender as Button)?.Tag is not RowVM row) return;
+            _rows.Remove(row);
+
+            ItemsList.ItemsSource = null;
+            ItemsList.ItemsSource = _rows;
+        }
+
+        private void ItemsList_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+
+        private async void Save_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(NameDocumentBox.Text))
             {
                 MessageBox.Show("Название документа не должно быть пустым");
                 return;
             }
 
-            if (DateOperationPicker.SelectedDate == null)
+            if (DateOperationPicker.SelectedDate is null)
             {
-                MessageBox.Show("Выберите дату операции");
+                MessageBox.Show("Укажите дату операции");
+                return;
+            }
+
+            if (DepartamentBox.SelectedValue is not string depId || string.IsNullOrWhiteSpace(depId))
+            {
+                MessageBox.Show("Выберите подразделение (цех)");
                 return;
             }
 
             if (_rows.Count == 0)
             {
-                MessageBox.Show("Добавьте хотя бы один продукт в состав документа");
+                MessageBox.Show("Добавьте строки документа");
                 return;
             }
 
-            // OrganisationId = null (по требованию)
-            MessageBox.Show(
-                $"Сохранение (заглушка)\n" +
-                $"Type={_type}\n" +
-                $"Name={name}\n" +
-                $"Date={DateOperationPicker.SelectedDate:dd.MM.yyyy}\n" +
-                $"OrganisationId=null\n" +
-                $"Rows:\n" +
-                string.Join("\n", _rows.Select(r => $" - {r.ProductName}: {r.Count}")));
+            SetBusy(true);
+
+            try
+            {
+                var bm = new OperationBM
+                {
+                    Id = _editing?.Id,
+                    NameDocument = NameDocumentBox.Text.Trim(),
+                    DateOperation = ToUtc(DateOperationPicker.SelectedDate.Value),
+                    Type = OperationType.ReceiptFromProduction,
+                    DepartamentId = depId,
+                    OrganisationId = null,
+                    TotalAmountDocument = 0m,
+                    Elements = _rows.Select(r => new ElementBM
+                    {
+                        Id = r.Id,
+                        ProductionId = r.ProductionId,
+                        CountElement = r.Count,
+                        Price = null,
+                        IsDeleted = false
+                    }).ToList(),
+                    IsDeleted = _editing?.IsDeleted ?? false
+                };
+
+                if (_editing is null)
+                    await _opApi.CreateAsync(bm);
+                else
+                    await _opApi.UpdateAsync(bm);
+
+                NavigationService?.GoBack();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка сохранения:\n{ex.Message}");
+                SetBusy(false);
+            }
         }
 
-        private void Back_Click(object sender, RoutedEventArgs e)
+        private void Back_Click(object sender, RoutedEventArgs e) => NavigationService?.GoBack();
+
+        private void SetBusy(bool busy)
         {
-            if (NavigationService?.CanGoBack == true)
-                NavigationService.GoBack();
+            NameDocumentBox.IsEnabled = !busy;
+            DateOperationPicker.IsEnabled = !busy;
+            DepartamentBox.IsEnabled = !busy;
+
+            ProductBox.IsEnabled = !busy;
+            CountBox.IsEnabled = !busy;
         }
 
-        private class SimpleProductVM
+        private static DateTime ToUtc(DateTime localDate)
         {
-            public string Id { get; set; } = "";
-            public string Name { get; set; } = "";
+            var local = DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local);
+            return local.ToUniversalTime();
         }
 
-        private class IncomeRowVM
+        private sealed class RowVM
         {
-            public string ProductId { get; set; } = "";
-            public string ProductName { get; set; } = "";
+            public string? Id { get; set; }
+            public string ProductionId { get; set; } = string.Empty;
             public int Count { get; set; }
         }
     }

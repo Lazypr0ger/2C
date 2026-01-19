@@ -149,13 +149,15 @@ namespace _2Cclient.Views.Pages
         }
 
 
-        private void OpenOperation_Click(object sender, RoutedEventArgs e)
+        private async void OpenOperation_Click(object sender, RoutedEventArgs e)
         {
             if (LogsList.SelectedItem is not TransactionLogVM s) return;
             if (string.IsNullOrWhiteSpace(s.OperationId)) return;
 
             try
             {
+                OpenOpBtn.IsEnabled = false;
+
                 var opApi = App.Services.GetRequiredService<OperationApi>();
                 var op = await opApi.GetByIdAsync(s.OperationId);
 
@@ -163,7 +165,7 @@ namespace _2Cclient.Views.Pages
                 switch (op.Type)
                 {
                     case Contracts.Enums.OperationType.ActualCosts:
-                        NavigationService?.Navigate(new ManualPostingPage(op)); // сделаем перегрузку ниже
+                        NavigationService?.Navigate(new ManualPostingPage(op));
                         break;
 
                     case Contracts.Enums.OperationType.ReceiptFromProduction:
@@ -190,6 +192,10 @@ namespace _2Cclient.Views.Pages
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка открытия документа:\n{ex.Message}");
+            }
+            finally
+            {
+                OpenOpBtn.IsEnabled = true;
             }
         }
 

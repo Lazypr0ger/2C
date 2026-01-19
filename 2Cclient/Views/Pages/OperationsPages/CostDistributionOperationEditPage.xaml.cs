@@ -1,119 +1,132 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using _2Cclient.Services.Api;
+using Contracts.BindingModels;
+using Contracts.Enums;
+using Contracts.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages.OperationsPages
 {
     public partial class CostDistributionOperationEditPage : Page
     {
-        private readonly OperationListItemVM? _editing;
+        private readonly OperationApi _opApi;
+        private readonly DepartamentApi _depApi;
+        private readonly OperationVM? _editing;
 
         public CostDistributionOperationEditPage()
         {
             InitializeComponent();
+            _opApi = App.Services.GetRequiredService<OperationApi>();
+            _depApi = App.Services.GetRequiredService<DepartamentApi>();
             _editing = null;
 
-            TitleText.Text = "Распределение фактической себестоимости";
-            SubtitleText.Text = "Заполните параметры и нажмите «Распределить»";
-
-            DateOperationPicker.SelectedDate = DateTime.Today;
-
-            var now = DateTime.Today;
-            StartDatePicker.SelectedDate = new DateTime(now.Year, now.Month, 1);
-            EndDatePicker.SelectedDate = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
-
-            DepartamentBox.ItemsSource = new List<SimpleDepartamentVM>
-            {
-                new() { Id="1", Name="Цех 01" },
-                new() { Id="2", Name="Цех 02" }
-            };
-            DepartamentBox.DisplayMemberPath = "Name";
-            DepartamentBox.SelectedValuePath = "Id";
-
-            ApplyBtn.Content = "Распределить";
+            Loaded += async (_, __) => await InitAsync();
         }
 
-        public CostDistributionOperationEditPage(OperationListItemVM vm) : this()
+        public CostDistributionOperationEditPage(OperationVM vm)
         {
+            InitializeComponent();
+            _opApi = App.Services.GetRequiredService<OperationApi>();
+            _depApi = App.Services.GetRequiredService<DepartamentApi>();
             _editing = vm;
 
-            TitleText.Text = "Перепроведение распределения";
-            SubtitleText.Text = "Измените параметры и нажмите «Распределить»";
-
-            NameDocumentBox.Text = vm.NameDocument;
-            DateOperationPicker.SelectedDate = vm.DateOperation;
-
-            // Период/подразделение позже подтянем по id операции с API (когда будет эндпоинт GetById)
-            ApplyBtn.Content = "Распределить";
+            Loaded += async (_, __) => await InitAsync();
         }
 
-        private void Apply_Click(object sender, RoutedEventArgs e)
+        private async Task InitAsync()
         {
-            var name = NameDocumentBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(name))
+            try
+            {
+                var deps = await _depApi.GetAllAsync();
+                DepartamentBox.ItemsSource = deps ?? new List<DepartamentVM>();
+                DepartamentBox.DisplayMemberPath = "Name";
+                DepartamentBox.SelectedValuePath = "Id";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки подразделений:\n{ex.Message}");
+            }
+
+            if (_editing != null)
+            {
+                NameDocumentBox.Text = _editing.NameDocument;
+                DateOperationPicker.SelectedDate = _editing.DateOperation.ToLocalTime().Date;
+                DepartamentBox.SelectedValue = _editing.DepartamentId;
+
+                // Период пока не используется сервером (если хочешь — можно заполнить)
+                StartDatePicker.SelectedDate = null;
+                EndDatePicker.SelectedDate = null;
+            }
+            else
+            {
+                NameDocumentBox.Text = "Распределение фактической себестоимости";
+                DateOperationPicker.SelectedDate = DateTime.Today;
+            }
+        }
+
+        private async void Apply_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(NameDocumentBox.Text))
             {
                 MessageBox.Show("Название документа не должно быть пустым");
                 return;
             }
 
-            if (DateOperationPicker.SelectedDate == null)
+            if (DateOperationPicker.SelectedDate is null)
             {
-                MessageBox.Show("Выберите дату операции");
+                MessageBox.Show("Укажите дату операции");
                 return;
             }
 
-            if (StartDatePicker.SelectedDate == null || EndDatePicker.SelectedDate == null)
+            SetBusy(true);
+
+            try
             {
-                MessageBox.Show("Выберите период расчёта");
-                return;
+                var bm = new OperationBM
+                {
+                    Id = _editing?.Id,
+                    NameDocument = NameDocumentBox.Text.Trim(),
+                    DateOperation = ToUtc(DateOperationPicker.SelectedDate.Value),
+                    Type = OperationType.AllocateActualCost,
+                    DepartamentId = DepartamentBox.SelectedValue as string,
+                    OrganisationId = null,
+                    TotalAmountDocument = 0m,
+                    Elements = new List<ElementBM>(),
+                    IsDeleted = _editing?.IsDeleted ?? false
+                };
+
+                if (_editing is null)
+                    await _opApi.CreateAsync(bm);
+                else
+                    await _opApi.UpdateAsync(bm);
+
+                NavigationService?.GoBack();
             }
-
-            var start = StartDatePicker.SelectedDate.Value.Date;
-            var end = EndDatePicker.SelectedDate.Value.Date;
-
-            if (end < start)
+            catch (Exception ex)
             {
-                MessageBox.Show("Дата окончания периода не может быть меньше даты начала");
-                return;
+                MessageBox.Show($"Ошибка проведения:\n{ex.Message}");
+                SetBusy(false);
             }
-
-            if (DepartamentBox.SelectedItem is not SimpleDepartamentVM dep)
-            {
-                MessageBox.Show("Выберите подразделение");
-                return;
-            }
-
-            // Заглушка: здесь будет вызов API:
-            // - если _editing == null -> Create+Post "Распределить"
-            // - если _editing != null -> Repost "Распределить" по существующей операции
-            MessageBox.Show(
-                $"Распределение (заглушка)\n" +
-                $"Mode={(_editing == null ? "Create" : "Repost")}\n" +
-                $"Name={name}\n" +
-                $"Date={DateOperationPicker.SelectedDate:dd.MM.yyyy}\n" +
-                $"Departament={dep.Name}\n" +
-                $"Period={start:dd.MM.yyyy}-{end:dd.MM.yyyy}");
         }
 
-        private void Back_Click(object sender, RoutedEventArgs e)
+        private void Back_Click(object sender, RoutedEventArgs e) => NavigationService?.GoBack();
+
+        private void SetBusy(bool busy)
         {
-            if (NavigationService?.CanGoBack == true)
-                NavigationService.GoBack();
+            ApplyBtn.IsEnabled = !busy;
+            NameDocumentBox.IsEnabled = !busy;
+            DateOperationPicker.IsEnabled = !busy;
+            DepartamentBox.IsEnabled = !busy;
         }
 
-        private class SimpleDepartamentVM
+        private static DateTime ToUtc(DateTime localDate)
         {
-            public string Id { get; set; } = "";
-            public string Name { get; set; } = "";
-        }
-
-        public class OperationListItemVM
-        {
-            public string Id { get; set; } = "";
-            public string NameDocument { get; set; } = "";
-            public DateTime DateOperation { get; set; }
-            public bool IsDeleted { get; set; }
+            var local = DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local);
+            return local.ToUniversalTime();
         }
     }
 }

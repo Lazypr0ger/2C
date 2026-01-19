@@ -43,6 +43,8 @@ namespace _2Cclient
             sc.AddTransient<OrganisationHistoryApi>();
             sc.AddTransient<ProductionHistoryApi>();
             sc.AddTransient<TransactionLogApi>();
+            sc.AddSingleton<OperationApi>();
+
 
             Services = sc.BuildServiceProvider();
 

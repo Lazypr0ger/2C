@@ -38,20 +38,26 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="6"/>
                             <RowDefinition Height="Auto"/>
+
+                            <RowDefinition Height="12"/>
+
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="6"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0"
-                                   Text="Название документа"
-                                   Foreground="{StaticResource Text2}"/>
-                        <TextBox Grid.Row="2"
-                                 x:Name="NameDocumentBox"
-                                 Style="{StaticResource FormTextBoxStyle}"/>
+                        <TextBlock Grid.Row="0" Text="Название документа" Foreground="{StaticResource Text2}"/>
+                        <TextBox Grid.Row="2" x:Name="NameDocumentBox" Style="{StaticResource FormTextBoxStyle}"/>
 
-                        <TextBlock Grid.Row="4"
-                                   Text="Дата операции"
-                                   Foreground="{StaticResource Text2}"/>
-                        <DatePicker Grid.Row="6"
-                                    x:Name="DateOperationPicker"/>
+                        <TextBlock Grid.Row="4" Text="Дата операции" Foreground="{StaticResource Text2}"/>
+                        <DatePicker Grid.Row="6" x:Name="DateOperationPicker"/>
+
+                        <TextBlock Grid.Row="8" Text="Подразделение (Цех)" Foreground="{StaticResource Text2}"/>
+                        <ComboBox Grid.Row="10"
+                                  x:Name="DepartamentBox"
+                                  Style="{StaticResource DarkComboBoxStyle}"
+                                  Width="320"
+                                  HorizontalAlignment="Left"/>
                     </Grid>
                 </Border>
 
@@ -77,7 +83,7 @@
                         <!-- Ввод строки -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220"/>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="12"/>
                                 <ColumnDefinition Width="140"/>
                                 <ColumnDefinition Width="12"/>
@@ -87,7 +93,7 @@
                             <ComboBox x:Name="ProductBox"
                                       Grid.Column="0"
                                       Style="{StaticResource DarkComboBoxStyle}"
-                                      MinWidth="220"/>
+                                      MinWidth="220"/>  
 
                             <TextBox x:Name="CountBox"
                                      Grid.Column="2"
@@ -98,8 +104,8 @@
                                     Content="Добавить"
                                     Style="{StaticResource ToolbarButtonPrimary}"
                                     MinWidth="160"
-                                    Click="AddRow_Click"/>
-                        </Grid>
+                                    Click="AddRow_Click"/>  
+                             </Grid>
 
                         <!-- Таблица -->
                         <Grid Grid.Row="4" Margin="0,6,0,0">
@@ -168,7 +174,7 @@
                                                 <ColumnDefinition Width="64"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Text="{Binding ProductName}" Foreground="{StaticResource Text}" FontSize="14"/>
+                                            <TextBlock Text="{Binding ProductionId}" Foreground="{StaticResource Text}" FontSize="14"/>
                                             <TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{StaticResource Text}"/>
 
                                             <Button Grid.Column="2"
