@@ -12,9 +12,7 @@ public class OperationVM
 
     public DateTime DateOperation { get; set; } 
 
-    public decimal TotalAmountDocument { get; set; } 
-
-    public required string Agent { get; set; } 
+    public decimal? TotalAmountDocument { get; set; } 
     public bool IsDeleted { get; set; } 
 
     public DateTime? StartDate { get; set; }

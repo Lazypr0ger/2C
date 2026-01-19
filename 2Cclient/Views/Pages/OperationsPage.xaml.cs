@@ -1,28 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using _2Cclient.Views.Pages.OperationsPages;
 
 namespace _2Cclient.Views.Pages
 {
-    /// <summary>
-    /// Логика взаимодействия для OperationsPage.xaml
-    /// </summary>
     public partial class OperationsPage : Page
     {
         public OperationsPage()
         {
             InitializeComponent();
+        }
+
+        private void Income_Click(object sender, RoutedEventArgs e)
+            => NavigationService?.Navigate(new IncomeOperationsPage());
+
+        private void Sale_Click(object sender, RoutedEventArgs e)
+            => NavigationService?.Navigate(new SaleOperationsPage());
+
+        private void CostDistribution_Click(object sender, RoutedEventArgs e)
+            => NavigationService?.Navigate(new CostDistributionOperationsPage());
+
+        private void DeviationWriteOff_Click(object sender, RoutedEventArgs e)
+            => NavigationService?.Navigate(new WriteOffDeviationOperationsPage());
+
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+            if (NavigationService?.CanGoBack == true)
+                NavigationService.GoBack();
         }
     }
 }

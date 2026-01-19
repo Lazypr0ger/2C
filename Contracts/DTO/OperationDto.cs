@@ -16,8 +16,6 @@ public class OperationDto(string id, string nameDocument,
     public DateTime DateOperation { get; set; } = dateOperation;
 
     public decimal TotalAmountDocument { get; set; } = totalAmountDocument;
-
-    public required string Agent { get; set; } = agent;
     public bool IsDeleted { get; set; } = isDeleted;
 
     public DateTime? StartDate { get; set; } = startDate;

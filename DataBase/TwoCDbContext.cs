@@ -127,10 +127,6 @@ public class TwoCDbContext : DbContext
                   .HasMaxLength(200)
                   .IsRequired();
 
-            entity.Property(x => x.Agent)
-                  .HasMaxLength(150)
-                  .IsRequired();
-
             entity.Property(x => x.TotalAmountDocument)
                   .HasPrecision(18, 2);
 

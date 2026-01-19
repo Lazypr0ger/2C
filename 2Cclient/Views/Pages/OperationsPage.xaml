@@ -3,12 +3,66 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:_2Cclient.Views.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
+      Background="Transparent"
       Title="OperationsPage">
 
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Операции"
+                       Foreground="{StaticResource Text}"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Выберите тип операции"
+                       Foreground="{StaticResource Text2}"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="4"
+                Background="{StaticResource Panel2}"
+                CornerRadius="14"
+                Padding="12">
+            <StackPanel>
+                <Button Content="Поступления товаров"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,0,10"
+                        Click="Income_Click"/>
+
+                <Button Content="Реализация продукции"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,0,10"
+                        Click="Sale_Click"/>
+
+                <Button Content="Распределение фактической себестоимости"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,0,10"
+                        Click="CostDistribution_Click"/>
+
+                <Button Content="Списание отклонений от фактической себестоимости"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        HorizontalAlignment="Stretch"
+                        Click="DeviationWriteOff_Click"/>
+            </StackPanel>
+        </Border>
+
+        <Button Grid.Row="6"
+                Content="Назад"
+                Height="40"
+                Style="{StaticResource ToolbarButtonBase}"
+                Click="Back_Click"/>
     </Grid>
 </Page>

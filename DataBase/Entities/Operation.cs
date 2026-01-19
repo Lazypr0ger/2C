@@ -29,9 +29,7 @@ public class Operation
     public Departament? Departament { get; set;}
 
     
-    public decimal TotalAmountDocument { get; set; }
-
-    public required string Agent { get; set; }
+    public decimal? TotalAmountDocument { get; set; }
 
     public List<TransactionLog>? TransactionLog { get; set; }
 

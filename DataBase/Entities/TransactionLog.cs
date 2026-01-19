@@ -10,12 +10,12 @@ public class TransactionLog
     public DateTime DateOperation { get; set; }
 
     //subconto
-    public decimal Subconto1Deb { get; set; }
+    public string? Subconto1Deb { get; set; }
 
-    public decimal Subconto2Deb { get; set; }
-    public decimal Subconto1Cred { get; set; }
+    public string? Subconto2Deb { get; set; }
+    public string? Subconto1Cred { get; set; }
 
-    public decimal Subconto2Cred { get; set; }
+    public string? Subconto2Cred { get; set; }
 
     //amount
     public decimal Amount { get; set; }
