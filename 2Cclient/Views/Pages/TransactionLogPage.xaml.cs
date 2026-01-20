@@ -19,6 +19,7 @@ namespace _2Cclient.Views.Pages
 
         private List<TransactionLogVM> _all = new();
         private List<TransactionLogVM> _filtered = new();
+        private bool _sortDateDesc = true;
 
         public TransactionLogPage()
         {
@@ -73,31 +74,56 @@ namespace _2Cclient.Views.Pages
                 MessageBox.Show($"Ошибка загрузки журнала проводок:\n{ex.Message}");
             }
         }
+        private void DateHeader_Click(object sender, RoutedEventArgs e)
+        {
+            _sortDateDesc = !_sortDateDesc;
+            ApplyLocalFilter();
+        }
 
         private void ApplyLocalFilter()
         {
             var q = (SearchBox.Text ?? string.Empty).Trim();
+            IEnumerable<TransactionLogVM> data = _all;
 
-            if (string.IsNullOrWhiteSpace(q))
-            {
-                _filtered = _all;
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(q))
             {
                 q = q.ToLowerInvariant();
-
-                _filtered = _all.Where(x =>
+                data = data.Where(x =>
                        (x.Comment ?? "").ToLowerInvariant().Contains(q)
                     || (x.ChartDebNum ?? "").ToLowerInvariant().Contains(q)
                     || (x.ChartCredNum ?? "").ToLowerInvariant().Contains(q)
                     || (x.Subconto1DebName ?? "").ToLowerInvariant().Contains(q)
                     || (x.Subconto1CredName ?? "").ToLowerInvariant().Contains(q)
                     || (x.OperationId ?? "").ToLowerInvariant().Contains(q)
-                ).ToList();
+                );
             }
 
+            // сортировка по дате (стабильно + вторичный ключ, чтобы не "прыгало")
+            data = _sortDateDesc
+                ? data.OrderByDescending(x => x.DateOperation).ThenByDescending(x => x.Id)
+                : data.OrderBy(x => x.DateOperation).ThenBy(x => x.Id);
+
+            _filtered = data.ToList();
             LogsList.ItemsSource = _filtered;
+
+            UpdateDateHeaderUi();
         }
+        private void UpdateDateHeaderUi()
+        {
+            if (LogsList?.View is not GridView gv) return;
+
+            // Первая колонка у тебя "Дата" - если не первая, поменяй индекс
+            var col = gv.Columns.FirstOrDefault();
+            if (col?.Header is GridViewColumnHeader header)
+            {
+                // header.Content у нас StackPanel -> [TextBlock "Дата", TextBlock arrow]
+                if (header.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock arrow)
+                {
+                    arrow.Text = _sortDateDesc ? " ▼" : " ▲";
+                }
+            }
+        }
+
 
         private void UpdateButtons()
         {

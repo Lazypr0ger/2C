@@ -194,7 +194,19 @@
                     <ListView.View>
                         <GridView>
 
-                            <GridViewColumn Header="Дата" Width="150">
+                            <GridViewColumn Width="150">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Click="DateHeader_Click" Tag="Date">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Дата"/>
+                                            <TextBlock x:Name="DateHeaderArrow"
+                                                       Text=" ▼"
+                                                       Foreground="{StaticResource Text2}"
+                                                       FontWeight="SemiBold"/>  
+                                        </StackPanel>
+                                    </GridViewColumnHeader>
+                                </GridViewColumn.Header>
+
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Style="{StaticResource CellText}"
@@ -202,6 +214,7 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
+
 
                             <!-- Дт/Кт только номер -->
                             <GridViewColumn Header="Дт" Width="50">
