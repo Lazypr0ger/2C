@@ -12,9 +12,13 @@ public class Operation
 
     public DateTime DateOperation { get; set; }
 
-    public OperationType Type { get; set; }
+    public OperationType Type { get; set; }  
+    
+    public string? Comment { get; set; }
 
     public decimal TotalAmountDocument { get; set; }
+
+
 
     // links
     public string? OrganisationId { get; set; }

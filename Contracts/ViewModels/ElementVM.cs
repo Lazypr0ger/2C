@@ -7,9 +7,9 @@ public class ElementVM
     public required string OperationId { get; set; }
 
     public required string ProductionId { get; set; }
+    public string? ProductionName { get; set; }
 
     public int CountElement { get; set; }
-
     public decimal? Price { get; set; }
 
     public bool IsDeleted { get; set; }

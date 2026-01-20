@@ -17,6 +17,13 @@ public class OperationBusinessLogic(
         return list ?? throw new NullListException();
     }
 
+    // ДОБАВЬ (для журналов документов по типу)
+    public List<OperationDto> GetAllByType(OperationType type, DateTime? from = null, DateTime? to = null)
+    {
+        var list = storage.GetAllByType(type, from, to);
+        return list ?? throw new NullListException();
+    }
+
     public OperationDto GetById(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -24,34 +31,24 @@ public class OperationBusinessLogic(
 
         return storage.GetById(id) ?? throw new ElementNotFoundException(id);
     }
+
     public void Create(OperationDto dto)
     {
         if (dto is null) throw new ArgumentNullException(nameof(dto));
 
         dto.Id ??= Guid.NewGuid().ToString();
-
-        if (string.IsNullOrWhiteSpace(dto.NameDocument))
-            throw new ValidationException("NameDocument is empty");
-
-        if (dto.DateOperation == default)
-            dto.DateOperation = DateTime.UtcNow;
-
         dto.IsDeleted = false;
+
+        NormalizeAndValidate(dto, isUpdate: false);
 
         // 1) сформировать проводки заранее (чтобы знать сумму)
         var logs = BuildPostings(dto);
 
-        // 2) итог документа
+        // 2) итог документа: для документов, где сумма должна считаться по проводкам
         dto.TotalAmountDocument = logs.Sum(x => x.Amount);
 
-        // 3) сохранить шапку ОДИН раз
-        storage.Create(dto);
-
-        // 4) сохранить строки
-        storage.ReplaceElements(dto.Id, dto.Elements ?? new());
-
-        // 5) сохранить проводки
-        storage.ReplaceTransactionLogs(dto.Id, logs);
+        // 3) атомарное сохранение шапка+строки+проводки
+        storage.CreateWithLinesAndLogs(dto, dto.Elements ?? new(), logs);
 
         logger.LogInformation("Operation created and posted. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
@@ -59,26 +56,18 @@ public class OperationBusinessLogic(
     public void Update(OperationDto dto)
     {
         if (dto is null) throw new ArgumentNullException(nameof(dto));
-
         if (string.IsNullOrWhiteSpace(dto.Id))
             throw new ValidationException("Operation id is empty");
 
-        if (string.IsNullOrWhiteSpace(dto.NameDocument))
-            throw new ValidationException("NameDocument is empty");
+        dto.IsDeleted = false; // на обновлении документ не должен сам становиться удалённым
 
-        // 1) обновить шапку
-        storage.Update(dto);
+        NormalizeAndValidate(dto, isUpdate: true);
 
-        // 2) заменить строки
-        storage.ReplaceElements(dto.Id, dto.Elements ?? new());
-
-        // 3) пересоздать проводки
         var logs = BuildPostings(dto);
-        storage.ReplaceTransactionLogs(dto.Id, logs);
-
-        // 4) пересчитать итог
         dto.TotalAmountDocument = logs.Sum(x => x.Amount);
-        storage.Update(dto);
+
+        // атомарно обновить шапку + заменить строки + заменить проводки
+        storage.UpdateWithLinesAndLogs(dto, dto.Elements ?? new(), logs);
 
         logger.LogInformation("Operation updated and reposted. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
@@ -99,15 +88,101 @@ public class OperationBusinessLogic(
         storage.Recovery(id);
     }
 
+    private void NormalizeAndValidate(OperationDto dto, bool isUpdate)
+    {
+        if (string.IsNullOrWhiteSpace(dto.NameDocument))
+            throw new ValidationException("NameDocument is empty");
+
+        if (dto.DateOperation == default)
+            dto.DateOperation = DateTime.UtcNow;
+
+        // базовая валидация по типам
+        switch (dto.Type)
+        {
+            case OperationType.ActualCosts:
+                if (string.IsNullOrWhiteSpace(dto.DepartamentId))
+                    throw new ValidationException("DepartamentId is empty for ActualCosts");
+
+                if (dto.TotalAmountDocument <= 0m)
+                    throw new ValidationException("TotalAmountDocument must be > 0 for ActualCosts");
+                break;
+
+            case OperationType.ReceiptFromProduction:
+                if (string.IsNullOrWhiteSpace(dto.DepartamentId))
+                    throw new ValidationException("DepartamentId is empty for ReceiptFromProduction");
+
+                if (dto.Elements is null || dto.Elements.Count == 0)
+                    throw new ValidationException("Elements is empty for ReceiptFromProduction");
+
+                foreach (var e in dto.Elements)
+                {
+                    if (string.IsNullOrWhiteSpace(e.ProductionId))
+                        throw new ValidationException("Element.ProductionId is empty");
+                    if (e.CountElement <= 0)
+                        throw new ValidationException("Element.CountElement must be > 0");
+                }
+
+                // КЛЮЧЕВОЕ ПРАВИЛО: продукт должен принадлежать выбранному цеху
+                ValidateProductionsBelongToDepartament(dto.DepartamentId!, dto.Elements);
+                break;
+
+            case OperationType.Sale:
+                if (string.IsNullOrWhiteSpace(dto.OrganisationId))
+                    throw new ValidationException("OrganisationId is empty for Sale");
+
+                if (dto.Elements is null || dto.Elements.Count == 0)
+                    throw new ValidationException("Elements is empty for Sale");
+
+                foreach (var e in dto.Elements)
+                {
+                    if (string.IsNullOrWhiteSpace(e.ProductionId))
+                        throw new ValidationException("Element.ProductionId is empty");
+                    if (e.CountElement <= 0)
+                        throw new ValidationException("Element.CountElement must be > 0");
+                    if (e.Price is null || e.Price <= 0)
+                        throw new ValidationException("Element.Price must be > 0 for Sale");
+                }
+                break;
+
+            case OperationType.AllocateActualCost:
+            case OperationType.WriteOffDeviations:
+                // эти операции без строк, только дата/название
+                // (можно оставить Elements пустым)
+                break;
+
+            default:
+                throw new ValidationException($"Operation type {dto.Type} not supported yet");
+        }
+    }
+
+    private void ValidateProductionsBelongToDepartament(string departamentId, List<ElementDto> elements)
+    {
+        var productIds = elements
+            .Select(x => x.ProductionId)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()!
+            .ToList();
+
+        var map = storage.GetProductionDepartaments(productIds); // prodId -> departamentId
+
+        foreach (var pid in productIds)
+        {
+            if (!map.TryGetValue(pid!, out var depId) || string.IsNullOrWhiteSpace(depId))
+                throw new ValidationException($"Production not found: {pid}");
+
+            if (!string.Equals(depId, departamentId, StringComparison.OrdinalIgnoreCase))
+                throw new ValidationException("Нельзя выпускать продукцию не своего цеха (Production.DepartamentId != Operation.DepartamentId)");
+        }
+    }
+
     private List<TransactionLogDto> BuildPostings(OperationDto op)
     {
-        // какие счета нужны
+        // счета для операции
         var needNums = op.Type switch
         {
             OperationType.ActualCosts => new[] { "20", "10" },
             OperationType.ReceiptFromProduction => new[] { "43", "20" },
             OperationType.Sale => new[] { "90", "43", "62" },
-
             OperationType.AllocateActualCost => new[] { "43", "20" },
             OperationType.WriteOffDeviations => new[] { "90", "43", "20" },
             _ => throw new ValidationException($"Operation type {op.Type} not supported yet")
@@ -118,14 +193,18 @@ public class OperationBusinessLogic(
             if (!acc.ContainsKey(n))
                 throw new ValidationException($"Chart of account {n} not found");
 
+        // ОП4 / ОП5 — отдельно
+        if (op.Type == OperationType.AllocateActualCost)
+            return BuildOp4_DistributeActualCost(op, acc);
+
+        if (op.Type == OperationType.WriteOffDeviations)
+            return BuildOp5_WriteOffDeviationsTo90(op, acc);
+
         var logs = new List<TransactionLogDto>();
 
         if (op.Type == OperationType.ActualCosts)
         {
-            // ручной ввод затрат: сейчас делаем простейший вариант — одна проводка на сумму TotalAmountDocument
-            if (op.TotalAmountDocument == 0m)
-                throw new ValidationException("TotalAmountDocument is empty for ActualCosts");
-
+            // TotalAmountDocument проверен выше (>0)
             logs.Add(new TransactionLogDto
             {
                 Id = Guid.NewGuid().ToString(),
@@ -133,32 +212,30 @@ public class OperationBusinessLogic(
                 OperationId = op.Id,
                 ChartOfAccountDebId = acc["20"],
                 ChartOfAccountCredId = acc["10"],
-                Subconto1Deb = op.DepartamentId, // аналитика 20 = подразделение (по ТЗ)
+                Subconto1Deb = op.DepartamentId,
                 Amount = op.TotalAmountDocument,
                 Count = 0,
-                Comment = "Накопление фактических затрат Дт20 Кт10",
+                Comment = string.IsNullOrWhiteSpace(op.Comment)
+                    ? "Накопление фактических затрат Дт20 Кт10"
+                    : op.Comment,
                 IsDeleted = false
             });
             return logs;
         }
 
-        // для 43/20 и 90/43 нужно PlannedCost по продуктам
-        var productIds = (op.Elements ?? new()).Select(x => x.ProductionId).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct()!;
+        // planned cost нужен для Receipt/Sale
+        var productIds = (op.Elements ?? new())
+            .Select(x => x.ProductionId)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct()!
+            .ToList();
+
         var planned = storage.GetPlannedCostsByProductIds(productIds!);
 
         if (op.Type == OperationType.ReceiptFromProduction)
         {
-            if (string.IsNullOrWhiteSpace(op.DepartamentId))
-                throw new ValidationException("DepartamentId is empty for ReceiptFromProduction");
-
             foreach (var e in op.Elements)
             {
-                if (string.IsNullOrWhiteSpace(e.ProductionId))
-                    throw new ValidationException("Element.ProductionId is empty");
-
-                if (e.CountElement <= 0)
-                    throw new ValidationException("Element.CountElement must be > 0");
-
                 var pc = planned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
                 var sum = e.CountElement * pc;
 
@@ -169,39 +246,27 @@ public class OperationBusinessLogic(
                     OperationId = op.Id,
                     ChartOfAccountDebId = acc["43"],
                     ChartOfAccountCredId = acc["20"],
-                    Subconto1Deb = e.ProductionId,     // 43 аналитика = продукт
-                    Subconto1Cred = op.DepartamentId,  // 20 аналитика = подразделение
+                    Subconto1Deb = e.ProductionId,
+                    Subconto1Cred = op.DepartamentId,
                     Amount = sum,
                     Count = e.CountElement,
-                    Comment = "Поступление готовой продукции Дт43 Кт20 (плановая)",
+                    Comment = string.IsNullOrWhiteSpace(op.Comment)
+                        ? "Поступление готовой продукции Дт43 Кт20 (плановая)"
+                        : op.Comment,
                     IsDeleted = false
                 });
             }
-
             return logs;
         }
 
         if (op.Type == OperationType.Sale)
         {
-            if (string.IsNullOrWhiteSpace(op.OrganisationId))
-                throw new ValidationException("OrganisationId is empty for Sale");
-
             foreach (var e in op.Elements)
             {
-                if (string.IsNullOrWhiteSpace(e.ProductionId))
-                    throw new ValidationException("Element.ProductionId is empty");
-
-                if (e.CountElement <= 0)
-                    throw new ValidationException("Element.CountElement must be > 0");
-
-                if (e.Price is null || e.Price <= 0)
-                    throw new ValidationException("Element.Price must be > 0 for Sale");
-
                 var pc = planned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
-                var planCogs = e.CountElement * pc;          // списание себестоимости
-                var revenue = e.CountElement * e.Price.Value; // выручка
+                var planCogs = e.CountElement * pc;
+                var revenue = e.CountElement * e.Price!.Value;
 
-                // 1) Дт90 Кт43 (себестоимость)
                 logs.Add(new TransactionLogDto
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -209,14 +274,15 @@ public class OperationBusinessLogic(
                     OperationId = op.Id,
                     ChartOfAccountDebId = acc["90"],
                     ChartOfAccountCredId = acc["43"],
-                    Subconto1Cred = e.ProductionId, // 43 аналитика = продукт
+                    Subconto1Cred = e.ProductionId,
                     Amount = planCogs,
                     Count = e.CountElement,
-                    Comment = "Реализация: списание себестоимости Дт90 Кт43 (плановая)",
+                    Comment = string.IsNullOrWhiteSpace(op.Comment)
+                        ? "Реализация: списание себестоимости Дт90 Кт43 (плановая)"
+                        : op.Comment,
                     IsDeleted = false
                 });
 
-                // 2) Дт62 Кт90 (выручка)
                 logs.Add(new TransactionLogDto
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -224,23 +290,17 @@ public class OperationBusinessLogic(
                     OperationId = op.Id,
                     ChartOfAccountDebId = acc["62"],
                     ChartOfAccountCredId = acc["90"],
-                    Subconto1Deb = op.OrganisationId, // 62 аналитика = покупатель/контрагент
+                    Subconto1Deb = op.OrganisationId,
                     Amount = revenue,
                     Count = e.CountElement,
-                    Comment = "Реализация: начисление выручки Дт62 Кт90",
+                    Comment = string.IsNullOrWhiteSpace(op.Comment)
+                        ? "Реализация: начисление выручки Дт62 Кт90"
+                        : op.Comment,
                     IsDeleted = false
                 });
-               
-
             }
-
             return logs;
         }
-        if (op.Type == OperationType.AllocateActualCost)
-            return BuildOp4_DistributeActualCost(op, acc);
-
-        if (op.Type == OperationType.WriteOffDeviations)
-            return BuildOp5_WriteOffDeviationsTo90(op, acc);
 
         return logs;
     }
@@ -252,11 +312,11 @@ public class OperationBusinessLogic(
         var acc43 = acc["43"];
         var acc20 = acc["20"];
 
-        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20); // product -> (qty, sumPlan)
+        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20);
         if (receipts.Count == 0)
             throw new ValidationException("Операция 4: нет поступлений Дт43 Кт20 за месяц");
 
-        var do20 = storage.GetDebitTurnover20(from, to, acc20); // дебетовый оборот 20
+        var do20 = storage.GetDebitTurnover20(from, to, acc20);
         var sumPlanAll = receipts.Values.Sum(x => x.sum);
         if (sumPlanAll == 0m)
             throw new ValidationException("Операция 4: сумма плановых поступлений = 0");
@@ -268,10 +328,7 @@ public class OperationBusinessLogic(
             var productId = kv.Key;
             var sumPlan = kv.Value.sum;
 
-            // Sum_F(i) = (DO / sumPlanAll) * sumPlan_i
             var sumFact = (do20 / sumPlanAll) * sumPlan;
-
-            // delta = Sum_F - Sum_P
             var delta = sumFact - sumPlan;
             if (Math.Abs(delta) < 0.0001m) continue;
 
@@ -282,16 +339,19 @@ public class OperationBusinessLogic(
                 DateOperation = op.DateOperation,
                 ChartOfAccountDebId = acc43,
                 ChartOfAccountCredId = acc20,
-                Subconto1Deb = productId, // 43 аналитика по продукту
+                Subconto1Deb = productId,
                 Amount = delta,
                 Count = 0,
-                Comment = "Распределение фактической себестоимости: отклонение Дт43 Кт20",
+                Comment = string.IsNullOrWhiteSpace(op.Comment)
+                    ? "Распределение фактической себестоимости: отклонение Дт43 Кт20"
+                    : op.Comment,
                 IsDeleted = false
             });
         }
 
         return logs;
     }
+
     private List<TransactionLogDto> BuildOp5_WriteOffDeviationsTo90(OperationDto op, Dictionary<string, string> acc)
     {
         var (from, to) = MonthRangeUtc(op.DateOperation);
@@ -300,11 +360,11 @@ public class OperationBusinessLogic(
         var acc20 = acc["20"];
         var acc90 = acc["90"];
 
-        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20); // product -> (qtyF, sumPlanReceipts)
-        var alloc = storage.GetAllocDeltas43_20(from, to, acc43, acc20);      // product -> deltaAlloc
-        var sales = storage.GetSalesCogs90_43_Plan(from, to, acc90, acc43);   // product -> (qtySold, sumPlanCogs)
+        var receipts = storage.GetReceipts43_20_Plan(from, to, acc43, acc20);
+        var alloc = storage.GetAllocDeltas43_20(from, to, acc43, acc20);
+        var sales = storage.GetSalesCogs90_43_Plan(from, to, acc90, acc43);
 
-        if (sales.Count == 0) return new List<TransactionLogDto>(); // нечего списывать
+        if (sales.Count == 0) return new List<TransactionLogDto>();
 
         var logs = new List<TransactionLogDto>();
 
@@ -312,26 +372,21 @@ public class OperationBusinessLogic(
         {
             var productId = s.Key;
             var qtySold = s.Value.qty;
-            var sumPlanSold = s.Value.sum; // плановая себестоимость продаж (из Дт90 Кт43)
+            var sumPlanSold = s.Value.sum;
 
             if (qtySold <= 0) continue;
-
             if (!receipts.TryGetValue(productId, out var rec)) continue;
+
             var qtyF = rec.qty;
             var sumPlanReceipts = rec.sum;
-
             if (qtyF <= 0) continue;
 
             var deltaAlloc = alloc.TryGetValue(productId, out var da) ? da : 0m;
             var sumFactReceipts = sumPlanReceipts + deltaAlloc;
 
-            // Фактическая себестоимость единицы = Sum_F / kol_F
             var factUnit = sumFactReceipts / qtyF;
-
-            // Плановая себестоимость единицы по продажам = Sum_P_sold / kol_P_sold
             var planUnit = sumPlanSold / qtySold;
 
-            // Отклонение при реализации = (factUnit - planUnit) * qtySold
             var deltaSold = (factUnit - planUnit) * qtySold;
             if (Math.Abs(deltaSold) < 0.0001m) continue;
 
@@ -342,10 +397,12 @@ public class OperationBusinessLogic(
                 DateOperation = op.DateOperation,
                 ChartOfAccountDebId = acc90,
                 ChartOfAccountCredId = acc43,
-                Subconto1Cred = productId, // 43 аналитика по продукту
+                Subconto1Cred = productId,
                 Amount = deltaSold,
                 Count = 0,
-                Comment = "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43",
+                Comment = string.IsNullOrWhiteSpace(op.Comment)
+                    ? "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43"
+                    : op.Comment,
                 IsDeleted = false
             });
         }
@@ -355,10 +412,8 @@ public class OperationBusinessLogic(
 
     private static (DateTime from, DateTime to) MonthRangeUtc(DateTime dt)
     {
-        // У тебя везде UtcNow, так что делаем UTC-границы
         var from = new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var to = from.AddMonths(1).AddTicks(-1);
         return (from, to);
     }
-
 }
