@@ -165,7 +165,7 @@ namespace _2Cclient.Views.Pages.Reports
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             if (ReportsList.SelectedItem is not ReportListItemVM r) return;
-            NavigationService?.Navigate(new ReportViewerPage(r.Id, r.TypeCode, r.Name));
+           // NavigationService?.Navigate(new ReportViewerPage(r.Id, r.TypeCode, r.Name));
         }
 
         private async void Delete_Click(object sender, RoutedEventArgs e)

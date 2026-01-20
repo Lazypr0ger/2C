@@ -75,7 +75,6 @@
         <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="14">
             <StackPanel>
 
-                <!-- 1 -->
                 <Button Style="{StaticResource ReportTypeButton}"
                         Tag="actual_cost_distribution"
                         Click="Type_Click"
@@ -92,7 +91,6 @@
                     </StackPanel>
                 </Button>
 
-                <!-- 2 -->
                 <Button Style="{StaticResource ReportTypeButton}"
                         Tag="sales_statement"
                         Click="Type_Click"
@@ -109,7 +107,6 @@
                     </StackPanel>
                 </Button>
 
-                <!-- 3 -->
                 <Button Style="{StaticResource ReportTypeButton}"
                         Tag="realised_deviation"
                         Click="Type_Click">

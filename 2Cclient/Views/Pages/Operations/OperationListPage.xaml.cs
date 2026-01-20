@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
+using _2Cclient.Views.Pages.Operations.OperationsPages;
 using Contracts.Enums;
 using Contracts.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -210,25 +211,25 @@ namespace _2Cclient.Views.Pages
             // Create: op == null
             switch (type)
             {
-                //case OperationType.ActualCosts:
-                //    NavigationService?.Navigate(op == null ? new ManualPostingPage() : new ManualPostingPage(op));
-                //    break;
+                case OperationType.ActualCosts:
+                    NavigationService?.Navigate(op == null ? new ManualPostingPage() : new ManualPostingPage(op));
+                    break;
 
-                //case OperationType.ReceiptFromProduction:
-                //    NavigationService?.Navigate(op == null ? new IncomeOperationEditPage() : new IncomeOperationEditPage(op));
-                //    break;
+                case OperationType.ReceiptFromProduction:
+                    NavigationService?.Navigate(op == null ? new IncomeOperationEditPage() : new IncomeOperationEditPage(op));
+                    break;
 
-                //case OperationType.Sale:
-                //    NavigationService?.Navigate(op == null ? new SaleOperationEditPage() : new SaleOperationEditPage(op));
-                //    break;
+                case OperationType.Sale:
+                    NavigationService?.Navigate(op == null ? new SaleOperationEditPage() : new SaleOperationEditPage(op));
+                    break;
 
-                //case OperationType.AllocateActualCost:
-                //    NavigationService?.Navigate(op == null ? new CostDistributionOperationEditPage() : new CostDistributionOperationEditPage(op));
-                //    break;
+                case OperationType.AllocateActualCost:
+                    NavigationService?.Navigate(op == null ? new CostDistributionOperationEditPage() : new CostDistributionOperationEditPage(op));
+                    break;
 
-                //case OperationType.WriteOffDeviations:
-                //    NavigationService?.Navigate(op == null ? new WriteOffDeviationOperationEditPage() : new WriteOffDeviationOperationEditPage(op));
-                //    break;
+                case OperationType.WriteOffDeviations:
+                    NavigationService?.Navigate(op == null ? new WriteOffDeviationOperationEditPage() : new WriteOffDeviationOperationEditPage(op));
+                    break;
 
                 default:
                     MessageBox.Show($"Неизвестный тип операции: {type}");

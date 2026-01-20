@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using _2Cclient.Services.Api;
 using Contracts.BindingModels;
 using Contracts.Enums;
@@ -17,6 +22,12 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private readonly ApiClient _api;
         private OperationVM? _editing;
 
+        // Сумма: цифры + один '.' или ',' (без минуса)
+        private static readonly Regex AmountAllowedRegex = new(@"^[0-9]*([.,][0-9]*)?$", RegexOptions.Compiled);
+
+        // Время строго HH:mm
+        private static readonly Regex TimeStrictRegex = new(@"^([01]\d|2[0-3]):[0-5]\d$", RegexOptions.Compiled);
+
         public ManualPostingPage()
         {
             InitializeComponent();
@@ -26,7 +37,18 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             {
                 await LoadDepartamentsAsync();
                 InitDefaultsForCreate();
+
+                // нейтральная подсветка
+                MarkValid(NameDocumentBox, true);
+                MarkValid(TimeBox, true);
+                MarkValid(AmountBox, true);
+                MarkValid(DepartamentBox, true);
+                MarkValid(DatePicker, true);
             };
+
+            // Запрещаем вставку мусора
+            DataObject.AddPastingHandler(AmountBox, AmountBox_OnPaste);
+            DataObject.AddPastingHandler(TimeBox, TimeBox_OnPaste);
         }
 
         public ManualPostingPage(OperationVM op) : this()
@@ -42,6 +64,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             DatePicker.SelectedDate = DateTime.Now.Date;
             TimeBox.Text = DateTime.Now.ToString("HH:mm");
             CommentBox.Text = "";
+            AmountBox.Text = "";
         }
 
         private async Task LoadDepartamentsAsync()
@@ -66,8 +89,179 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             DepartamentBox.SelectedValue = op.DepartamentId;
 
             AmountBox.Text = op.TotalAmountDocument.ToString(CultureInfo.InvariantCulture);
+            MarkValid(AmountBox, true);
+            MarkValid(TimeBox, true);
         }
 
+        // -------------------- UI подсветка валидности (без MessageBox) --------------------
+        private void MarkValid(Control control, bool ok, string? tooltip = null)
+        {
+            // Если хочешь — заведи отдельные ресурсы (FieldErrorBrush / FieldOkBrush)
+            // Сейчас используем Danger/BorderBrush из темы.
+            var errorBrush = (Brush)FindResource("Danger");
+            var okBrush = (Brush)FindResource("Accent");
+            var neutralBrush = (Brush)FindResource("Border");
+
+            control.BorderBrush = ok ? okBrush : errorBrush;
+            control.ToolTip = ok ? null : (tooltip ?? "Некорректное значение");
+
+            // если пусто и ok=true, можно вернуть нейтральный бордер
+            // (чтобы не было постоянно Accent)
+            if (ok && string.IsNullOrWhiteSpace(GetControlText(control)))
+                control.BorderBrush = neutralBrush;
+        }
+
+        private static string GetControlText(Control c) =>
+            c switch
+            {
+                TextBox tb => tb.Text ?? "",
+                ComboBox cb => cb.Text ?? "",
+                DatePicker dp => dp.Text ?? "",
+                _ => ""
+            };
+
+        // -------------------- Время --------------------
+        private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space) e.Handled = true;
+        }
+
+        private void TimeBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            // только цифры (двоеточие поставим сами)
+            e.Handled = !e.Text.All(char.IsDigit);
+        }
+
+        private void TimeBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var tb = TimeBox;
+            if (tb == null) return;
+
+            // Снимаем подсветку ошибки, пока пользователь печатает
+            // (жёстко проверим при Save или LostFocus)
+            if (!string.IsNullOrWhiteSpace(tb.Text))
+                MarkValid(tb, true);
+
+            var raw = new string((tb.Text ?? "").Where(char.IsDigit).ToArray());
+            if (raw.Length > 4) raw = raw[..4];
+
+            string formatted = raw.Length switch
+            {
+                0 => "",
+                1 => raw,
+                2 => raw, // "12"
+                3 => raw[..2] + ":" + raw[2..], // "12:3"
+                4 => raw[..2] + ":" + raw[2..], // "12:34"
+                _ => raw
+            };
+
+            if (tb.Text != formatted)
+            {
+                var caret = tb.CaretIndex;
+                tb.Text = formatted;
+                tb.CaretIndex = Math.Min(tb.Text.Length, caret);
+            }
+        }
+
+        private void TimeBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var t = (TimeBox.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(t))
+            {
+                TimeBox.Text = "00:00";
+                MarkValid(TimeBox, true);
+                return;
+            }
+
+            // ВАЖНО: никакого Focus() и MessageBox() тут — иначе ловим цикл
+            if (!TimeStrictRegex.IsMatch(t))
+            {
+                MarkValid(TimeBox, false, "Время в формате HH:mm (например 12:00)");
+                return;
+            }
+
+            MarkValid(TimeBox, true);
+        }
+
+        private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText))
+            {
+                e.CancelCommand();
+                return;
+            }
+
+            var text = (e.DataObject.GetData(DataFormats.UnicodeText) as string) ?? "";
+            // допускаем вставку только цифр
+            if (text.Any(ch => !char.IsDigit(ch)))
+                e.CancelCommand();
+        }
+
+        // -------------------- Сумма --------------------
+        private void AmountBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space) e.Handled = true;
+        }
+
+        private void AmountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var tb = (TextBox)sender;
+            var current = tb.Text ?? "";
+
+            var selectionStart = tb.SelectionStart;
+            var selectionLength = tb.SelectionLength;
+
+            var next = current.Remove(selectionStart, selectionLength).Insert(selectionStart, e.Text);
+
+            // Разрешаем только "12" / "12." / "12.3" / "12,3"
+            e.Handled = !AmountAllowedRegex.IsMatch(next);
+        }
+
+        private void AmountBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Пока печатает — не ругаемся, просто сбрасываем красное
+            if (!string.IsNullOrWhiteSpace(AmountBox.Text))
+                MarkValid(AmountBox, true);
+        }
+
+        private void AmountBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText))
+            {
+                e.CancelCommand();
+                return;
+            }
+
+            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText)) ?? "";
+            text = text.Trim();
+
+            if (!AmountAllowedRegex.IsMatch(text))
+                e.CancelCommand();
+        }
+
+        private void AmountBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var txt = (AmountBox.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(txt))
+            {
+                MarkValid(AmountBox, false, "Введите сумму > 0");
+                return;
+            }
+
+            txt = txt.Replace(',', '.');
+
+            if (!decimal.TryParse(txt, NumberStyles.Number, CultureInfo.InvariantCulture, out var val) || val <= 0m)
+            {
+                // НЕ делаем Focus/SelectAll и НЕ MessageBox — только подсветка
+                MarkValid(AmountBox, false, "Сумма должна быть числом > 0");
+                return;
+            }
+
+            MarkValid(AmountBox, true);
+            AmountBox.Text = val.ToString("0.##", CultureInfo.InvariantCulture);
+        }
+
+        // -------------------- Date + Time -> UTC --------------------
         private bool TryGetUtcDateTime(out DateTime utc, out string error)
         {
             utc = default;
@@ -76,17 +270,26 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             if (DatePicker.SelectedDate == null)
             {
                 error = "Дата не выбрана.";
+                MarkValid(DatePicker, false, error);
                 return false;
             }
+
+            MarkValid(DatePicker, true);
 
             var timeText = (TimeBox.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(timeText)) timeText = "00:00";
+            if (string.IsNullOrWhiteSpace(timeText))
+                timeText = "00:00";
 
-            if (!TimeSpan.TryParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture, out var ts))
+            if (!TimeStrictRegex.IsMatch(timeText))
             {
-                error = "Время должно быть в формате HH:mm.";
+                error = "Время должно быть в формате HH:mm (например 12:00).";
+                MarkValid(TimeBox, false, error);
                 return false;
             }
+
+            MarkValid(TimeBox, true);
+
+            var ts = TimeSpan.ParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture);
 
             var local = DatePicker.SelectedDate.Value.Date.Add(ts);
             local = DateTime.SpecifyKind(local, DateTimeKind.Local);
@@ -94,10 +297,17 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return true;
         }
 
-        private static bool TryParseDecimal(string? text, out decimal value)
+        private static bool TryParseDecimalStrict(string? text, out decimal value)
         {
-            return decimal.TryParse((text ?? "").Trim().Replace(',', '.'),
-                NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+            value = 0m;
+            var t = (text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(t)) return false;
+
+            t = t.Replace(',', '.');
+
+            if (!AmountAllowedRegex.IsMatch(t)) return false;
+
+            return decimal.TryParse(t, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
         }
 
         private async void Save_Click(object sender, RoutedEventArgs e)
@@ -106,25 +316,42 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             {
                 SaveBtn.IsEnabled = false;
 
+                // 1) Name
                 var name = (NameDocumentBox.Text ?? "").Trim();
+                name = Regex.Replace(name, @"\s+", " ");
+
                 if (string.IsNullOrWhiteSpace(name))
                 {
+                    MarkValid(NameDocumentBox, false, "Название документа обязательно");
                     MessageBox.Show("Заполните «Название документа».");
+                    NameDocumentBox.Focus();
                     return;
                 }
+                MarkValid(NameDocumentBox, true);
 
+                // 2) Departament
                 if (DepartamentBox.SelectedValue is not string depId || string.IsNullOrWhiteSpace(depId))
                 {
+                    MarkValid(DepartamentBox, false, "Выберите подразделение");
                     MessageBox.Show("Выберите подразделение.");
+                    DepartamentBox.Focus();
                     return;
                 }
+                MarkValid(DepartamentBox, true);
 
-                if (!TryParseDecimal(AmountBox.Text, out var amount) || amount <= 0m)
+                // 3) Amount
+                if (!TryParseDecimalStrict(AmountBox.Text, out var amount) || amount <= 0m)
                 {
-                    MessageBox.Show("Сумма должна быть числом > 0.");
+                    MarkValid(AmountBox, false, "Сумма должна быть > 0");
+                    MessageBox.Show("Сумма должна быть числом > 0 (decimal).");
+                    AmountBox.Focus();
+                    AmountBox.SelectAll();
                     return;
                 }
+                MarkValid(AmountBox, true);
+                AmountBox.Text = amount.ToString("0.##", CultureInfo.InvariantCulture);
 
+                // 4) DateTime
                 if (!TryGetUtcDateTime(out var utc, out var err))
                 {
                     MessageBox.Show(err);
@@ -143,17 +370,14 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
                     Elements = new List<ElementBM>()
                 };
 
-                // Важно: для ActualCosts у тебя в BL проверка TotalAmountDocument > 0.
-                // В BM этого поля нет → сервер должен брать сумму из dto.TotalAmountDocument.
-                // Поэтому на контроллере/маппинге должно попасть в dto.TotalAmountDocument.
-                // Если у тебя BM->Dto не кладёт сумму — добавь в BM поле TotalAmountDocument.
-                // Но ты писал, что “дописал поле и работает”, значит BM уже расширен.
-                // Если поле есть — раскомментируй:
-                // bm.TotalAmountDocument = amount;
-
-                // Если у тебя BM без суммы — временный костыль: в комментарий нельзя.
-                // Поэтому считаем что поле есть:
-                bm.GetType().GetProperty("TotalAmountDocument")?.SetValue(bm, amount);
+                // Сумма: кладем в TotalAmountDocument
+                var p = bm.GetType().GetProperty("TotalAmountDocument", BindingFlags.Public | BindingFlags.Instance);
+                if (p == null || !p.CanWrite)
+                {
+                    MessageBox.Show("В OperationBM отсутствует поле TotalAmountDocument. Добавь его в BM, иначе сервер не получит сумму.");
+                    return;
+                }
+                p.SetValue(bm, amount);
 
                 if (_editing == null)
                     await _api.PostAsync("/ms/api/Operation", bm);

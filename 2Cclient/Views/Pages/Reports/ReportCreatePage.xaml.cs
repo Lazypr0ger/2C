@@ -63,7 +63,7 @@ namespace _2Cclient.Views.Pages.Reports
                 await Task.Delay(150);
                 var fakeId = Guid.NewGuid().ToString("N");
 
-                NavigationService?.Navigate(new ReportViewerPage(fakeId, _typeCode, name));
+          //      NavigationService?.Navigate(new ReportViewerPage(fakeId, _typeCode, name));
             }
             catch (Exception ex)
             {
