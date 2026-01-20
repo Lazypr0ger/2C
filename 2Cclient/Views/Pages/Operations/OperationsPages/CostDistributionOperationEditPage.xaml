@@ -1,0 +1,83 @@
+﻿<Page x:Class="_2Cclient.Views.Pages.Operations.OperationsPages.CostDistributionOperationEditPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="Transparent">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Распределение фактической себестоимости"
+                       Foreground="{StaticResource Text}"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Операция месяца (сервер формирует проводки)"
+                       Foreground="{StaticResource Text2}"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Background="{StaticResource Panel2}" CornerRadius="14" Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="12"/>
+
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+
+                    <RowDefinition Height="12"/>
+
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Название документа" Foreground="{StaticResource Text2}"/>
+                <TextBox Grid.Row="2" x:Name="NameDocumentBox" Style="{StaticResource FormTextBoxStyle}"/>
+
+                <TextBlock Grid.Row="4" Text="Дата и время (месяц определяется по дате)" Foreground="{StaticResource Text2}"/>
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <DatePicker x:Name="DatePicker" Grid.Column="0"/>
+                    <TextBox x:Name="TimeBox"
+                             Grid.Column="2"
+                             Style="{StaticResource FormTextBoxStyle}"
+                             Height="38"
+                             VerticalContentAlignment="Center"
+                             ToolTip="HH:mm"/>
+                </Grid>
+
+                <TextBlock Grid.Row="8" Text="Комментарий" Foreground="{StaticResource Text2}"/>
+                <TextBox Grid.Row="10" x:Name="CommentBox" Style="{StaticResource FormTextBoxStyle}"/>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Назад"
+                    Style="{StaticResource ToolbarButtonBase}"
+                    Margin="0,0,8,0"
+                    Click="Back_Click"/>
+
+            <Button x:Name="ApplyBtn"
+                    Content="Выполнить"
+                    Style="{StaticResource ToolbarButtonPrimary}"
+                    Click="Apply_Click"/>
+        </StackPanel>
+    </Grid>
+</Page>

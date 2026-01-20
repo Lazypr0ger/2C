@@ -1,14 +1,137 @@
 ﻿<Page x:Class="_2Cclient.Views.Pages.ReportsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:_2Cclient.Views.Pages"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="ReportsPage">
+      Background="Transparent">
+
+    <Page.Resources>
+        <Style TargetType="Border" BasedOn="{StaticResource CardStyle}"/>
+
+        <Style x:Key="ReportTypeButton" TargetType="Button" BasedOn="{StaticResource ToolbarButtonBase}">
+            <Setter Property="Height" Value="72"/>
+            <Setter Property="MinWidth" Value="520"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ContentPresenter VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="›"
+                                           FontSize="22"
+                                           Foreground="{StaticResource Text2}"
+                                           VerticalAlignment="Center"
+                                           Margin="12,0,4,0"/>
+                            </Grid>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
 
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Отчёты"
+                       Foreground="{StaticResource Text}"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Выберите тип отчёта"
+                       Foreground="{StaticResource Text2}"
+                       Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="14">
+            <StackPanel>
+
+                <!-- 1 -->
+                <Button Style="{StaticResource ReportTypeButton}"
+                        Tag="actual_cost_distribution"
+                        Click="Type_Click"
+                        Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Ведомость распределения фактических затрат по видам выпущенной продукции"
+                                   Foreground="{StaticResource Text}"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"/>
+                        <TextBlock Text="Период с ... по ... • Общая сумма фактических затрат • План/Отклонение/Факт"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="0,6,0,0"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 2 -->
+                <Button Style="{StaticResource ReportTypeButton}"
+                        Tag="sales_statement"
+                        Click="Type_Click"
+                        Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Ведомость продаж продукции"
+                                   Foreground="{StaticResource Text}"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"/>
+                        <TextBlock Text="Период ... • Продано на сумму • Себестоимость продаж • Прибыль/убыток"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="0,6,0,0"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 3 -->
+                <Button Style="{StaticResource ReportTypeButton}"
+                        Tag="realised_deviation"
+                        Click="Type_Click">
+                    <StackPanel>
+                        <TextBlock Text="Ведомость расчета отклонений фактической себестоимости от плановой по реализованной продукции"
+                                   Foreground="{StaticResource Text}"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"/>
+                        <TextBlock Text="Период с ... по ... • План/Отклонение/Факт по реализованной продукции"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="0,6,0,0"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+        </Border>
+
+        <Button Grid.Row="3"
+                Content="Назад"
+                Height="40"
+                Style="{StaticResource ToolbarButtonBase}"
+                Click="Back_Click"/>
     </Grid>
 </Page>

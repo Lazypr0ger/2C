@@ -24,8 +24,6 @@ namespace _2Cclient.Views
             _apiClient = App.Services.GetRequiredService<ApiClient>();
 
             Loaded += MainWindow_Loaded;
-
-            try { MainFrame.Navigate(new HomePage()); } catch { }
             NavList.SelectedIndex = 0;
         }
 
@@ -102,10 +100,10 @@ namespace _2Cclient.Views
                     MainFrame.Navigate(new DirectoriesPage());
                     break;
 
-                //case "Operations":
-                //    PageTitleText.Text = "Операции";
-                //    MainFrame.Navigate(new OperationsPage());
-                //    break;
+                case "Operations":
+                    PageTitleText.Text = "Операции";
+                    MainFrame.Navigate(new OperationsPage());
+                    break;
 
                 case "Reports":
                     PageTitleText.Text = "Отчёты";
