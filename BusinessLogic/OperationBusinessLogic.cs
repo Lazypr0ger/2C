@@ -12,17 +12,7 @@ public class OperationBusinessLogic(
     ILogger<OperationBusinessLogic> logger) : IOperationBusinessLogic
 {
     public List<OperationDto> GetAll(DateTime? from = null, DateTime? to = null)
-    {
-        var list = storage.GetAll(from, to);
-        return list ?? throw new NullListException();
-    }
-
-    // ДОБАВЬ (для журналов документов по типу)
-    public List<OperationDto> GetAllByType(OperationType type, DateTime? from = null, DateTime? to = null)
-    {
-        var list = storage.GetAllByType(type, from, to);
-        return list ?? throw new NullListException();
-    }
+        => storage.GetAll(from, to) ?? throw new NullListException();
 
     public OperationDto GetById(string id)
     {
@@ -37,20 +27,19 @@ public class OperationBusinessLogic(
         if (dto is null) throw new ArgumentNullException(nameof(dto));
 
         dto.Id ??= Guid.NewGuid().ToString();
-        dto.IsDeleted = false;
+        NormalizeAndValidateHeader(dto, isCreate: true);
+        ValidateByType(dto);
 
-        NormalizeAndValidate(dto, isUpdate: false);
-
-        // 1) сформировать проводки заранее (чтобы знать сумму)
+        // построить проводки (внутри тоже есть проверки)
         var logs = BuildPostings(dto);
 
-        // 2) итог документа: для документов, где сумма должна считаться по проводкам
+        // итог
         dto.TotalAmountDocument = logs.Sum(x => x.Amount);
 
-        // 3) атомарное сохранение шапка+строки+проводки
-        storage.CreateWithLinesAndLogs(dto, dto.Elements ?? new(), logs);
+        // атомарное сохранение (шапка+строки+проводки)
+        storage.CreateDocument(dto, dto.Elements ?? new(), logs);
 
-        logger.LogInformation("Operation created and posted. Id={Id}, Type={Type}", dto.Id, dto.Type);
+        logger.LogInformation("Operation created. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
 
     public void Update(OperationDto dto)
@@ -59,17 +48,15 @@ public class OperationBusinessLogic(
         if (string.IsNullOrWhiteSpace(dto.Id))
             throw new ValidationException("Operation id is empty");
 
-        dto.IsDeleted = false; // на обновлении документ не должен сам становиться удалённым
-
-        NormalizeAndValidate(dto, isUpdate: true);
+        NormalizeAndValidateHeader(dto, isCreate: false);
+        ValidateByType(dto);
 
         var logs = BuildPostings(dto);
         dto.TotalAmountDocument = logs.Sum(x => x.Amount);
 
-        // атомарно обновить шапку + заменить строки + заменить проводки
-        storage.UpdateWithLinesAndLogs(dto, dto.Elements ?? new(), logs);
+        storage.UpdateDocument(dto, dto.Elements ?? new(), logs);
 
-        logger.LogInformation("Operation updated and reposted. Id={Id}, Type={Type}", dto.Id, dto.Type);
+        logger.LogInformation("Operation updated. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
 
     public void Delete(string id)
@@ -88,96 +75,66 @@ public class OperationBusinessLogic(
         storage.Recovery(id);
     }
 
-    private void NormalizeAndValidate(OperationDto dto, bool isUpdate)
+    private static void NormalizeAndValidateHeader(OperationDto dto, bool isCreate)
     {
         if (string.IsNullOrWhiteSpace(dto.NameDocument))
             throw new ValidationException("NameDocument is empty");
 
+        // важное: фиксируем DateOperation как UTC, не оставляем Unspecified
         if (dto.DateOperation == default)
             dto.DateOperation = DateTime.UtcNow;
 
-        // базовая валидация по типам
-        switch (dto.Type)
+        if (dto.DateOperation.Kind == DateTimeKind.Unspecified)
+            dto.DateOperation = DateTime.SpecifyKind(dto.DateOperation, DateTimeKind.Utc);
+        else if (dto.DateOperation.Kind == DateTimeKind.Local)
+            dto.DateOperation = dto.DateOperation.ToUniversalTime();
+
+        dto.IsDeleted = false;
+
+        // Comment может быть пустым, но пусть будет не null (чтобы фронт не падал)
+        dto.Comment ??= string.Empty;
+
+        // элементы тоже не null
+        dto.Elements ??= new List<ElementDto>();
+    }
+
+    private static void ValidateByType(OperationDto op)
+    {
+        switch (op.Type)
         {
             case OperationType.ActualCosts:
-                if (string.IsNullOrWhiteSpace(dto.DepartamentId))
+                if (string.IsNullOrWhiteSpace(op.DepartamentId))
                     throw new ValidationException("DepartamentId is empty for ActualCosts");
-
-                if (dto.TotalAmountDocument <= 0m)
+                if (op.TotalAmountDocument <= 0m)
                     throw new ValidationException("TotalAmountDocument must be > 0 for ActualCosts");
                 break;
 
             case OperationType.ReceiptFromProduction:
-                if (string.IsNullOrWhiteSpace(dto.DepartamentId))
+                if (string.IsNullOrWhiteSpace(op.DepartamentId))
                     throw new ValidationException("DepartamentId is empty for ReceiptFromProduction");
-
-                if (dto.Elements is null || dto.Elements.Count == 0)
-                    throw new ValidationException("Elements is empty for ReceiptFromProduction");
-
-                foreach (var e in dto.Elements)
-                {
-                    if (string.IsNullOrWhiteSpace(e.ProductionId))
-                        throw new ValidationException("Element.ProductionId is empty");
-                    if (e.CountElement <= 0)
-                        throw new ValidationException("Element.CountElement must be > 0");
-                }
-
-                // КЛЮЧЕВОЕ ПРАВИЛО: продукт должен принадлежать выбранному цеху
-                ValidateProductionsBelongToDepartament(dto.DepartamentId!, dto.Elements);
+                if (op.Elements == null || op.Elements.Count == 0)
+                    throw new ValidationException("Elements are empty for ReceiptFromProduction");
                 break;
 
             case OperationType.Sale:
-                if (string.IsNullOrWhiteSpace(dto.OrganisationId))
+                if (string.IsNullOrWhiteSpace(op.OrganisationId))
                     throw new ValidationException("OrganisationId is empty for Sale");
-
-                if (dto.Elements is null || dto.Elements.Count == 0)
-                    throw new ValidationException("Elements is empty for Sale");
-
-                foreach (var e in dto.Elements)
-                {
-                    if (string.IsNullOrWhiteSpace(e.ProductionId))
-                        throw new ValidationException("Element.ProductionId is empty");
-                    if (e.CountElement <= 0)
-                        throw new ValidationException("Element.CountElement must be > 0");
-                    if (e.Price is null || e.Price <= 0)
-                        throw new ValidationException("Element.Price must be > 0 for Sale");
-                }
+                if (op.Elements == null || op.Elements.Count == 0)
+                    throw new ValidationException("Elements are empty for Sale");
                 break;
 
             case OperationType.AllocateActualCost:
             case OperationType.WriteOffDeviations:
-                // эти операции без строк, только дата/название
-                // (можно оставить Elements пустым)
+                // эти операции обычно без строк
                 break;
 
             default:
-                throw new ValidationException($"Operation type {dto.Type} not supported yet");
-        }
-    }
-
-    private void ValidateProductionsBelongToDepartament(string departamentId, List<ElementDto> elements)
-    {
-        var productIds = elements
-            .Select(x => x.ProductionId)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct()!
-            .ToList();
-
-        var map = storage.GetProductionDepartaments(productIds); // prodId -> departamentId
-
-        foreach (var pid in productIds)
-        {
-            if (!map.TryGetValue(pid!, out var depId) || string.IsNullOrWhiteSpace(depId))
-                throw new ValidationException($"Production not found: {pid}");
-
-            if (!string.Equals(depId, departamentId, StringComparison.OrdinalIgnoreCase))
-                throw new ValidationException("Нельзя выпускать продукцию не своего цеха (Production.DepartamentId != Operation.DepartamentId)");
+                throw new ValidationException($"Operation type {op.Type} not supported");
         }
     }
 
     private List<TransactionLogDto> BuildPostings(OperationDto op)
     {
-        // счета для операции
         var needNums = op.Type switch
         {
             OperationType.ActualCosts => new[] { "20", "10" },
@@ -193,49 +150,50 @@ public class OperationBusinessLogic(
             if (!acc.ContainsKey(n))
                 throw new ValidationException($"Chart of account {n} not found");
 
-        // ОП4 / ОП5 — отдельно
-        if (op.Type == OperationType.AllocateActualCost)
-            return BuildOp4_DistributeActualCost(op, acc);
-
-        if (op.Type == OperationType.WriteOffDeviations)
-            return BuildOp5_WriteOffDeviationsTo90(op, acc);
-
-        var logs = new List<TransactionLogDto>();
+        // Комментарий документа (пользовательский) — добавим хвостом в комментарий проводки
+        string DocTail() => string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}";
 
         if (op.Type == OperationType.ActualCosts)
         {
-            // TotalAmountDocument проверен выше (>0)
-            logs.Add(new TransactionLogDto
+            if (op.TotalAmountDocument <= 0m)
+                throw new ValidationException("TotalAmountDocument must be > 0 for ActualCosts");
+
+            return new List<TransactionLogDto>
             {
-                Id = Guid.NewGuid().ToString(),
-                DateOperation = op.DateOperation,
-                OperationId = op.Id,
-                ChartOfAccountDebId = acc["20"],
-                ChartOfAccountCredId = acc["10"],
-                Subconto1Deb = op.DepartamentId,
-                Amount = op.TotalAmountDocument,
-                Count = 0,
-                Comment = string.IsNullOrWhiteSpace(op.Comment)
-                    ? "Накопление фактических затрат Дт20 Кт10"
-                    : op.Comment,
-                IsDeleted = false
-            });
-            return logs;
+                new TransactionLogDto
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DateOperation = op.DateOperation,
+                    OperationId = op.Id,
+                    ChartOfAccountDebId = acc["20"],
+                    ChartOfAccountCredId = acc["10"],
+                    Subconto1Deb = op.DepartamentId,
+                    Amount = op.TotalAmountDocument,
+                    Count = 0,
+                    Comment = "Накопление фактических затрат Дт20 Кт10" + DocTail(),
+                    IsDeleted = false
+                }
+            };
         }
 
-        // planned cost нужен для Receipt/Sale
         var productIds = (op.Elements ?? new())
             .Select(x => x.ProductionId)
             .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Distinct()!
-            .ToList();
+            .Distinct()!;
 
         var planned = storage.GetPlannedCostsByProductIds(productIds!);
 
         if (op.Type == OperationType.ReceiptFromProduction)
         {
+            var logs = new List<TransactionLogDto>();
+
             foreach (var e in op.Elements)
             {
+                if (string.IsNullOrWhiteSpace(e.ProductionId))
+                    throw new ValidationException("Element.ProductionId is empty");
+                if (e.CountElement <= 0)
+                    throw new ValidationException("Element.CountElement must be > 0");
+
                 var pc = planned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
                 var sum = e.CountElement * pc;
 
@@ -250,22 +208,30 @@ public class OperationBusinessLogic(
                     Subconto1Cred = op.DepartamentId,
                     Amount = sum,
                     Count = e.CountElement,
-                    Comment = string.IsNullOrWhiteSpace(op.Comment)
-                        ? "Поступление готовой продукции Дт43 Кт20 (плановая)"
-                        : op.Comment,
+                    Comment = "Поступление готовой продукции Дт43 Кт20 (плановая)" + DocTail(),
                     IsDeleted = false
                 });
             }
+
             return logs;
         }
 
         if (op.Type == OperationType.Sale)
         {
+            var logs = new List<TransactionLogDto>();
+
             foreach (var e in op.Elements)
             {
+                if (string.IsNullOrWhiteSpace(e.ProductionId))
+                    throw new ValidationException("Element.ProductionId is empty");
+                if (e.CountElement <= 0)
+                    throw new ValidationException("Element.CountElement must be > 0");
+                if (e.Price is null || e.Price <= 0)
+                    throw new ValidationException("Element.Price must be > 0 for Sale");
+
                 var pc = planned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
                 var planCogs = e.CountElement * pc;
-                var revenue = e.CountElement * e.Price!.Value;
+                var revenue = e.CountElement * e.Price.Value;
 
                 logs.Add(new TransactionLogDto
                 {
@@ -277,9 +243,7 @@ public class OperationBusinessLogic(
                     Subconto1Cred = e.ProductionId,
                     Amount = planCogs,
                     Count = e.CountElement,
-                    Comment = string.IsNullOrWhiteSpace(op.Comment)
-                        ? "Реализация: списание себестоимости Дт90 Кт43 (плановая)"
-                        : op.Comment,
+                    Comment = "Реализация: списание себестоимости Дт90 Кт43 (плановая)" + DocTail(),
                     IsDeleted = false
                 });
 
@@ -293,16 +257,21 @@ public class OperationBusinessLogic(
                     Subconto1Deb = op.OrganisationId,
                     Amount = revenue,
                     Count = e.CountElement,
-                    Comment = string.IsNullOrWhiteSpace(op.Comment)
-                        ? "Реализация: начисление выручки Дт62 Кт90"
-                        : op.Comment,
+                    Comment = "Реализация: начисление выручки Дт62 Кт90" + DocTail(),
                     IsDeleted = false
                 });
             }
+
             return logs;
         }
 
-        return logs;
+        if (op.Type == OperationType.AllocateActualCost)
+            return BuildOp4_DistributeActualCost(op, acc);
+
+        if (op.Type == OperationType.WriteOffDeviations)
+            return BuildOp5_WriteOffDeviationsTo90(op, acc);
+
+        return new List<TransactionLogDto>();
     }
 
     private List<TransactionLogDto> BuildOp4_DistributeActualCost(OperationDto op, Dictionary<string, string> acc)
@@ -342,9 +311,8 @@ public class OperationBusinessLogic(
                 Subconto1Deb = productId,
                 Amount = delta,
                 Count = 0,
-                Comment = string.IsNullOrWhiteSpace(op.Comment)
-                    ? "Распределение фактической себестоимости: отклонение Дт43 Кт20"
-                    : op.Comment,
+                Comment = "Распределение фактической себестоимости: отклонение Дт43 Кт20" +
+                          (string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}"),
                 IsDeleted = false
             });
         }
@@ -400,9 +368,8 @@ public class OperationBusinessLogic(
                 Subconto1Cred = productId,
                 Amount = deltaSold,
                 Count = 0,
-                Comment = string.IsNullOrWhiteSpace(op.Comment)
-                    ? "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43"
-                    : op.Comment,
+                Comment = "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43" +
+                          (string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}"),
                 IsDeleted = false
             });
         }
@@ -412,7 +379,8 @@ public class OperationBusinessLogic(
 
     private static (DateTime from, DateTime to) MonthRangeUtc(DateTime dt)
     {
-        var from = new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var utc = dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+        var from = new DateTime(utc.Year, utc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var to = from.AddMonths(1).AddTicks(-1);
         return (from, to);
     }

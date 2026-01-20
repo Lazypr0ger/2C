@@ -102,10 +102,10 @@ namespace _2Cclient.Views
                     MainFrame.Navigate(new DirectoriesPage());
                     break;
 
-                case "Operations":
-                    PageTitleText.Text = "Операции";
-                    MainFrame.Navigate(new OperationsPage());
-                    break;
+                //case "Operations":
+                //    PageTitleText.Text = "Операции";
+                //    MainFrame.Navigate(new OperationsPage());
+                //    break;
 
                 case "Reports":
                     PageTitleText.Text = "Отчёты";

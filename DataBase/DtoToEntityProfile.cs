@@ -21,17 +21,13 @@ public class DtoToEntityProfile : Profile
         CreateMap<OrganisationDto, Organisation>().ReverseMap();
         CreateMap<OrganisationHistoryDto, OrganisationHistory>().ReverseMap();
 
-        CreateMap<OperationDto, Operation>()
-            .ForMember(d => d.Element, o => o.MapFrom(s => s.Elements))
-            .ReverseMap()
+        CreateMap<Operation, OperationDto>()
             .ForMember(d => d.Elements, o => o.MapFrom(s => s.Element));
-       
-        CreateMap<ElementDto, Element>()
-            .ForMember(d => d.Id, o => o.Condition(s => !string.IsNullOrWhiteSpace(s.Id)))
-            .ForMember(d => d.Operation, o => o.Ignore())
-            .ForMember(d => d.Production, o => o.Ignore());
+
+        CreateMap<OperationDto, Operation>();
 
         CreateMap<Element, ElementDto>();
+        CreateMap<ElementDto, Element>();
 
         CreateMap<TransactionLogDto, TransactionLog>().ReverseMap();
     }

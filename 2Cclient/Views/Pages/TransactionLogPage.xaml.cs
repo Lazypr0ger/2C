@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
-using _2Cclient.Views.Pages.OperationsPages;
 using Contracts.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -171,7 +170,7 @@ namespace _2Cclient.Views.Pages
 
         private void ManualPosting_Click(object sender, RoutedEventArgs e)
         {
-            NavigationService?.Navigate(new ManualPostingPage());
+          //  NavigationService?.Navigate(new ManualPostingPage());
         }
 
 
@@ -190,25 +189,25 @@ namespace _2Cclient.Views.Pages
                 // Роутер по типу
                 switch (op.Type)
                 {
-                    case Contracts.Enums.OperationType.ActualCosts:
-                        NavigationService?.Navigate(new ManualPostingPage(op));
-                        break;
+                    //case Contracts.Enums.OperationType.ActualCosts:
+                    //    NavigationService?.Navigate(new ManualPostingPage(op));
+                    //    break;
 
-                    case Contracts.Enums.OperationType.ReceiptFromProduction:
-                        NavigationService?.Navigate(new IncomeOperationEditPage(op));
-                        break;
+                    //case Contracts.Enums.OperationType.ReceiptFromProduction:
+                    //    NavigationService?.Navigate(new IncomeOperationEditPage(op));
+                    //    break;
 
-                    case Contracts.Enums.OperationType.Sale:
-                        NavigationService?.Navigate(new SaleOperationEditPage(op));
-                        break;
+                    //case Contracts.Enums.OperationType.Sale:
+                    //    NavigationService?.Navigate(new SaleOperationEditPage(op));
+                    //    break;
 
-                    case Contracts.Enums.OperationType.AllocateActualCost:
-                        NavigationService?.Navigate(new CostDistributionOperationEditPage(op));
-                        break;
+                    //case Contracts.Enums.OperationType.AllocateActualCost:
+                    //    NavigationService?.Navigate(new CostDistributionOperationEditPage(op));
+                    //    break;
 
-                    case Contracts.Enums.OperationType.WriteOffDeviations:
-                        NavigationService?.Navigate(new WriteOffDeviationOperationEditPage(op));
-                        break;
+                    //case Contracts.Enums.OperationType.WriteOffDeviations:
+                    //    NavigationService?.Navigate(new WriteOffDeviationOperationEditPage(op));
+                    //    break;
 
                     default:
                         MessageBox.Show($"Неизвестный тип операции: {op.Type}");
