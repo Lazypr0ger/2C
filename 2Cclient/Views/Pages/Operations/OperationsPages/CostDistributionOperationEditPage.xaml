@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock Text="Распределение фактической себестоимости"
                        Foreground="{StaticResource Text}"
@@ -22,62 +23,99 @@
                        Margin="0,6,0,0"/>
         </StackPanel>
 
-        <Border Grid.Row="2" Background="{StaticResource Panel2}" CornerRadius="14" Padding="12">
+        <!-- Card -->
+        <Border Grid.Row="2"
+                Background="{StaticResource Panel2}"
+                CornerRadius="14"
+                Padding="14">
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="6"/>
-                    <RowDefinition Height="Auto"/>
-
                     <RowDefinition Height="12"/>
-
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="6"/>
-                    <RowDefinition Height="Auto"/>
-
                     <RowDefinition Height="12"/>
-
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="6"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Название документа" Foreground="{StaticResource Text2}"/>
-                <TextBox Grid.Row="2" x:Name="NameDocumentBox" Style="{StaticResource FormTextBoxStyle}"/>
+                <!-- Name -->
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Название документа"
+                               Foreground="{StaticResource Text2}"
+                               Margin="2,0,0,6"/>
+                    <TextBox x:Name="NameDocumentBox"
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="200"
+                             PreviewTextInput="NameDocumentBox_PreviewTextInput"
+                             TextChanged="NameDocumentBox_TextChanged"/>
+                </StackPanel>
 
-                <TextBlock Grid.Row="4" Text="Дата и время (месяц определяется по дате)" Foreground="{StaticResource Text2}"/>
-                <Grid Grid.Row="6">
+                <!-- Date + Time -->
+                <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="220"/>
-                        <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="240"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="160"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <DatePicker x:Name="DatePicker" Grid.Column="0"/>
-                    <TextBox x:Name="TimeBox"
-                             Grid.Column="2"
-                             Style="{StaticResource FormTextBoxStyle}"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             ToolTip="HH:mm"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Дата (месяц определяется по дате)"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,6"/>
+                        <DatePicker x:Name="DatePicker"
+                                    Height="34"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Время (HH:mm)"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,6"/>
+                        <TextBox x:Name="TimeBox"
+                                 Style="{StaticResource FormTextBoxValidatedStyle}"
+                                 MaxLength="5"
+                                 PreviewTextInput="TimeBox_PreviewTextInput"
+                                 PreviewKeyDown="TimeBox_PreviewKeyDown"
+                                 TextChanged="TimeBox_TextChanged"
+                                 LostFocus="TimeBox_LostFocus"
+                                 ToolTip="Только формат HH:mm, например 12:00"/>
+                    </StackPanel>
                 </Grid>
 
-                <TextBlock Grid.Row="8" Text="Комментарий" Foreground="{StaticResource Text2}"/>
-                <TextBox Grid.Row="10" x:Name="CommentBox" Style="{StaticResource FormTextBoxStyle}"/>
+                <!-- Comment -->
+                <StackPanel Grid.Row="4">
+                    <TextBlock Text="Комментарий"
+                               Foreground="{StaticResource Text2}"
+                               Margin="2,0,0,6"/>
+                    <TextBox x:Name="CommentBox"
+                             Style="{StaticResource FormTextBoxStyle}"
+                             MaxLength="400"/>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Назад"
+        <!-- Bottom buttons -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="180"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1"
+                    Content="Назад"
+                    Height="40"
                     Style="{StaticResource ToolbarButtonBase}"
-                    Margin="0,0,8,0"
                     Click="Back_Click"/>
 
             <Button x:Name="ApplyBtn"
+                    Grid.Column="3"
                     Content="Выполнить"
+                    Height="40"
                     Style="{StaticResource ToolbarButtonPrimary}"
                     Click="Apply_Click"/>
-        </StackPanel>
+        </Grid>
     </Grid>
 </Page>

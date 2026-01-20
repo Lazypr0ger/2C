@@ -1,5 +1,10 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
 using _2Cclient.Views.Pages.Operations.OperationsPages;
@@ -75,6 +80,8 @@ namespace _2Cclient.Views.Pages
         {
             try
             {
+                ApplyPeriodBtn.IsEnabled = false;
+
                 var fromUtc = ToUtcStart(FromDate.SelectedDate);
                 var toUtc = ToUtcEndInclusive(ToDate.SelectedDate);
 
@@ -87,6 +94,10 @@ namespace _2Cclient.Views.Pages
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка загрузки операций:\n{ex.Message}");
+            }
+            finally
+            {
+                UpdateButtons();
             }
         }
 
@@ -115,17 +126,27 @@ namespace _2Cclient.Views.Pages
         {
             if (List.SelectedItem is not RowVM row)
             {
-                OpenBtn.IsEnabled = false;
                 UpdateBtn.IsEnabled = false;
                 DeleteBtn.IsEnabled = false;
                 RestoreBtn.IsEnabled = false;
                 return;
             }
 
-            OpenBtn.IsEnabled = true;
             UpdateBtn.IsEnabled = true;
             DeleteBtn.IsEnabled = !row.IsDeleted;
             RestoreBtn.IsEnabled = row.IsDeleted;
+        }
+
+        // --- NEW: period apply ---
+        private async void ApplyPeriod_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadAsync();
+        }
+
+        // если даты меняются — просто предлагаем нажать "Применить"
+        private void Period_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyPeriodBtn.IsEnabled = true;
         }
 
         private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -137,7 +158,7 @@ namespace _2Cclient.Views.Pages
         private void List_SelectionChanged(object sender, SelectionChangedEventArgs e)
             => UpdateButtons();
 
-        private void List_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void List_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             var depObj = (DependencyObject)e.OriginalSource;
             if (FindAncestor<ListViewItem>(depObj) == null)
@@ -162,12 +183,6 @@ namespace _2Cclient.Views.Pages
             NavigateToEdit(_type, op: null);
         }
 
-        private void Open_Click(object sender, RoutedEventArgs e)
-        {
-            if (List.SelectedItem is not RowVM row) return;
-            NavigateToEdit(_type, row.Source);
-        }
-
         private void Update_Click(object sender, RoutedEventArgs e)
         {
             if (List.SelectedItem is not RowVM row) return;
@@ -182,7 +197,6 @@ namespace _2Cclient.Views.Pages
             {
                 await _api.DeleteAsync(row.Source.Id);
                 await LoadAsync();
-                UpdateButtons();
             }
             catch (Exception ex)
             {
@@ -198,7 +212,6 @@ namespace _2Cclient.Views.Pages
             {
                 await _api.RecoveryAsync(row.Source.Id);
                 await LoadAsync();
-                UpdateButtons();
             }
             catch (Exception ex)
             {
@@ -208,7 +221,6 @@ namespace _2Cclient.Views.Pages
 
         private void NavigateToEdit(OperationType type, OperationVM? op)
         {
-            // Create: op == null
             switch (type)
             {
                 case OperationType.ActualCosts:

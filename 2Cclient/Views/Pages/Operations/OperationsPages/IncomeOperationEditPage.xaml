@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock Text="Поступление на склад"
                        Foreground="{StaticResource Text}"
@@ -22,11 +23,16 @@
                        Margin="0,6,0,0"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
 
                 <!-- Шапка -->
-                <Border Background="{StaticResource Panel2}" CornerRadius="14" Padding="12">
+                <Border Background="{StaticResource Panel2}"
+                        CornerRadius="14"
+                        Padding="14">
+
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -52,46 +58,84 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Text="Название документа" Foreground="{StaticResource Text2}"/>
-                        <TextBox Grid.Row="2" x:Name="NameDocumentBox" Style="{StaticResource FormTextBoxStyle}"/>
+                        <!-- Name -->
+                        <TextBlock Grid.Row="0"
+                                   Text="Название документа"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,0"/>
 
-                        <TextBlock Grid.Row="4" Text="Дата и время" Foreground="{StaticResource Text2}"/>
+                        <TextBox Grid.Row="2"
+                                 x:Name="NameDocumentBox"
+                                 Style="{StaticResource FormTextBoxValidatedStyle}"
+                                 MaxLength="200"
+                                 PreviewTextInput="NameDocumentBox_PreviewTextInput"
+                                 TextChanged="NameDocumentBox_TextChanged"/>
+
+                        <!-- Date + Time -->
+                        <TextBlock Grid.Row="4"
+                                   Text="Дата и время"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,0"/>
+
                         <Grid Grid.Row="6">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="140"/>
+                                <ColumnDefinition Width="240"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="160"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <DatePicker x:Name="DatePicker" Grid.Column="0"/>
-                            <TextBox x:Name="TimeBox"
-                                     Grid.Column="2"
-                                     Style="{StaticResource FormTextBoxStyle}"
-                                     Height="38"
-                                     VerticalContentAlignment="Center"
-                                     ToolTip="HH:mm"/>
+                            <StackPanel Grid.Column="0">
+                                <DatePicker x:Name="DatePicker"
+                                            Height="34"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBox x:Name="TimeBox"
+                                         Style="{StaticResource FormTextBoxValidatedStyle}"
+                                         MaxLength="5"
+                                         PreviewKeyDown="TimeBox_PreviewKeyDown"
+                                         PreviewTextInput="TimeBox_PreviewTextInput"
+                                         TextChanged="TimeBox_TextChanged"
+                                         LostFocus="TimeBox_LostFocus"
+                                         ToolTip="HH:mm"/>
+                            </StackPanel>
                         </Grid>
 
-                        <TextBlock Grid.Row="8" Text="Подразделение (аналитика Кт20)" Foreground="{StaticResource Text2}"/>
+                        <!-- Departament -->
+                        <TextBlock Grid.Row="8"
+                                   Text="Подразделение (аналитика Кт20)"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,0"/>
+
                         <ComboBox Grid.Row="10"
                                   x:Name="DepartamentBox"
-                                  Style="{StaticResource DarkComboBoxStyle}"
-                                  Width="360"
-                                  HorizontalAlignment="Left"
+                                  Style="{StaticResource DarkComboBoxValidatedStyle}"
                                   DisplayMemberPath="Name"
                                   SelectedValuePath="Id"
+                                  IsEditable="False"
                                   SelectionChanged="DepartamentBox_SelectionChanged"/>
 
-                        <TextBlock Grid.Row="12" Text="Комментарий" Foreground="{StaticResource Text2}"/>
-                        <TextBox Grid.Row="14" x:Name="CommentBox" Style="{StaticResource FormTextBoxStyle}"/>
+                        <!-- Comment -->
+                        <TextBlock Grid.Row="12"
+                                   Text="Комментарий"
+                                   Foreground="{StaticResource Text2}"
+                                   Margin="2,0,0,0"/>
+
+                        <TextBox Grid.Row="14"
+                                 x:Name="CommentBox"
+                                 Style="{StaticResource FormTextBoxStyle}"
+                                 MaxLength="400"/>
                     </Grid>
                 </Border>
 
                 <Border Height="12" Background="Transparent"/>
 
                 <!-- Состав -->
-                <Border Background="{StaticResource Panel2}" CornerRadius="14" Padding="12">
+                <Border Background="{StaticResource Panel2}"
+                        CornerRadius="14"
+                        Padding="14">
+
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -107,26 +151,33 @@
                                    FontSize="14"
                                    FontWeight="SemiBold"/>
 
+                        <!-- Add row -->
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="260"/>
-                                <ColumnDefinition Width="12"/>
-                                <ColumnDefinition Width="140"/>
-                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="320"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition Width="16"/>
                                 <ColumnDefinition Width="160"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
                             <ComboBox x:Name="ProductBox"
                                       Grid.Column="0"
-                                      Style="{StaticResource DarkComboBoxStyle}"
+                                      Style="{StaticResource DarkComboBoxValidatedStyle}"
                                       DisplayMemberPath="Name"
-                                      SelectedValuePath="Id"/>
+                                      SelectedValuePath="Id"
+                                      IsEditable="False"/>
 
                             <TextBox x:Name="CountBox"
                                      Grid.Column="2"
-                                     Style="{StaticResource FormTextBoxStyle}"
-                                     VerticalContentAlignment="Center"/>
+                                     Style="{StaticResource FormTextBoxValidatedStyle}"
+                                     MaxLength="9"
+                                     VerticalContentAlignment="Center"
+                                     PreviewKeyDown="CountBox_PreviewKeyDown"
+                                     PreviewTextInput="CountBox_PreviewTextInput"
+                                     TextChanged="CountBox_TextChanged"
+                                     ToolTip="Целое число > 0"/>
 
                             <Button Grid.Column="4"
                                     Content="Добавить"
@@ -135,6 +186,7 @@
                                     Click="AddRow_Click"/>
                         </Grid>
 
+                        <!-- Table -->
                         <Grid Grid.Row="4" Margin="0,6,0,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -200,8 +252,13 @@
                                                 <ColumnDefinition Width="64"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Text="{Binding ProductionName}" Foreground="{StaticResource Text}" FontSize="14"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding CountElement}" Foreground="{StaticResource Text}"/>
+                                            <TextBlock Text="{Binding ProductionName}"
+                                                       Foreground="{StaticResource Text}"
+                                                       FontSize="14"/>
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding CountElement}"
+                                                       Foreground="{StaticResource Text}"/>
 
                                             <Button Grid.Column="2"
                                                     Style="{StaticResource RowDeleteButtonStyle}"
@@ -218,16 +275,27 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Назад"
+        <!-- Bottom buttons -->
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="180"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="1"
+                    Content="Назад"
+                    Height="40"
                     Style="{StaticResource ToolbarButtonBase}"
-                    Margin="0,0,8,0"
                     Click="Back_Click"/>
 
             <Button x:Name="SaveBtn"
+                    Grid.Column="3"
                     Content="Сохранить"
+                    Height="40"
                     Style="{StaticResource ToolbarButtonPrimary}"
                     Click="Save_Click"/>
-        </StackPanel>
+        </Grid>
     </Grid>
 </Page>

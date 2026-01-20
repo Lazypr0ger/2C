@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
                        Foreground="{StaticResource Text}"
@@ -24,54 +25,89 @@
                        Margin="0,6,0,0"/>
         </StackPanel>
 
-        <!-- Toolbar -->
-        <DockPanel Grid.Row="2">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                <TextBlock Text="Период:"
+        <!-- Toolbar: 2 rows -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Row 1: Period + Apply + Search -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="Период:"
                            Foreground="{StaticResource Text2}"
                            VerticalAlignment="Center"
                            Margin="0,0,8,0"/>
 
-                <DatePicker x:Name="FromDate" Width="150" Margin="0,0,8,0"/>
-                <TextBlock Text="—" Foreground="{StaticResource Text2}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <DatePicker x:Name="ToDate" Width="150" Margin="0,0,12,0"/>
+                <DatePicker x:Name="FromDate"
+                            Grid.Column="1"
+                            Width="150"
+                            SelectedDateChanged="Period_Changed"/>
 
+                <TextBlock Grid.Column="2"
+                           Text="—"
+                           Foreground="{StaticResource Text2}"
+                           VerticalAlignment="Center"
+                           Margin="8,0,8,0"/>
+
+                <DatePicker x:Name="ToDate"
+                            Grid.Column="3"
+                            Width="150"
+                            SelectedDateChanged="Period_Changed"/>
+
+                <Button Grid.Column="4"
+                        x:Name="ApplyPeriodBtn"
+                        Content="Применить"
+                        Style="{StaticResource ToolbarButtonBase}"
+                        MinWidth="130"
+                        Margin="12,0,0,0"
+                        Click="ApplyPeriod_Click"/>
+
+                <Border Grid.Column="5" Width="16" Background="Transparent"/>
+
+                <!-- Search restored (wide, like before) -->
                 <TextBox x:Name="SearchBox"
-                         Width="360"
+                         Grid.Column="6"
+                         Style="{StaticResource SearchBoxStyle}"
                          Height="34"
-                         VerticalContentAlignment="Center"
-                         Background="#0F141B"
-                         Foreground="{StaticResource Text}"
-                         BorderBrush="#243142"
-                         BorderThickness="1"
-                         Padding="12,0"
                          TextChanged="SearchBox_TextChanged"
                          ToolTip="Поиск по названию/комментарию/ID"/>
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+            <!-- Row 2: CRUD buttons in one row -->
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+
                 <Button Content="Добавить"
                         Style="{StaticResource ToolbarButtonPrimary}"
+                        MinWidth="140"
                         Margin="0,0,8,0"
                         Click="Add_Click"/>
-
-                <Button x:Name="OpenBtn"
-                        Content="Открыть"
-                        Style="{StaticResource ToolbarButtonBase}"
-                        Margin="0,0,8,0"
-                        Click="Open_Click"
-                        IsEnabled="False"/>
 
                 <Button x:Name="UpdateBtn"
                         Content="Обновить"
                         Style="{StaticResource ToolbarButtonBase}"
+                        MinWidth="140"
                         Margin="0,0,8,0"
-                        Click="Update_Click"
-                        IsEnabled="False"/>
+                        Click="Update_Click"/>
 
                 <Button x:Name="DeleteBtn"
                         Content="Удалить"
                         Style="{StaticResource ToolbarButtonDanger}"
+                        MinWidth="140"
                         Margin="0,0,8,0"
                         Click="Delete_Click"
                         IsEnabled="False"/>
@@ -79,10 +115,11 @@
                 <Button x:Name="RestoreBtn"
                         Content="Восстановить"
                         Style="{StaticResource ToolbarButtonSuccess}"
+                        MinWidth="160"
                         Click="Restore_Click"
                         IsEnabled="False"/>
             </StackPanel>
-        </DockPanel>
+        </Grid>
 
         <!-- List -->
         <Border Grid.Row="4" Background="#10151C" CornerRadius="14" Padding="12">
@@ -213,6 +250,7 @@
             </Grid>
         </Border>
 
+        <!-- Back -->
         <Button Grid.Row="6"
                 Content="Назад"
                 Height="40"

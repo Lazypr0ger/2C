@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using _2Cclient.Services.Api;
+using _2Cclient.UI;
 using Contracts.BindingModels;
 using Contracts.Enums;
 using Contracts.ViewModels;
@@ -22,19 +26,31 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
 
             Loaded += (_, __) =>
             {
-                if (_editing == null)
-                {
-                    DatePicker.SelectedDate = DateTime.Now.Date;
-                    TimeBox.Text = DateTime.Now.ToString("HH:mm");
-                    CommentBox.Text = "";
-                }
+                InitDefaultsForCreate();
+
+                FieldValidation.ClearError(NameDocumentBox);
+                FieldValidation.ClearError(TimeBox);
             };
+
+            // paste restrictions
+            DataObject.AddPastingHandler(TimeBox, TimeBox_OnPaste);
+            DataObject.AddPastingHandler(NameDocumentBox, NameDocumentBox_OnPaste);
         }
 
         public CostDistributionOperationEditPage(OperationVM op) : this()
         {
             _editing = op;
             Loaded += (_, __) => FillFromOperation(op);
+        }
+
+        private void InitDefaultsForCreate()
+        {
+            if (_editing != null) return;
+
+            DatePicker.SelectedDate = DateTime.Now.Date;
+            TimeBox.Text = DateTime.Now.ToString("HH:mm");
+            CommentBox.Text = "";
+            NameDocumentBox.Text = "";
         }
 
         private void FillFromOperation(OperationVM op)
@@ -49,53 +65,96 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             var local = dtUtc.ToLocalTime();
             DatePicker.SelectedDate = local.Date;
             TimeBox.Text = local.ToString("HH:mm");
+
+            FieldValidation.ClearError(NameDocumentBox);
+            FieldValidation.ClearError(TimeBox);
         }
 
-        private bool TryGetUtcDateTime(out DateTime utc, out string error)
+        // -------------------- Name --------------------
+        private void NameDocumentBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.Name_PreviewTextInput(sender, e);
+
+        private void NameDocumentBox_TextChanged(object sender, TextChangedEventArgs e)
+            => FieldValidation.Name_TextChanged(NameDocumentBox);
+
+        private void NameDocumentBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.Name_OnPaste(sender, e);
+
+        // -------------------- Time --------------------
+        private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
+            => FieldValidation.Time_PreviewKeyDown(sender, e);
+
+        private void TimeBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.Time_PreviewTextInput(sender, e);
+
+        private void TimeBox_TextChanged(object sender, TextChangedEventArgs e)
+            => FieldValidation.Time_TextChanged(TimeBox);
+
+        private void TimeBox_LostFocus(object sender, RoutedEventArgs e)
+            => FieldValidation.Time_LostFocus(TimeBox);
+
+        private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.Time_OnPasteDigitsOnly(sender, e);
+
+        // -------------------- Date + Time -> UTC --------------------
+        private bool TryGetUtcDateTime(out DateTime utc)
         {
             utc = default;
-            error = "";
 
             if (DatePicker.SelectedDate == null)
             {
-                error = "Дата не выбрана.";
+                MessageBox.Show("Дата не выбрана.");
                 return false;
             }
 
             var timeText = (TimeBox.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(timeText)) timeText = "00:00";
+            if (string.IsNullOrWhiteSpace(timeText))
+                timeText = "00:00";
 
-            if (!TimeSpan.TryParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture, out var ts))
+            if (!FieldValidation.TimeStrictRegex.IsMatch(timeText))
             {
-                error = "Время должно быть в формате HH:mm.";
+                FieldValidation.SetError(TimeBox, "Время в формате HH:mm (например 12:00)");
                 return false;
             }
 
+            var ts = TimeSpan.ParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture);
             var local = DatePicker.SelectedDate.Value.Date.Add(ts);
             local = DateTime.SpecifyKind(local, DateTimeKind.Local);
+
             utc = local.ToUniversalTime();
             return true;
         }
 
+        // -------------------- Apply --------------------
         private async void Apply_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 ApplyBtn.IsEnabled = false;
 
+                // 1) Name
                 var name = (NameDocumentBox.Text ?? "").Trim();
+                name = Regex.Replace(name, @"\s+", " ");
+
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    MessageBox.Show("Заполните «Название документа».");
+                    FieldValidation.SetError(NameDocumentBox, "Название документа обязательно");
                     return;
                 }
 
-                if (!TryGetUtcDateTime(out var utc, out var err))
+                if (!FieldValidation.NameAllowedRegex.IsMatch(name))
                 {
-                    MessageBox.Show(err);
+                    FieldValidation.SetError(NameDocumentBox, "Только русские/английские буквы и пробел");
                     return;
                 }
 
+                FieldValidation.ClearError(NameDocumentBox);
+
+                // 2) DateTime
+                if (!TryGetUtcDateTime(out var utc))
+                    return;
+
+                // 3) BM
                 var bm = new OperationBM
                 {
                     Id = _editing?.Id,

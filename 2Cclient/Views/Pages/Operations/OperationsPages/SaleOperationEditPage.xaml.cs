@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using _2Cclient.Services.Api;
+using _2Cclient.UI;
 using Contracts.BindingModels;
 using Contracts.Enums;
 using Contracts.ViewModels;
@@ -18,9 +21,12 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private readonly ApiClient _api;
         private OperationVM? _editing;
 
-        private List<OrganisationVM> _orgs = new();
+        private List<OrganisationVM> _organisations = new();
         private List<ProductionVM> _products = new();
-        private readonly List<ElementVM> _elements = new();
+
+        private readonly List<SaleRow> _rows = new();
+
+        private static readonly Regex DigitsOnlyRegex = new(@"^\d+$", RegexOptions.Compiled);
 
         public SaleOperationEditPage()
         {
@@ -31,14 +37,41 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             {
                 await LoadDirectoriesAsync();
                 InitDefaultsForCreate();
+
                 RefreshItems();
+                RecalcTotal();
+
+                FieldValidation.ClearError(NameDocumentBox);
+                FieldValidation.ClearError(TimeBox);
+                FieldValidation.ClearError(OrganisationBox);
+                FieldValidation.ClearError(ProductBox);
+                FieldValidation.ClearError(CountBox);
+                FieldValidation.ClearError(PriceBox);
             };
+
+            // paste restrictions
+            DataObject.AddPastingHandler(NameDocumentBox, NameDocumentBox_OnPaste);
+            DataObject.AddPastingHandler(TimeBox, TimeBox_OnPaste);
+            DataObject.AddPastingHandler(CountBox, CountBox_OnPasteDigitsOnly);
+            DataObject.AddPastingHandler(PriceBox, PriceBox_OnPaste);
         }
 
         public SaleOperationEditPage(OperationVM op) : this()
         {
             _editing = op;
             Loaded += (_, __) => FillFromOperation(op);
+        }
+
+        private async Task LoadDirectoriesAsync()
+        {
+            _organisations = await _api.GetAsync<List<OrganisationVM>>("/ms/api/Organisation") ?? new();
+            _products = await _api.GetAsync<List<ProductionVM>>("/ms/api/Production") ?? new();
+
+            OrganisationBox.ItemsSource = _organisations.Where(x => !x.IsDeleted).ToList();
+            ProductBox.ItemsSource = _products.Where(x => !x.IsDeleted).ToList();
+
+            OrganisationBox.SelectedIndex = OrganisationBox.Items.Count > 0 ? 0 : -1;
+            ProductBox.SelectedIndex = ProductBox.Items.Count > 0 ? 0 : -1;
         }
 
         private void InitDefaultsForCreate()
@@ -48,15 +81,10 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             DatePicker.SelectedDate = DateTime.Now.Date;
             TimeBox.Text = DateTime.Now.ToString("HH:mm");
             CommentBox.Text = "";
-        }
-
-        private async Task LoadDirectoriesAsync()
-        {
-            _orgs = await _api.GetAsync<List<OrganisationVM>>("/ms/api/Organisation") ?? new();
-            _products = await _api.GetAsync<List<ProductionVM>>("/ms/api/Production") ?? new();
-
-            OrganisationBox.ItemsSource = _orgs.Where(x => !x.IsDeleted).ToList();
-            ProductBox.ItemsSource = _products.Where(x => !x.IsDeleted).ToList();
+            NameDocumentBox.Text = "";
+            CountBox.Text = "";
+            PriceBox.Text = "";
+            TotalBox.Text = "";
         }
 
         private void FillFromOperation(OperationVM op)
@@ -74,49 +102,233 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
 
             OrganisationBox.SelectedValue = op.OrganisationId;
 
-            _elements.Clear();
+            _rows.Clear();
+
+            // В OperationVM элементы могут не содержать цену.
+            // Поэтому при редактировании:
+            // - если сервер возвращает totalAmountDocument, кладём это в TotalBox (для отображения)
+            // - строки подтянем по Elements (Count + ProductName/Id), цена по умолчанию 0/пусто
             foreach (var e in op.Elements ?? new List<ElementVM>())
-                _elements.Add(new ElementVM
+            {
+                _rows.Add(new SaleRow
                 {
-                    Id = e.Id,
-                    OperationId = op.Id,
                     ProductionId = e.ProductionId,
-                    CountElement = e.CountElement,
-                    Price = e.Price,
-                    IsDeleted = false
+                    ProductionName = e.ProductionName ?? ResolveProductName(e.ProductionId),
+                    Count = e.CountElement,
+                    Price = (e.Price ?? 0m)
                 });
+            }
 
             RefreshItems();
+            RecalcTotal();
+
+            FieldValidation.ClearError(NameDocumentBox);
+            FieldValidation.ClearError(TimeBox);
+            FieldValidation.ClearError(OrganisationBox);
+            FieldValidation.ClearError(ProductBox);
+            FieldValidation.ClearError(CountBox);
+            FieldValidation.ClearError(PriceBox);
         }
 
-        private static bool TryParseInt(string? text, out int value)
-            => int.TryParse((text ?? "").Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+        private string ResolveProductName(string productId)
+            => _products.FirstOrDefault(x => x.Id == productId)?.Name ?? productId;
 
-        private static bool TryParseDecimal(string? text, out decimal value)
+        // -------------------- Name --------------------
+        private void NameDocumentBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.Name_PreviewTextInput(sender, e);
+
+        private void NameDocumentBox_TextChanged(object sender, TextChangedEventArgs e)
+            => FieldValidation.Name_TextChanged(NameDocumentBox);
+
+        private void NameDocumentBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.Name_OnPaste(sender, e);
+
+        // -------------------- Time --------------------
+        private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
+            => FieldValidation.Time_PreviewKeyDown(sender, e);
+
+        private void TimeBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.Time_PreviewTextInput(sender, e);
+
+        private void TimeBox_TextChanged(object sender, TextChangedEventArgs e)
+            => FieldValidation.Time_TextChanged(TimeBox);
+
+        private void TimeBox_LostFocus(object sender, RoutedEventArgs e)
+            => FieldValidation.Time_LostFocus(TimeBox);
+
+        private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.Time_OnPasteDigitsOnly(sender, e);
+
+        // -------------------- Organisation --------------------
+        private void OrganisationBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            return decimal.TryParse((text ?? "").Trim().Replace(',', '.'),
-                NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+            FieldValidation.ClearError(OrganisationBox);
         }
 
-        private bool TryGetUtcDateTime(out DateTime utc, out string error)
+        // -------------------- Count (int > 0) --------------------
+        private void CountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = e.Text.Any(ch => !char.IsDigit(ch));
+        }
+
+        private void CountBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space) e.Handled = true;
+        }
+
+        private void CountBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(CountBox.Text))
+                FieldValidation.ClearError(CountBox);
+        }
+
+        private void CountBox_OnPasteDigitsOnly(object sender, DataObjectPastingEventArgs e)
+        {
+            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText))
+            {
+                e.CancelCommand();
+                return;
+            }
+
+            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText)) ?? "";
+            text = text.Trim();
+
+            if (string.IsNullOrWhiteSpace(text) || text.Any(ch => !char.IsDigit(ch)))
+                e.CancelCommand();
+        }
+
+        private static bool TryParsePositiveInt(string? text, out int value)
+        {
+            value = 0;
+            var t = (text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(t)) return false;
+            if (!DigitsOnlyRegex.IsMatch(t)) return false;
+
+            return int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out value) && value > 0;
+        }
+
+        // -------------------- Price (decimal > 0) --------------------
+        private void PriceBox_PreviewKeyDown(object sender, KeyEventArgs e)
+            => FieldValidation.Amount_PreviewKeyDown(sender, e);
+
+        private void PriceBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.Amount_PreviewTextInput(sender, e);
+
+        private void PriceBox_TextChanged(object sender, TextChangedEventArgs e)
+            => FieldValidation.ClearErrorOnTyping(PriceBox);
+
+        private void PriceBox_LostFocus(object sender, RoutedEventArgs e)
+            => FieldValidation.Amount_LostFocus(PriceBox);
+
+        private void PriceBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.Amount_OnPaste(sender, e);
+
+        // -------------------- Rows --------------------
+        private void AddRow_Click(object sender, RoutedEventArgs e)
+        {
+            // product
+            if (ProductBox.SelectedValue is not string prodId || string.IsNullOrWhiteSpace(prodId))
+            {
+                FieldValidation.SetError(ProductBox, "Выберите продукт");
+                return;
+            }
+            FieldValidation.ClearError(ProductBox);
+
+            // count
+            if (!TryParsePositiveInt(CountBox.Text, out var count))
+            {
+                FieldValidation.SetError(CountBox, "Количество должно быть целым числом > 0");
+                return;
+            }
+            FieldValidation.ClearError(CountBox);
+
+            // price
+            if (!FieldValidation.TryParseDecimalStrict(PriceBox.Text, out var price) || price <= 0m)
+            {
+                FieldValidation.SetError(PriceBox, "Цена должна быть числом > 0");
+                return;
+            }
+            FieldValidation.ClearError(PriceBox);
+
+            var prodName = ResolveProductName(prodId);
+
+            // UX: если тот же продукт и та же цена — суммируем количество
+            var existing = _rows.FirstOrDefault(x => x.ProductionId == prodId && x.Price == price);
+            if (existing != null)
+            {
+                existing.Count += count;
+            }
+            else
+            {
+                _rows.Add(new SaleRow
+                {
+                    ProductionId = prodId,
+                    ProductionName = prodName,
+                    Count = count,
+                    Price = price
+                });
+            }
+
+            CountBox.Text = "";
+            PriceBox.Text = "";
+
+            RefreshItems();
+            RecalcTotal();
+        }
+
+        private void RowDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is not SaleRow row) return;
+
+            _rows.Remove(row);
+
+            RefreshItems();
+            RecalcTotal();
+        }
+
+        private void RefreshItems()
+        {
+            ItemsList.ItemsSource = _rows
+                .Select(r => new SaleRow
+                {
+                    ProductionId = r.ProductionId,
+                    ProductionName = r.ProductionName,
+                    Count = r.Count,
+                    Price = r.Price
+                })
+                .ToList();
+        }
+
+        private void RecalcTotal()
+        {
+            var total = _rows.Sum(x => x.Sum);
+            TotalBox.Text = total.ToString("0.##", CultureInfo.InvariantCulture);
+        }
+
+        // -------------------- Date + Time -> UTC --------------------
+        private bool TryGetUtcDateTime(out DateTime utc)
         {
             utc = default;
-            error = "";
 
             if (DatePicker.SelectedDate == null)
             {
-                error = "Дата не выбрана.";
+                MessageBox.Show("Дата не выбрана.");
                 return false;
             }
 
             var timeText = (TimeBox.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(timeText)) timeText = "00:00";
+            if (string.IsNullOrWhiteSpace(timeText))
+                timeText = "00:00";
 
-            if (!TimeSpan.TryParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture, out var ts))
+            if (!FieldValidation.TimeStrictRegex.IsMatch(timeText))
             {
-                error = "Время должно быть в формате HH:mm.";
+                FieldValidation.SetError(TimeBox, "Время в формате HH:mm (например 12:00)");
                 return false;
             }
+
+            FieldValidation.ClearError(TimeBox);
+
+            var ts = TimeSpan.ParseExact(timeText, "hh\\:mm", CultureInfo.InvariantCulture);
 
             var local = DatePicker.SelectedDate.Value.Date.Add(ts);
             local = DateTime.SpecifyKind(local, DateTimeKind.Local);
@@ -124,126 +336,71 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return true;
         }
 
-        private void AddRow_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProductBox.SelectedValue is not string prodId || string.IsNullOrWhiteSpace(prodId))
-            {
-                MessageBox.Show("Выберите продукт.");
-                return;
-            }
-
-            if (!TryParseInt(CountBox.Text, out var count) || count <= 0)
-            {
-                MessageBox.Show("Количество должно быть целым числом > 0.");
-                return;
-            }
-
-            if (!TryParseDecimal(PriceBox.Text, out var price) || price <= 0m)
-            {
-                MessageBox.Show("Цена должна быть числом > 0.");
-                return;
-            }
-
-            _elements.Add(new ElementVM
-            {
-                Id = null,
-                OperationId = _editing?.Id ?? "",
-                ProductionId = prodId,
-                CountElement = count,
-                Price = price,
-                IsDeleted = false
-            });
-
-            CountBox.Text = "";
-            PriceBox.Text = "";
-            RefreshItems();
-        }
-
-        private void RowDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as Button)?.Tag is not RowVM row) return;
-
-            var idx = _elements.FindIndex(x =>
-                x.ProductionId == row.ProductionId
-                && x.CountElement == row.CountElement
-                && x.Price == row.Price);
-
-            if (idx >= 0) _elements.RemoveAt(idx);
-            RefreshItems();
-        }
-
-        private void RefreshItems()
-        {
-            var map = _products.ToDictionary(x => x.Id, x => x.Name ?? x.Id);
-
-            var rows = _elements.Select(e =>
-            {
-                var name = map.TryGetValue(e.ProductionId, out var n) ? n : e.ProductionId;
-                var price = e.Price ?? 0m;
-                var sum = e.CountElement * price; // ВАЖНО: правильная формула
-
-                return new RowVM
-                {
-                    Id = e.Id,
-                    ProductionId = e.ProductionId,
-                    ProductionName = name,
-                    CountElement = e.CountElement,
-                    Price = price,
-                    Sum = sum
-                };
-            }).ToList();
-
-            ItemsList.ItemsSource = rows;
-            TotalBox.Text = rows.Sum(x => x.Sum).ToString("N2");
-        }
-
+        // -------------------- Save --------------------
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 SaveBtn.IsEnabled = false;
 
+                // name
                 var name = (NameDocumentBox.Text ?? "").Trim();
+                name = Regex.Replace(name, @"\s+", " ");
+
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    MessageBox.Show("Заполните «Название документа».");
+                    FieldValidation.SetError(NameDocumentBox, "Название документа обязательно");
                     return;
                 }
 
+                if (!FieldValidation.NameAllowedRegex.IsMatch(name))
+                {
+                    FieldValidation.SetError(NameDocumentBox, "Только русские/английские буквы и пробел");
+                    return;
+                }
+
+                FieldValidation.ClearError(NameDocumentBox);
+
+                // organisation (buyer)
                 if (OrganisationBox.SelectedValue is not string orgId || string.IsNullOrWhiteSpace(orgId))
                 {
-                    MessageBox.Show("Выберите покупателя (организацию).");
+                    FieldValidation.SetError(OrganisationBox, "Выберите покупателя");
                     return;
                 }
+                FieldValidation.ClearError(OrganisationBox);
 
-                if (_elements.Count == 0)
+                // rows
+                if (_rows.Count == 0)
                 {
                     MessageBox.Show("Добавьте хотя бы одну строку в состав документа.");
                     return;
                 }
 
-                if (!TryGetUtcDateTime(out var utc, out var err))
-                {
-                    MessageBox.Show(err);
+                // datetime
+                if (!TryGetUtcDateTime(out var utc))
                     return;
-                }
+
+                // total for server (может пригодиться для контроля)
+                var total = _rows.Sum(x => x.Sum);
 
                 var bm = new OperationBM
                 {
                     Id = _editing?.Id,
                     NameDocument = name,
                     DateOperation = utc,
-                    Type = OperationType.Sale,
+                    Type = OperationType.Sale, // <-- ВАЖНО: проверь, что enum именно так называется у тебя
                     Comment = (CommentBox.Text ?? "").Trim(),
                     OrganisationId = orgId,
                     DepartamentId = null,
-                    Elements = _elements.Select(x => new ElementBM
+                    TotalAmountDocument = total,
+                    Elements = _rows.Select(r => new ElementBM
                     {
-                        Id = x.Id,
+                        Id = null,
                         OperationId = _editing?.Id,
-                        ProductionId = x.ProductionId,
-                        CountElement = x.CountElement,
-                        Price = x.Price
+                        ProductionId = r.ProductionId,
+                        CountElement = r.Count,
+                        Price = r.Price,
+                        IsDeleted = false
                     }).ToList()
                 };
 
@@ -266,20 +423,24 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            if (NavigationService?.CanGoBack == true) NavigationService.GoBack();
+            if (NavigationService?.CanGoBack == true)
+                NavigationService.GoBack();
         }
 
-        private sealed class RowVM
+        private sealed class SaleRow
         {
-            public string? Id { get; set; }
             public string ProductionId { get; set; } = "";
             public string ProductionName { get; set; } = "";
-            public int CountElement { get; set; }
-            public decimal Price { get; set; }
-            public decimal Sum { get; set; }
 
-            public string PriceText => Price.ToString("N2");
-            public string SumText => Sum.ToString("N2");
+            public int Count { get; set; }
+            public decimal Price { get; set; }
+
+            public decimal Sum => Count * Price;
+
+            public int CountElement => Count;
+
+            public string PriceText => Price.ToString("0.##", CultureInfo.InvariantCulture);
+            public string SumText => Sum.ToString("0.##", CultureInfo.InvariantCulture);
         }
     }
 }

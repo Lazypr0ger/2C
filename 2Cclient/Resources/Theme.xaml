@@ -40,7 +40,8 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Акцентная полоска -->
-                            <Border x:Name="Bar" Grid.Column="0"
+                            <Border x:Name="Bar"
+                                    Grid.Column="0"
                                     Background="Transparent"
                                     CornerRadius="10,0,0,10"/>
 
@@ -76,7 +77,7 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
     </Style>
 
-    <!-- searchbox-->
+    <!-- SearchBox -->
     <Style x:Key="SearchBoxStyle" TargetType="TextBox">
         <Setter Property="Height" Value="38"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -119,17 +120,18 @@
         </Setter>
     </Style>
 
-    <!-- ✅ NEW: Form text box (как SearchBoxStyle, но без watermark и без белых validation adorners) -->
+    <!-- Form TextBox (base, без watermark, без стандартного validation adorner) -->
     <Style x:Key="FormTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Height" Value="38"/>
+        <Setter Property="Height" Value="40"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
         <Setter Property="Background" Value="#0F141B"/>
         <Setter Property="BorderBrush" Value="#243142"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="12,0,12,0"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
 
-        <!-- убираем стандартный adorner с белыми квадратиками -->
+        <!-- убираем стандартный validation adorner -->
         <Setter Property="Validation.ErrorTemplate">
             <Setter.Value>
                 <ControlTemplate>
@@ -145,7 +147,8 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10">
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
                     </Border>
 
@@ -156,9 +159,12 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
                         </Trigger>
+
+                        <!-- стандартная подсветка ошибки (если кто-то использует Validation.HasError) -->
                         <Trigger Property="Validation.HasError" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Danger}"/>
                         </Trigger>
+
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                         </Trigger>
@@ -166,6 +172,33 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- ✅ NEW: Validated TextBox (modern): красная рамка + tooltip из Validation.Errors -->
+    <Style x:Key="FormTextBoxValidatedStyle" TargetType="TextBox" BasedOn="{StaticResource FormTextBoxStyle}">
+        <Setter Property="ToolTip">
+            <Setter.Value>
+                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"
+                         Background="#1B2430"
+                         Foreground="{StaticResource Text}"
+                         BorderBrush="{StaticResource Danger}"
+                         BorderThickness="1"
+                         Padding="10,6"
+                         Placement="Bottom"
+                         HasDropShadow="True"/>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource Danger}"/>
+                <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+            </Trigger>
+
+            <Trigger Property="Validation.HasError" Value="False">
+                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- Toolbar buttons -->
@@ -196,7 +229,6 @@
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.9"/>
                         </Trigger>
-
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                             <Setter Property="Cursor" Value="Arrow"/>
@@ -256,7 +288,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- ✅ NEW: Row delete button -->
+    <!-- Row delete button -->
     <Style x:Key="RowDeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource ToolbarButtonDanger}">
         <Setter Property="MinWidth" Value="44"/>
         <Setter Property="Width" Value="44"/>
@@ -265,6 +297,7 @@
         <Setter Property="Content" Value="✕"/>
     </Style>
 
+    <!-- Dark ComboBox (фикс: показываем выбранное через ComboBox.Text) -->
     <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Height" Value="38"/>
         <Setter Property="MinWidth" Value="120"/>
@@ -276,58 +309,64 @@
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
                         <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="10"
-                                SnapsToDevicePixels="True">
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="40"/>
                                 </Grid.ColumnDefinitions>
 
-                                <ContentPresenter x:Name="SelectedContent"
-                                                  Grid.Column="0"
-                                                  Margin="{TemplateBinding Padding}"
-                                                  VerticalAlignment="Center"
-                                                  HorizontalAlignment="Left"
-                                                  RecognizesAccessKey="True"
-                                                  Content="{TemplateBinding SelectedItem}"
-                                                  ContentTemplate="{TemplateBinding ItemTemplate}"
-                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                                <!-- ✅ Selected text always visible -->
+                                <Grid Grid.Column="0" Margin="{TemplateBinding Padding}">
+                                    <TextBlock x:Name="SelectedText"
+                                           VerticalAlignment="Center"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Text="{TemplateBinding Text}"/>
+
+                                    <TextBlock x:Name="Placeholder"
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource Text2}"
+                                           Text="—"
+                                           Visibility="Collapsed"/>
+                                </Grid>
 
                                 <ToggleButton Grid.Column="1"
-                                              Focusable="False"
-                                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                              ClickMode="Press"
-                                              Background="Transparent"
-                                              BorderThickness="0">
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          Background="Transparent"
+                                          BorderThickness="0">
                                     <Path Data="M 0 0 L 6 6 L 12 0 Z"
-                                          Fill="{StaticResource Text2}"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                                      Fill="{StaticResource Text2}"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
                                 </ToggleButton>
                             </Grid>
                         </Border>
 
                         <Popup x:Name="PART_Popup"
-                               Placement="Bottom"
-                               IsOpen="{TemplateBinding IsDropDownOpen}"
-                               AllowsTransparency="True"
-                               Focusable="False"
-                               PopupAnimation="Fade">
+                           Placement="Bottom"
+                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                           AllowsTransparency="True"
+                           Focusable="False"
+                           PopupAnimation="Fade">
                             <Border Background="#0F141B"
-                                    BorderBrush="#243142"
-                                    BorderThickness="1"
-                                    CornerRadius="10"
-                                    Padding="6"
-                                    SnapsToDevicePixels="True">
+                                BorderBrush="#243142"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="6"
+                                SnapsToDevicePixels="True">
                                 <ScrollViewer Margin="0" MaxHeight="320">
                                     <ItemsPresenter/>
                                 </ScrollViewer>
@@ -346,12 +385,10 @@
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                         </Trigger>
 
-                        <Trigger Property="SelectedItem" Value="{x:Null}">
-                            <Setter TargetName="SelectedContent" Property="Content">
-                                <Setter.Value>
-                                    <TextBlock Text="—" Foreground="{StaticResource Text2}"/>
-                                </Setter.Value>
-                            </Setter>
+                        <!-- placeholder when empty text -->
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="SelectedText" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -368,9 +405,9 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">
                             <Border x:Name="ItemBd"
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="8"
-                                    SnapsToDevicePixels="True">
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
                                 <ContentPresenter/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -388,12 +425,45 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-            <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource Text}"/>
-                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
-            </Style>
         </Style.Resources>
+    </Style>
+
+
+    <!-- ✅ NEW: Validated ComboBox (modern): красная рамка + tooltip из Validation.Errors -->
+    <Style x:Key="DarkComboBoxValidatedStyle"
+           TargetType="ComboBox"
+           BasedOn="{StaticResource DarkComboBoxStyle}">
+        <Setter Property="ToolTip">
+            <Setter.Value>
+                <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"
+                         Background="#1B2430"
+                         Foreground="{StaticResource Text}"
+                         BorderBrush="{StaticResource Danger}"
+                         BorderThickness="1"
+                         Padding="10,6"
+                         Placement="Bottom"
+                         HasDropShadow="True"/>
+            </Setter.Value>
+        </Setter>
+
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate>
+                    <AdornedElementPlaceholder/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="Validation.HasError" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource Danger}"/>
+                <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+            </Trigger>
+
+            <Trigger Property="Validation.HasError" Value="False">
+                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>
