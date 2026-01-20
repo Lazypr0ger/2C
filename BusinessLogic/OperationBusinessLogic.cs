@@ -34,7 +34,22 @@ public class OperationBusinessLogic(
         var logs = BuildPostings(dto);
 
         // итог
-        dto.TotalAmountDocument = logs.Sum(x => x.Amount);
+        var sumLogs = logs.Sum(x => x.Amount);
+
+        // для ActualCosts сумма должна совпадать с введенной (или быть = ей)
+        if (dto.Type == OperationType.ActualCosts)
+        {
+            // оставляем введенное значение как "истину"
+            // но можем проверить, что проводки построились на ту же сумму
+            if (sumLogs != dto.TotalAmountDocument)
+                throw new ValidationException("ActualCosts: postings sum mismatch with TotalAmountDocument");
+        }
+        else
+        {
+            // для остальных — сумма рассчитывается сервером
+            dto.TotalAmountDocument = sumLogs;
+        }
+
 
         // атомарное сохранение (шапка+строки+проводки)
         storage.CreateDocument(dto, dto.Elements ?? new(), logs);
@@ -88,8 +103,8 @@ public class OperationBusinessLogic(
             dto.DateOperation = DateTime.SpecifyKind(dto.DateOperation, DateTimeKind.Utc);
         else if (dto.DateOperation.Kind == DateTimeKind.Local)
             dto.DateOperation = dto.DateOperation.ToUniversalTime();
-
-        dto.IsDeleted = false;
+        if(isCreate)
+            dto.IsDeleted = false;
 
         // Comment может быть пустым, но пусть будет не null (чтобы фронт не падал)
         dto.Comment ??= string.Empty;
@@ -186,7 +201,15 @@ public class OperationBusinessLogic(
         if (op.Type == OperationType.ReceiptFromProduction)
         {
             var logs = new List<TransactionLogDto>();
+            var depMap = storage.GetProductionDepartaments(productIds!);
+            foreach (var pid in productIds!)
+            {
+                if (!depMap.TryGetValue(pid, out var depId))
+                    throw new ValidationException($"Production not found: {pid}");
 
+                if (depId != op.DepartamentId)
+                    throw new ValidationException($"Production {pid} does not belong to departament {op.DepartamentId}");
+            }
             foreach (var e in op.Elements)
             {
                 if (string.IsNullOrWhiteSpace(e.ProductionId))

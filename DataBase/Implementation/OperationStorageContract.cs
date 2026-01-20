@@ -7,10 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DataBase.Implementation;
 
-public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOperationStorageContract
+public class OperationStorageContract : IOperationStorageContract
 {
-    private readonly TwoCDbContext _db = db;
-    private readonly IMapper _mapper = mapper;
+    private readonly TwoCDbContext _db;
+    private readonly IMapper _mapper;
+
+    public OperationStorageContract(TwoCDbContext db, IMapper mapper)
+    {
+        _db = db;
+        _mapper = mapper;
+    }
 
     public List<OperationDto> GetAll(DateTime? from = null, DateTime? to = null)
     {
@@ -29,7 +35,13 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
                 .ThenByDescending(x => x.Id)
                 .ToList();
 
-            return list.Select(_mapper.Map<OperationDto>).ToList();
+            var dtos = list.Select(_mapper.Map<OperationDto>).ToList();
+
+            // Историчность "на дату операции"
+            foreach (var dto in dtos)
+                FillNamesByHistoryAt(dto);
+
+            return dtos;
         }
         catch (Exception ex)
         {
@@ -47,7 +59,14 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
                 .Include(x => x.Element)
                 .FirstOrDefault(x => x.Id == id);
 
-            return entity == null ? null : _mapper.Map<OperationDto>(entity);
+            if (entity == null) return null;
+
+            var dto = _mapper.Map<OperationDto>(entity);
+
+            // Историчность "на дату операции"
+            FillNamesByHistoryAt(dto);
+
+            return dto;
         }
         catch (Exception ex)
         {
@@ -141,7 +160,9 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
     {
         try
         {
-            var entity = _db.Operations.FirstOrDefault(x => x.Id == id) ?? throw new ElementNotFoundException(id);
+            var entity = _db.Operations.FirstOrDefault(x => x.Id == id)
+                         ?? throw new ElementNotFoundException(id);
+
             entity.IsDeleted = true;
             _db.SaveChanges();
         }
@@ -157,7 +178,9 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
     {
         try
         {
-            var entity = _db.Operations.FirstOrDefault(x => x.Id == id) ?? throw new ElementNotFoundException(id);
+            var entity = _db.Operations.FirstOrDefault(x => x.Id == id)
+                         ?? throw new ElementNotFoundException(id);
+
             entity.IsDeleted = false;
             _db.SaveChanges();
         }
@@ -168,6 +191,8 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
             throw new StorageException(ex);
         }
     }
+
+    // --------- helpers for business-logic ---------
 
     public Dictionary<string, string> GetAccountIdsByNums(IEnumerable<string> nums)
     {
@@ -193,6 +218,26 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
                 .AsNoTracking()
                 .Where(x => productIds.Contains(x.Id))
                 .ToDictionary(x => x.Id, x => x.PlannedCost ?? 0m);
+        }
+        catch (Exception ex)
+        {
+            _db.ChangeTracker.Clear();
+            throw new StorageException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Нужен для валидации: продукция должна принадлежать подразделению.
+    /// productId -> departamentId
+    /// </summary>
+    public Dictionary<string, string?> GetProductionDepartaments(IEnumerable<string> productIds)
+    {
+        try
+        {
+            return _db.Productions
+                .AsNoTracking()
+                .Where(x => productIds.Contains(x.Id))
+                .ToDictionary(x => x.Id, x => x.DepartamentId);
         }
         catch (Exception ex)
         {
@@ -240,4 +285,98 @@ public class OperationStorageContract(TwoCDbContext db, IMapper mapper) : IOpera
                 && t.DateOperation >= from && t.DateOperation <= to
                 && t.ChartOfAccountDebId == acc20Id)
             .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+    // --------- "историчность на дату операции" ---------
+
+    private void FillNamesByHistoryAt(OperationDto dto)
+    {
+        if (dto == null) return;
+
+        var atUtc = dto.DateOperation.Kind switch
+        {
+            DateTimeKind.Utc => dto.DateOperation,
+            DateTimeKind.Local => dto.DateOperation.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(dto.DateOperation, DateTimeKind.Utc)
+        };
+
+        if (!string.IsNullOrWhiteSpace(dto.DepartamentId))
+            dto.DepartamentName = ResolveDepartamentNameAt(dto.DepartamentId!, atUtc);
+
+        if (!string.IsNullOrWhiteSpace(dto.OrganisationId))
+            dto.OrganisationName = ResolveOrganisationNameAt(dto.OrganisationId!, atUtc);
+
+        if (dto.Elements != null && dto.Elements.Count > 0)
+        {
+            foreach (var e in dto.Elements)
+            {
+                if (!string.IsNullOrWhiteSpace(e.ProductionId))
+                    e.ProductionName = ResolveProductionNameAt(e.ProductionId!, atUtc);
+            }
+        }
+    }
+
+    private string? ResolveDepartamentNameAt(string departamentId, DateTime atUtc)
+    {
+        // 1) пробуем историю
+        var h = _db.DepartamentHistories
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.DepartamentId == departamentId
+                && x.ValidFrom <= atUtc
+                && (x.ValidTo == null || atUtc < x.ValidTo))
+            .OrderByDescending(x => x.ValidFrom)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(h)) return h;
+
+        // 2) fallback на текущее имя
+        return _db.Departaments
+            .AsNoTracking()
+            .Where(x => x.Id == departamentId)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+    }
+
+    private string? ResolveOrganisationNameAt(string organisationId, DateTime atUtc)
+    {
+        var h = _db.OrganisationHistories
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.OrganisationId == organisationId
+                && x.ValidFrom <= atUtc
+                && (x.ValidTo == null || atUtc < x.ValidTo))
+            .OrderByDescending(x => x.ValidFrom)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(h)) return h;
+
+        return _db.Organisations
+            .AsNoTracking()
+            .Where(x => x.Id == organisationId)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+    }
+
+    private string? ResolveProductionNameAt(string productionId, DateTime atUtc)
+    {
+        var h = _db.ProductionHistories
+            .AsNoTracking()
+            .Where(x => !x.IsDeleted
+                && x.ProductionId == productionId
+                && x.ValidFrom <= atUtc
+                && (x.ValidTo == null || atUtc < x.ValidTo))
+            .OrderByDescending(x => x.ValidFrom)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+
+        if (!string.IsNullOrWhiteSpace(h)) return h;
+
+        return _db.Productions
+            .AsNoTracking()
+            .Where(x => x.Id == productionId)
+            .Select(x => x.Name)
+            .FirstOrDefault();
+    }
 }

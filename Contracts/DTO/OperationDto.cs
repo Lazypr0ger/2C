@@ -16,6 +16,9 @@ public class OperationDto
     public string? OrganisationId { get; set; }
     public string? DepartamentId { get; set; }
 
+    public string? OrganisationName { get; set; }
+    public string? DepartamentName { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public List<ElementDto> Elements { get; set; } = new();

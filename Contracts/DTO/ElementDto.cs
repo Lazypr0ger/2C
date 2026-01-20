@@ -6,6 +6,8 @@ public class ElementDto
 
     public string? OperationId { get; set; }  // ставит сервер при сохранении
     public string? ProductionId { get; set; }
+    public string? ProductionName { get; set; }
+
 
     public int CountElement { get; set; }
     public decimal? Price { get; set; }
