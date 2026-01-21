@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using _2Cclient.Services.Api;
 using _2Cclient.UI;
+using Contracts.BindingModels;
+using Contracts.Enums;
 
 namespace _2Cclient.Views.Pages.Reports
 {
@@ -29,13 +31,20 @@ namespace _2Cclient.Views.Pages.Reports
                 FromDate.SelectedDate = new DateTime(now.Year, now.Month, 1);
                 ToDate.SelectedDate = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
 
-                // очистка возможных ошибок
                 FieldValidation.ClearError(NameBox);
                 FieldValidation.ClearError(FromDate);
                 FieldValidation.ClearError(ToDate);
                 FieldValidation.ClearError(BuildDate);
             };
         }
+
+        private static ReportTypeCodes MapTypeCode(string typeCode) => typeCode switch
+        {
+            "actual_cost_distribution" => ReportTypeCodes.ActualCostDistribution,
+            "sales_statement" => ReportTypeCodes.SalesStatement,
+            "realised_deviation" => ReportTypeCodes.RealisedDeviationStatement,
+            _ => ReportTypeCodes.ActualCostDistribution
+        };
 
         private bool ValidateForm(out string name, out DateTime from, out DateTime to, out DateTime build)
         {
@@ -96,15 +105,21 @@ namespace _2Cclient.Views.Pages.Reports
             {
                 BuildBtn.IsEnabled = false;
 
-                // TODO (позже): вызов API формирования
-                // var api = App.Services.GetRequiredService<ReportApi>();
-                // var id = await api.BuildAsync(new ReportBuildRequest{...});
-                await Task.Delay(120);
+                var api = (ReportApi)App.Services.GetService(typeof(ReportApi))!;
 
-                var fakeId = Guid.NewGuid().ToString("N");
+                var bm = new ReportBuildBM
+                {
+                    TypeCode = MapTypeCode(_typeCode),
+                    From = from,
+                    To = to,
+                    Name = name,
+                    Comment = (CommentBox.Text ?? "").Trim()
+                };
 
-                // Переход в превью
-                NavigationService?.Navigate(new ReportViewerPage(fakeId, _typeCode, name, from, to, build, (CommentBox.Text ?? "").Trim()));
+                var report = await api.BuildAsync(bm);
+
+                // Переход на новый Viewer (который принимает ReportResultVM)
+                NavigationService?.Navigate(new ReportViewerPage(report, bm.Comment ?? ""));
             }
             catch (Exception ex)
             {

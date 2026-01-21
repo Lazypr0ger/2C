@@ -15,8 +15,13 @@ public class ReportResultVM
 
     public DateTime BuildDate { get; set; }
 
+    // Для отчёта 1 (может быть null для других)
     public decimal? TotalActualCosts { get; set; }
 
+    // Общий итог количества (для отчётов 1 и 3, для 2 можно оставлять 0)
+    public decimal TotalQty { get; set; }
+
+    // Универсальные итоги по таблице (3 денежные колонки)
     public decimal Total1 { get; set; }
     public decimal Total2 { get; set; }
     public decimal Total3 { get; set; }

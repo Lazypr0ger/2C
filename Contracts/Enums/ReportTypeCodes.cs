@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Contracts.Enums;
 
-namespace Contracts.Enums
+public enum ReportTypeCodes
 {
-    public enum ReportTypeCodes
-    {
-        ActualCostDistribution= 1,
-        SalesStatement = 2,
-        RealisedDeviation = 3,
-        RealisedDeviationStatement = 4,
-    }
+    // 1) Отклонения по реализованной продукции
+    RealisedDeviationStatement = 1,
+
+    // 2) Ведомость продаж
+    SalesStatement = 2,
+
+    // 3) Распределение фактических затрат
+    ActualCostDistribution = 3
 }

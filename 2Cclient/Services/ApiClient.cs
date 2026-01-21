@@ -69,5 +69,17 @@ namespace _2Cclient.Services.Api
             var body = await resp.Content.ReadAsStringAsync(ct);
             throw new HttpRequestException($"{method} {path} -> {(int)resp.StatusCode} {resp.ReasonPhrase}\n{body}");
         }
+
+        public async Task<TResponse> PostAsync<TResponse, TPayload>(string path, TPayload payload, CancellationToken ct = default)
+        {
+            using var resp = await _http.PostAsync(path, ToJson(payload), ct);
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
+            if (!resp.IsSuccessStatusCode)
+                throw new HttpRequestException($"POST {path} -> {(int)resp.StatusCode} {resp.ReasonPhrase}\n{body}");
+
+            return JsonConvert.DeserializeObject<TResponse>(body)
+                   ?? throw new InvalidOperationException($"Empty JSON for POST {path}");
+        }
     }
 }

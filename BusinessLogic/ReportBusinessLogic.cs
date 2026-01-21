@@ -17,6 +17,11 @@ public class ReportBusinessLogic(
         if (request is null) throw new ArgumentNullException(nameof(request));
         if (request.From == default) throw new ValidationException("From is empty");
         if (request.To == default) throw new ValidationException("To is empty");
+
+        // !!! ВАЖНО: приводим к UTC, иначе Npgsql падает на timestamptz
+        request.From = NormalizeUtc(request.From);
+        request.To = NormalizeUtc(request.To);
+
         if (request.From > request.To) throw new ValidationException("From must be <= To");
 
         return request.TypeCode switch
@@ -27,6 +32,14 @@ public class ReportBusinessLogic(
             _ => throw new ValidationException($"Unknown report type: {request.TypeCode}")
         };
     }
+
+    private static DateTime NormalizeUtc(DateTime dt) => dt.Kind switch
+    {
+        DateTimeKind.Utc => dt,
+        DateTimeKind.Local => dt.ToUniversalTime(),
+        DateTimeKind.Unspecified => DateTime.SpecifyKind(dt, DateTimeKind.Utc),
+        _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+    };
 
     // -------------------- REPORT 1 --------------------
     // Ведомость распределения фактических затрат по видам выпущенной продукции
