@@ -297,7 +297,7 @@
         <Setter Property="Content" Value="✕"/>
     </Style>
 
-    <!-- Dark ComboBox (фикс: показываем выбранное через ComboBox.Text) -->
+    <!-- Dark ComboBox -->
     <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Height" Value="38"/>
         <Setter Property="MinWidth" Value="120"/>
@@ -326,7 +326,6 @@
                                     <ColumnDefinition Width="40"/>
                                 </Grid.ColumnDefinitions>
 
-                                <!-- ✅ Selected text always visible -->
                                 <Grid Grid.Column="0" Margin="{TemplateBinding Padding}">
                                     <TextBlock x:Name="SelectedText"
                                                VerticalAlignment="Center"
@@ -385,7 +384,6 @@
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                         </Trigger>
 
-                        <!-- placeholder when empty text -->
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
                             <Setter TargetName="SelectedText" Property="Visibility" Value="Collapsed"/>
@@ -428,7 +426,7 @@
         </Style.Resources>
     </Style>
 
-    <!-- ✅ NEW: Validated ComboBox (modern): красная рамка + tooltip из Validation.Errors -->
+    <!-- ✅ NEW: Validated ComboBox -->
     <Style x:Key="DarkComboBoxValidatedStyle"
            TargetType="ComboBox"
            BasedOn="{StaticResource DarkComboBoxStyle}">
@@ -466,7 +464,7 @@
     </Style>
 
     <!-- ===================================================== -->
-    <!-- Reports table styles (FIX: no ItemTemplate/DisplayPath) -->
+    <!-- Reports table styles (FIXED) -->
     <!-- ===================================================== -->
 
     <!-- GridView header -->
@@ -501,12 +499,12 @@
         <Setter Property="Margin" Value="10,6,10,6"/>
     </Style>
 
-    <!-- Row style -->
-    <Style x:Key="ReportRowStyle" TargetType="ListViewItem">
-        <Setter Property="Foreground" Value="{StaticResource Text}"/>
+    <!-- ✅ Row style for ListView + GridView (IMPORTANT FIX) -->
+    <Style x:Key="ReportTableRowStyle" TargetType="ListViewItem">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{StaticResource Text}"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0,2,0,2"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
         <Setter Property="Template">
@@ -515,20 +513,20 @@
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
                             CornerRadius="10"
-                            SnapsToDevicePixels="True"
-                            Margin="0,2,0,2">
-                        <ContentPresenter/>
+                            SnapsToDevicePixels="True">
+                        <!-- 🔥 KEY: GridViewRowPresenter + Content binding -->
+                        <GridViewRowPresenter
+                            Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"
+                            Content="{TemplateBinding Content}"/>
                     </Border>
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#162235"/>
                         </Trigger>
-
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#223046"/>
                         </Trigger>
-
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>
                         </Trigger>
@@ -549,41 +547,11 @@
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="ItemContainerStyle" Value="{StaticResource ReportRowStyle}"/>
+
+        <!-- ✅ apply correct row template -->
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ReportTableRowStyle}"/>
 
         <!-- 🚫 ВАЖНО: здесь НЕ должно быть ItemTemplate и DisplayMemberPath -->
     </Style>
-    <Style x:Key="ReportTableRowStyle" TargetType="ListViewItem">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource Text}"/>
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="Margin" Value="0,2,0,2"/>
-        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="SnapsToDevicePixels" Value="True"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ListViewItem">
-                    <Border x:Name="Bd"
-                        Background="{TemplateBinding Background}"
-                        CornerRadius="10"
-                        SnapsToDevicePixels="True">
-                        <!-- 🔥 вот это ключевое: -->
-                        <GridViewRowPresenter Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}"/>
-                    </Border>
 
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#162235"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="#223046"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
 </ResourceDictionary>
