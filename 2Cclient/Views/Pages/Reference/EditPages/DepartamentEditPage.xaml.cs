@@ -16,10 +16,9 @@ namespace _2Cclient.Views.Pages
         private readonly DepartamentApi _api;
         private readonly DepartamentVM? _editing;
 
-        // Разрешим буквы/цифры/пробел/дефис/подчёркивание
+        // буквы/цифры/пробел/дефис/подчёркивание
         private static readonly Regex NameRegex = new(@"^[\p{L}\p{Nd}\s\-_]+$", RegexOptions.Compiled);
 
-        // CREATE
         public DepartamentEditPage()
         {
             InitializeComponent();
@@ -42,7 +41,6 @@ namespace _2Cclient.Views.Pages
             DataObject.AddPastingHandler(NameBox, NameBox_OnPaste);
         }
 
-        // UPDATE
         public DepartamentEditPage(DepartamentVM vm) : this()
         {
             _editing = vm;
@@ -57,14 +55,27 @@ namespace _2Cclient.Views.Pages
 
         private void NameBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // запрещаем только "плохие" символы, пробелы/буквы/цифры оставляем
-            e.Handled = !Regex.IsMatch(e.Text, @"^[\p{L}\p{Nd}\s\-_]+$");
+            // символы
+            if (!NameRegex.IsMatch(e.Text))
+            {
+                e.Handled = true;
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            // длина <= 20
+            FieldValidation.EnforceMaxLen_PreviewTextInput(sender, e, FieldValidation.MaxNameLen);
         }
 
         private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // как только начали печатать — убираем красное
-            FieldValidation.ClearErrorOnTyping(NameBox);
+            // снять ошибку при вводе + ограничить длину
+            FieldValidation.EnforceMaxLen_TextChanged(NameBox, FieldValidation.MaxNameLen, "Название подразделения");
+
+            // если ввели запрещённые символы (например через автозамену)
+            var t = NameBox.Text ?? "";
+            if (!string.IsNullOrWhiteSpace(t) && !NameRegex.IsMatch(t))
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
         }
 
         private void NameBox_OnPaste(object sender, DataObjectPastingEventArgs e)
@@ -76,20 +87,38 @@ namespace _2Cclient.Views.Pages
             }
 
             var text = (e.DataObject.GetData(DataFormats.UnicodeText) as string) ?? "";
-            text = text.Trim();
+            text = Regex.Replace(text.Trim(), @"\s+", " ");
 
-            if (text.Length == 0 || !NameRegex.IsMatch(text))
+            if (text.Length == 0)
+            {
                 e.CancelCommand();
+                return;
+            }
+
+            if (!NameRegex.IsMatch(text))
+            {
+                e.CancelCommand();
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            // длина
+            FieldValidation.EnforceMaxLen_OnPaste(sender, e, FieldValidation.MaxNameLen);
         }
 
         private bool ValidateForm()
         {
-            var name = (NameBox.Text ?? "").Trim();
-            name = Regex.Replace(name, @"\s+", " ");
+            var name = Regex.Replace((NameBox.Text ?? "").Trim(), @"\s+", " ");
 
             if (string.IsNullOrWhiteSpace(name))
             {
                 FieldValidation.SetError(NameBox, "Название не должно быть пустым");
+                return false;
+            }
+
+            if (name.Length > FieldValidation.MaxNameLen)
+            {
+                FieldValidation.SetError(NameBox, $"Название: максимум {FieldValidation.MaxNameLen} символов");
                 return false;
             }
 
@@ -136,7 +165,8 @@ namespace _2Cclient.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения:\n{ex.Message}");
+                MessageBox.Show(ServerErrorPresenter.ToUserMessage(ex),
+                    "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Warning);
                 SetBusy(false);
             }
         }

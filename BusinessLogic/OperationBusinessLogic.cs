@@ -30,30 +30,26 @@ public class OperationBusinessLogic(
         NormalizeAndValidateHeader(dto, isCreate: true);
         ValidateByType(dto);
 
-        // построить проводки (внутри тоже есть проверки)
+        // ✅ Месячные ограничения по операциям 4/5
+        ValidateMonthlyRulesOnCreate(dto);
+
+        // ✅ Ограничения "остатков" (без хранения в БД)
+        ValidateComputedBalances(dto, oldForUpdate: null);
+
         var logs = BuildPostings(dto);
 
-        // итог
         var sumLogs = logs.Sum(x => x.Amount);
-
-        // для ActualCosts сумма должна совпадать с введенной (или быть = ей)
         if (dto.Type == OperationType.ActualCosts)
         {
-            // оставляем введенное значение как "истину"
-            // но можем проверить, что проводки построились на ту же сумму
             if (sumLogs != dto.TotalAmountDocument)
                 throw new ValidationException("ActualCosts: postings sum mismatch with TotalAmountDocument");
         }
         else
         {
-            // для остальных — сумма рассчитывается сервером
             dto.TotalAmountDocument = sumLogs;
         }
 
-
-        // атомарное сохранение (шапка+строки+проводки)
         storage.CreateDocument(dto, dto.Elements ?? new(), logs);
-
         logger.LogInformation("Operation created. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
 
@@ -63,14 +59,21 @@ public class OperationBusinessLogic(
         if (string.IsNullOrWhiteSpace(dto.Id))
             throw new ValidationException("Operation id is empty");
 
+        var old = storage.GetById(dto.Id) ?? throw new ElementNotFoundException(dto.Id);
+
         NormalizeAndValidateHeader(dto, isCreate: false);
         ValidateByType(dto);
+
+        // ✅ Месячные ограничения по операциям 4/5 (учитываем, что это update существующей)
+        ValidateMonthlyRulesOnUpdate(dto, old);
+
+        // ✅ Ограничения "остатков" (без хранения в БД) — с поправкой на старую операцию
+        ValidateComputedBalances(dto, oldForUpdate: old);
 
         var logs = BuildPostings(dto);
         dto.TotalAmountDocument = logs.Sum(x => x.Amount);
 
         storage.UpdateDocument(dto, dto.Elements ?? new(), logs);
-
         logger.LogInformation("Operation updated. Id={Id}, Type={Type}", dto.Id, dto.Type);
     }
 
@@ -79,6 +82,7 @@ public class OperationBusinessLogic(
         if (string.IsNullOrWhiteSpace(id))
             throw new ValidationException("Operation id is empty");
 
+        // ✅ storage должен помечать удалёнными и проводки (ты это уже внес)
         storage.Delete(id);
     }
 
@@ -87,15 +91,19 @@ public class OperationBusinessLogic(
         if (string.IsNullOrWhiteSpace(id))
             throw new ValidationException("Operation id is empty");
 
+        // ✅ storage должен восстанавливать и проводки (если так задумано)
         storage.Recovery(id);
     }
+
+    // =========================================================
+    // Header / validation
+    // =========================================================
 
     private static void NormalizeAndValidateHeader(OperationDto dto, bool isCreate)
     {
         if (string.IsNullOrWhiteSpace(dto.NameDocument))
             throw new ValidationException("NameDocument is empty");
 
-        // важное: фиксируем DateOperation как UTC, не оставляем Unspecified
         if (dto.DateOperation == default)
             dto.DateOperation = DateTime.UtcNow;
 
@@ -103,13 +111,11 @@ public class OperationBusinessLogic(
             dto.DateOperation = DateTime.SpecifyKind(dto.DateOperation, DateTimeKind.Utc);
         else if (dto.DateOperation.Kind == DateTimeKind.Local)
             dto.DateOperation = dto.DateOperation.ToUniversalTime();
-        if(isCreate)
+
+        if (isCreate)
             dto.IsDeleted = false;
 
-        // Comment может быть пустым, но пусть будет не null (чтобы фронт не падал)
         dto.Comment ??= string.Empty;
-
-        // элементы тоже не null
         dto.Elements ??= new List<ElementDto>();
     }
 
@@ -148,6 +154,243 @@ public class OperationBusinessLogic(
         }
     }
 
+    // =========================================================
+    // ✅ Monthly rules for op4 / op5
+    // =========================================================
+
+    private void ValidateMonthlyRulesOnCreate(OperationDto dto)
+    {
+        if (dto.Type != OperationType.AllocateActualCost && dto.Type != OperationType.WriteOffDeviations)
+            return;
+
+        var (from, to) = MonthRangeUtc(dto.DateOperation);
+
+        if (dto.Type == OperationType.AllocateActualCost)
+        {
+            if (storage.ExistsMonthlyOperation(OperationType.AllocateActualCost, from, to))
+            {
+                var id = storage.FindMonthlyOperationId(OperationType.AllocateActualCost, from, to);
+                throw new ValidationException($"Операция распределения (4) уже проведена за этот месяц. Обновите существующую. Id={id}");
+            }
+        }
+
+        if (dto.Type == OperationType.WriteOffDeviations)
+        {
+            if (!storage.ExistsMonthlyOperation(OperationType.AllocateActualCost, from, to))
+            {
+                throw new ValidationException("Нельзя выполнить списание отклонений (5), пока не выполнено распределение (4) за этот месяц.");
+            }
+
+            if (storage.ExistsMonthlyOperation(OperationType.WriteOffDeviations, from, to))
+            {
+                var id = storage.FindMonthlyOperationId(OperationType.WriteOffDeviations, from, to);
+                throw new ValidationException($"Операция списания отклонений (5) уже проведена за этот месяц. Обновите существующую. Id={id}");
+            }
+        }
+    }
+
+    private void ValidateMonthlyRulesOnUpdate(OperationDto dto, OperationDto old)
+    {
+        if (dto.Type != OperationType.AllocateActualCost && dto.Type != OperationType.WriteOffDeviations)
+            return;
+
+        var (from, to) = MonthRangeUtc(dto.DateOperation);
+
+        if (dto.Type == OperationType.AllocateActualCost)
+        {
+            // Если в этом месяце есть операция 4, то она должна быть именно эта (dto.Id)
+            var existingId = storage.FindMonthlyOperationId(OperationType.AllocateActualCost, from, to);
+            if (!string.IsNullOrWhiteSpace(existingId) && existingId != dto.Id)
+                throw new ValidationException($"Операция распределения (4) уже проведена за этот месяц. Обновите существующую. Id={existingId}");
+        }
+
+        if (dto.Type == OperationType.WriteOffDeviations)
+        {
+            // Требуем наличие операции 4 в этом месяце (может быть эта же операция? нет, тип другой)
+            var allocId = storage.FindMonthlyOperationId(OperationType.AllocateActualCost, from, to);
+            if (string.IsNullOrWhiteSpace(allocId))
+                throw new ValidationException("Нельзя выполнить списание отклонений (5), пока не выполнено распределение (4) за этот месяц.");
+
+            // И в этом месяце операция 5 должна быть именно эта
+            var existingId = storage.FindMonthlyOperationId(OperationType.WriteOffDeviations, from, to);
+            if (!string.IsNullOrWhiteSpace(existingId) && existingId != dto.Id)
+                throw new ValidationException($"Операция списания отклонений (5) уже проведена за этот месяц. Обновите существующую. Id={existingId}");
+        }
+    }
+
+    // =========================================================
+    // ✅ Computed balances validation (no DB stocks)
+    // =========================================================
+
+    private void ValidateComputedBalances(OperationDto dto, OperationDto? oldForUpdate)
+    {
+        switch (dto.Type)
+        {
+            case OperationType.ReceiptFromProduction:
+                ValidateProductionCapacity(dto, oldForUpdate);
+                break;
+
+            case OperationType.Sale:
+                ValidateSaleStock(dto, oldForUpdate);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /// <summary>
+    /// ReceiptFromProduction:
+    /// (Материалы 20-10 по подразделению) - (Произведено 43-20 по подразделению, в плановой оценке) >= (плановая оценка выпуска текущей операции)
+    /// </summary>
+    private void ValidateProductionCapacity(OperationDto dto, OperationDto? oldForUpdate)
+    {
+        if (string.IsNullOrWhiteSpace(dto.DepartamentId))
+            throw new ValidationException("DepartamentId is empty for ReceiptFromProduction");
+
+        var acc = storage.GetAccountIdsByNums(new[] { "20", "10", "43" });
+        if (!acc.TryGetValue("20", out var acc20) ||
+            !acc.TryGetValue("10", out var acc10) ||
+            !acc.TryGetValue("43", out var acc43))
+            throw new ValidationException("Accounts 20/10/43 not found in ChartOfAccount");
+
+        var productIds = (dto.Elements ?? new())
+            .Select(e => e.ProductionId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList()!;
+
+        if (productIds.Count == 0)
+            throw new ValidationException("ReceiptFromProduction: product ids are empty");
+
+        var planned = storage.GetPlannedCostsByProductIds(productIds);
+
+        decimal NewOpPlanCost()
+        {
+            decimal sum = 0m;
+            foreach (var e in dto.Elements ?? new())
+            {
+                if (string.IsNullOrWhiteSpace(e.ProductionId))
+                    throw new ValidationException("Element.ProductionId is empty");
+                if (e.CountElement <= 0)
+                    throw new ValidationException("Element.CountElement must be > 0");
+
+                var pc = planned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
+                sum += pc * e.CountElement;
+            }
+            return sum;
+        }
+
+        var needed = NewOpPlanCost();
+
+        // агрегаты "на дату операции"
+        var to = dto.DateOperation;
+        var materials = storage.GetMaterialsInput20_10_Department(to, acc20, acc10, dto.DepartamentId!);
+        var produced = storage.GetProducedPlanCost43_20_Department(to, acc43, acc20, dto.DepartamentId!);
+
+        // ✅ поправка для Update: вернём вклад старой операции, т.к. produced уже включает её
+        if (oldForUpdate != null
+            && oldForUpdate.Type == OperationType.ReceiptFromProduction
+            && !oldForUpdate.IsDeleted
+            && oldForUpdate.DepartamentId == dto.DepartamentId
+            && oldForUpdate.DateOperation <= to)
+        {
+            // считаем плановую сумму старой операции
+            var oldIds = (oldForUpdate.Elements ?? new())
+                .Select(e => e.ProductionId)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList()!;
+
+            var oldPlanned = storage.GetPlannedCostsByProductIds(oldIds);
+
+            decimal oldSum = 0m;
+            foreach (var e in oldForUpdate.Elements ?? new())
+            {
+                if (string.IsNullOrWhiteSpace(e.ProductionId)) continue;
+                var pc = oldPlanned.TryGetValue(e.ProductionId!, out var v) ? v : 0m;
+                oldSum += pc * e.CountElement;
+            }
+
+            produced -= oldSum;
+        }
+
+        var available = materials - produced;
+
+        if (available < needed - 0.0001m)
+            throw new ValidationException(
+                $"Недостаточно материалов для выпуска. Доступно: {available:N2}, требуется: {needed:N2}.");
+    }
+
+    /// <summary>
+    /// Sale:
+    /// (Произведено qty 43-20) - (Продано qty 90-43) >= (qty продажи по каждому продукту)
+    /// </summary>
+    private void ValidateSaleStock(OperationDto dto, OperationDto? oldForUpdate)
+    {
+        var acc = storage.GetAccountIdsByNums(new[] { "43", "20", "90" });
+        if (!acc.TryGetValue("43", out var acc43) ||
+            !acc.TryGetValue("20", out var acc20) ||
+            !acc.TryGetValue("90", out var acc90))
+            throw new ValidationException("Accounts 43/20/90 not found in ChartOfAccount");
+
+        var productIds = (dto.Elements ?? new())
+            .Select(e => e.ProductionId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()
+            .ToList()!;
+
+        if (productIds.Count == 0)
+            throw new ValidationException("Sale: product ids are empty");
+
+        var to = dto.DateOperation;
+
+        var producedQty = storage.GetProducedQty43_20_ByProduct(to, acc43, acc20, productIds);
+        var soldQty = storage.GetSoldQty90_43_ByProduct(to, acc90, acc43, productIds);
+
+        // ✅ поправка для Update: вернём вклад старой операции продажи, т.к. soldQty уже включает её
+        Dictionary<string, int> oldSoldByProduct = new();
+        if (oldForUpdate != null
+            && oldForUpdate.Type == OperationType.Sale
+            && !oldForUpdate.IsDeleted
+            && oldForUpdate.DateOperation <= to)
+        {
+            foreach (var e in oldForUpdate.Elements ?? new())
+            {
+                if (string.IsNullOrWhiteSpace(e.ProductionId)) continue;
+                if (e.CountElement <= 0) continue;
+
+                oldSoldByProduct.TryGetValue(e.ProductionId!, out var cur);
+                oldSoldByProduct[e.ProductionId!] = cur + e.CountElement;
+            }
+        }
+
+        foreach (var e in dto.Elements ?? new())
+        {
+            if (string.IsNullOrWhiteSpace(e.ProductionId))
+                throw new ValidationException("Element.ProductionId is empty");
+            if (e.CountElement <= 0)
+                throw new ValidationException("Element.CountElement must be > 0");
+
+            var pid = e.ProductionId!;
+            var made = producedQty.TryGetValue(pid, out var mq) ? mq : 0;
+            var sold = soldQty.TryGetValue(pid, out var sq) ? sq : 0;
+
+            if (oldSoldByProduct.TryGetValue(pid, out var oldSold))
+                sold -= oldSold; // откатываем старую версию операции
+
+            var available = made - sold;
+
+            if (available < e.CountElement)
+                throw new ValidationException(
+                    $"Недостаточно остатка для продажи по продукции {pid}. Доступно: {available}, требуется: {e.CountElement}.");
+        }
+    }
+
+    // =========================================================
+    // Postings builder (как у тебя было)
+    // =========================================================
+
     private List<TransactionLogDto> BuildPostings(OperationDto op)
     {
         var needNums = op.Type switch
@@ -165,7 +408,6 @@ public class OperationBusinessLogic(
             if (!acc.ContainsKey(n))
                 throw new ValidationException($"Chart of account {n} not found");
 
-        // Комментарий документа (пользовательский) — добавим хвостом в комментарий проводки
         string DocTail() => string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}";
 
         if (op.Type == OperationType.ActualCosts)
@@ -202,6 +444,7 @@ public class OperationBusinessLogic(
         {
             var logs = new List<TransactionLogDto>();
             var depMap = storage.GetProductionDepartaments(productIds!);
+
             foreach (var pid in productIds!)
             {
                 if (!depMap.TryGetValue(pid, out var depId))
@@ -210,7 +453,8 @@ public class OperationBusinessLogic(
                 if (depId != op.DepartamentId)
                     throw new ValidationException($"Production {pid} does not belong to departament {op.DepartamentId}");
             }
-            foreach (var e in op.Elements)
+
+            foreach (var e in op.Elements ?? new())
             {
                 if (string.IsNullOrWhiteSpace(e.ProductionId))
                     throw new ValidationException("Element.ProductionId is empty");
@@ -243,7 +487,7 @@ public class OperationBusinessLogic(
         {
             var logs = new List<TransactionLogDto>();
 
-            foreach (var e in op.Elements)
+            foreach (var e in op.Elements ?? new())
             {
                 if (string.IsNullOrWhiteSpace(e.ProductionId))
                     throw new ValidationException("Element.ProductionId is empty");

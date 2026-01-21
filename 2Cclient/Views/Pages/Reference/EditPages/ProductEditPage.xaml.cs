@@ -29,7 +29,6 @@ namespace _2Cclient.Views.Pages
         // Название: буквы/цифры/пробел/дефис/подчёркивание
         private static readonly Regex NameRegex = new(@"^[\p{L}\p{Nd}\s\-_]+$", RegexOptions.Compiled);
 
-        // CREATE
         public ProductEditPage()
         {
             InitializeComponent();
@@ -62,7 +61,6 @@ namespace _2Cclient.Views.Pages
             DataObject.AddPastingHandler(CostBox, CostBox_OnPaste);
         }
 
-        // UPDATE
         public ProductEditPage(ProductionVM vm) : this()
         {
             _editing = vm;
@@ -120,16 +118,31 @@ namespace _2Cclient.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки подразделений:\n{ex.Message}");
+                MessageBox.Show(ServerErrorPresenter.ToUserMessage(ex),
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
-        // -------- Code --------
+        // -------- Code (max 20) --------
         private void CodeBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-            => e.Handled = !Regex.IsMatch(e.Text, @"^[A-Za-z0-9_.\-]+$");
+        {
+            if (!CodeRegex.IsMatch(e.Text))
+            {
+                e.Handled = true;
+                FieldValidation.SetError(CodeBox, "Код: A-Z, 0-9, '.', '_', '-'");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_PreviewTextInput(sender, e, FieldValidation.MaxNameLen);
+        }
 
         private void CodeBox_TextChanged(object sender, TextChangedEventArgs e)
-            => FieldValidation.ClearErrorOnTyping(CodeBox);
+        {
+            FieldValidation.EnforceMaxLen_TextChanged(CodeBox, FieldValidation.MaxNameLen, "Код продукта");
+            var t = CodeBox.Text ?? "";
+            if (!string.IsNullOrWhiteSpace(t) && !CodeRegex.IsMatch(t))
+                FieldValidation.SetError(CodeBox, "Код: A-Z, 0-9, '.', '_', '-'");
+        }
 
         private void CodeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
         {
@@ -140,16 +153,43 @@ namespace _2Cclient.Views.Pages
             }
 
             var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim();
-            if (text.Length == 0 || !CodeRegex.IsMatch(text))
+
+            if (text.Length == 0)
+            {
                 e.CancelCommand();
+                return;
+            }
+
+            if (!CodeRegex.IsMatch(text))
+            {
+                e.CancelCommand();
+                FieldValidation.SetError(CodeBox, "Код: A-Z, 0-9, '.', '_', '-'");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_OnPaste(sender, e, FieldValidation.MaxNameLen);
         }
 
-        // -------- Name --------
+        // -------- Name (max 20) --------
         private void NameBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-            => e.Handled = !Regex.IsMatch(e.Text, @"^[\p{L}\p{Nd}\s\-_]+$");
+        {
+            if (!NameRegex.IsMatch(e.Text))
+            {
+                e.Handled = true;
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_PreviewTextInput(sender, e, FieldValidation.MaxNameLen);
+        }
 
         private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
-            => FieldValidation.ClearErrorOnTyping(NameBox);
+        {
+            FieldValidation.EnforceMaxLen_TextChanged(NameBox, FieldValidation.MaxNameLen, "Название продукта");
+            var t = NameBox.Text ?? "";
+            if (!string.IsNullOrWhiteSpace(t) && !NameRegex.IsMatch(t))
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+        }
 
         private void NameBox_OnPaste(object sender, DataObjectPastingEventArgs e)
         {
@@ -159,9 +199,23 @@ namespace _2Cclient.Views.Pages
                 return;
             }
 
-            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim();
-            if (text.Length == 0 || !NameRegex.IsMatch(text))
+            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "");
+            text = Regex.Replace(text.Trim(), @"\s+", " ");
+
+            if (text.Length == 0)
+            {
                 e.CancelCommand();
+                return;
+            }
+
+            if (!NameRegex.IsMatch(text))
+            {
+                e.CancelCommand();
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_OnPaste(sender, e, FieldValidation.MaxNameLen);
         }
 
         // -------- Type / Departament --------
@@ -171,7 +225,7 @@ namespace _2Cclient.Views.Pages
         private void DepartamentBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
             => FieldValidation.ClearError(DepartamentBox);
 
-        // -------- Cost (используем те же правила, что Amount) --------
+        // -------- Cost --------
         private void CostBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Amount_PreviewKeyDown(sender, e);
 
@@ -182,7 +236,7 @@ namespace _2Cclient.Views.Pages
             => FieldValidation.ClearErrorOnTyping(CostBox);
 
         private void CostBox_LostFocus(object sender, RoutedEventArgs e)
-            => FieldValidation.Amount_LostFocus(CostBox);
+             => FieldValidation.ValidatePlannedCost(CostBox);
 
         private void CostBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Amount_OnPaste(sender, e);
@@ -196,6 +250,11 @@ namespace _2Cclient.Views.Pages
                 FieldValidation.SetError(CodeBox, "Код не должен быть пустым");
                 return false;
             }
+            if (code.Length > FieldValidation.MaxNameLen)
+            {
+                FieldValidation.SetError(CodeBox, $"Код: максимум {FieldValidation.MaxNameLen} символов");
+                return false;
+            }
             if (!CodeRegex.IsMatch(code))
             {
                 FieldValidation.SetError(CodeBox, "Код: A-Z, 0-9, '.', '_', '-'");
@@ -205,11 +264,15 @@ namespace _2Cclient.Views.Pages
             CodeBox.Text = code;
 
             // Name
-            var name = (NameBox.Text ?? "").Trim();
-            name = Regex.Replace(name, @"\s+", " ");
+            var name = Regex.Replace((NameBox.Text ?? "").Trim(), @"\s+", " ");
             if (string.IsNullOrWhiteSpace(name))
             {
                 FieldValidation.SetError(NameBox, "Название не должно быть пустым");
+                return false;
+            }
+            if (name.Length > FieldValidation.MaxNameLen)
+            {
+                FieldValidation.SetError(NameBox, $"Название: максимум {FieldValidation.MaxNameLen} символов");
                 return false;
             }
             if (!NameRegex.IsMatch(name))
@@ -237,11 +300,22 @@ namespace _2Cclient.Views.Pages
             FieldValidation.ClearError(DepartamentBox);
 
             // Cost
+            // Cost (плановая стоимость <= 1 000 000)
             if (!FieldValidation.TryParseDecimalStrict(CostBox.Text, out var cost) || cost <= 0m)
             {
                 FieldValidation.SetError(CostBox, "Плановая стоимость должна быть числом > 0");
                 return false;
             }
+            if (cost > FieldValidation.MaxPlannedCost)
+            {
+                FieldValidation.SetError(CostBox, "Сумма слишком велика (максимум 1 000 000)");
+                return false;
+            }
+
+            FieldValidation.ClearError(CostBox);
+            CostBox.Text = cost.ToString("0.##", CultureInfo.InvariantCulture);
+
+
             FieldValidation.ClearError(CostBox);
             CostBox.Text = cost.ToString("0.##", CultureInfo.InvariantCulture);
 
@@ -296,7 +370,8 @@ namespace _2Cclient.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения:\n{ex.Message}");
+                MessageBox.Show(ServerErrorPresenter.ToUserMessage(ex),
+                    "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Warning);
                 SetBusy(false);
             }
         }

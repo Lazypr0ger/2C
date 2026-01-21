@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Contracts.DTO;
+using Contracts.Enums;
 using Contracts.Exceptions;
 using Contracts.Interfaces.Storages;
 using DataBase.Entities;
@@ -160,11 +161,28 @@ public class OperationStorageContract : IOperationStorageContract
     {
         try
         {
+            using var tx = _db.Database.BeginTransaction();
+
             var entity = _db.Operations.FirstOrDefault(x => x.Id == id)
                          ?? throw new ElementNotFoundException(id);
 
+            if (entity.IsDeleted)
+                return; // уже удалено
+
             entity.IsDeleted = true;
+
+            // ✅ каскадно "удаляем" проводки
+            var logs = _db.TransactionLogs.Where(x => x.OperationId == id).ToList();
+            foreach (var l in logs)
+                l.IsDeleted = true;
+
+            // (опционально) элементы тоже
+            var els = _db.Elements.Where(x => x.OperationId == id).ToList();
+            foreach (var e in els)
+                e.IsDeleted = true;
+
             _db.SaveChanges();
+            tx.Commit();
         }
         catch (Exception ex)
         {
@@ -178,11 +196,28 @@ public class OperationStorageContract : IOperationStorageContract
     {
         try
         {
+            using var tx = _db.Database.BeginTransaction();
+
             var entity = _db.Operations.FirstOrDefault(x => x.Id == id)
                          ?? throw new ElementNotFoundException(id);
 
+            if (!entity.IsDeleted)
+                return; // уже восстановлено
+
             entity.IsDeleted = false;
+
+            // ✅ каскадно "восстанавливаем" проводки
+            var logs = _db.TransactionLogs.Where(x => x.OperationId == id).ToList();
+            foreach (var l in logs)
+                l.IsDeleted = false;
+
+            // (опционально) элементы тоже
+            var els = _db.Elements.Where(x => x.OperationId == id).ToList();
+            foreach (var e in els)
+                e.IsDeleted = false;
+
             _db.SaveChanges();
+            tx.Commit();
         }
         catch (Exception ex)
         {
@@ -380,6 +415,28 @@ public class OperationStorageContract : IOperationStorageContract
             .FirstOrDefault();
     }
 
+    public string? FindMonthlyOperationId(OperationType type, DateTime from, DateTime to)
+    {
+        return _db.Operations.AsNoTracking()
+            .Where(o => !o.IsDeleted
+                && o.Type == type
+                && o.DateOperation >= from
+                && o.DateOperation <= to)
+            .OrderByDescending(o => o.DateOperation)
+            .Select(o => o.Id)
+            .FirstOrDefault();
+    }
+
+    public bool ExistsMonthlyOperation(OperationType type, DateTime from, DateTime to)
+    {
+        return _db.Operations.AsNoTracking()
+            .Any(o => !o.IsDeleted
+                && o.Type == type
+                && o.DateOperation >= from
+                && o.DateOperation <= to);
+    }
+
+
     public Dictionary<string, decimal> GetSalesDeviation90_43(DateTime from, DateTime to, string acc90Id, string acc43Id)
     => _db.TransactionLogs.AsNoTracking()
         .Where(t => !t.IsDeleted
@@ -390,6 +447,48 @@ public class OperationStorageContract : IOperationStorageContract
             && t.Subconto1Cred != null)
         .GroupBy(t => t.Subconto1Cred!)
         .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+    public decimal GetMaterialsInput20_10_Department(DateTime to, string acc20Id, string acc10Id, string departamentId)
+    => _db.TransactionLogs.AsNoTracking()
+        .Where(t => !t.IsDeleted
+            && t.DateOperation <= to
+            && t.ChartOfAccountDebId == acc20Id
+            && t.ChartOfAccountCredId == acc10Id
+            && t.Subconto1Deb == departamentId)
+        .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+    public decimal GetProducedPlanCost43_20_Department(DateTime to, string acc43Id, string acc20Id, string departamentId)
+        => _db.TransactionLogs.AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc43Id
+                && t.ChartOfAccountCredId == acc20Id
+                && t.Count > 0
+                && t.Subconto1Cred == departamentId) // важно: ты уже ставишь Subconto1Cred=DepartamentId
+            .Sum(t => (decimal?)t.Amount) ?? 0m;
+
+    public Dictionary<string, int> GetProducedQty43_20_ByProduct(DateTime to, string acc43Id, string acc20Id, IEnumerable<string> productIds)
+        => _db.TransactionLogs.AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc43Id
+                && t.ChartOfAccountCredId == acc20Id
+                && t.Count > 0
+                && t.Subconto1Deb != null
+                && productIds.Contains(t.Subconto1Deb))
+            .GroupBy(t => t.Subconto1Deb!)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Count));
+
+    public Dictionary<string, int> GetSoldQty90_43_ByProduct(DateTime to, string acc90Id, string acc43Id, IEnumerable<string> productIds)
+        => _db.TransactionLogs.AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc90Id
+                && t.ChartOfAccountCredId == acc43Id
+                && t.Count > 0
+                && t.Subconto1Cred != null
+                && productIds.Contains(t.Subconto1Cred))
+            .GroupBy(t => t.Subconto1Cred!)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Count));
 
     public Dictionary<string, (string code, string name)> GetProductionInfoByIds(IEnumerable<string> productIds)
     {

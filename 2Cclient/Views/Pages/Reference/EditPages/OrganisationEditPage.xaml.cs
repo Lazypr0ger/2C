@@ -16,10 +16,9 @@ namespace _2Cclient.Views.Pages
         private readonly OrganisationApi _api;
         private readonly OrganisationVM? _editing;
 
+        // буквы/цифры/пробел/дефис/подчёркивание
         private static readonly Regex NameRegex = new(@"^[\p{L}\p{Nd}\s\-_]+$", RegexOptions.Compiled);
-        private static readonly Regex DigitsOnly = new(@"^\d+$", RegexOptions.Compiled);
 
-        // CREATE
         public OrganisationEditPage()
         {
             InitializeComponent();
@@ -44,7 +43,6 @@ namespace _2Cclient.Views.Pages
             DataObject.AddPastingHandler(AccountBox, AccountBox_OnPaste);
         }
 
-        // UPDATE
         public OrganisationEditPage(OrganisationVM vm) : this()
         {
             _editing = vm;
@@ -56,20 +54,30 @@ namespace _2Cclient.Views.Pages
             AccountBox.Text = vm.AccountNumOrg;
 
             IsDeletedCheck.IsChecked = vm.IsDeleted;
-            IsDeletedCheck.IsEnabled = false; // управление удалением в списке
+            IsDeletedCheck.IsEnabled = false;
         }
 
+        // -------- Name --------
         private void NameBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-            => e.Handled = !Regex.IsMatch(e.Text, @"^[\p{L}\p{Nd}\s\-_]+$");
+        {
+            if (!NameRegex.IsMatch(e.Text))
+            {
+                e.Handled = true;
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_PreviewTextInput(sender, e, FieldValidation.MaxNameLen);
+        }
 
         private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
-            => FieldValidation.ClearErrorOnTyping(NameBox);
+        {
+            FieldValidation.EnforceMaxLen_TextChanged(NameBox, FieldValidation.MaxNameLen, "Название организации");
 
-        private void AccountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-            => e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
-
-        private void AccountBox_TextChanged(object sender, TextChangedEventArgs e)
-            => FieldValidation.ClearErrorOnTyping(AccountBox);
+            var t = NameBox.Text ?? "";
+            if (!string.IsNullOrWhiteSpace(t) && !NameRegex.IsMatch(t))
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+        }
 
         private void NameBox_OnPaste(object sender, DataObjectPastingEventArgs e)
         {
@@ -79,34 +87,55 @@ namespace _2Cclient.Views.Pages
                 return;
             }
 
-            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim();
-            if (text.Length == 0 || !NameRegex.IsMatch(text))
-                e.CancelCommand();
-        }
+            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "");
+            text = Regex.Replace(text.Trim(), @"\s+", " ");
 
-        private void AccountBox_OnPaste(object sender, DataObjectPastingEventArgs e)
-        {
-            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText))
+            if (text.Length == 0)
             {
                 e.CancelCommand();
                 return;
             }
 
-            var text = ((string?)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim();
-            if (text.Length == 0 || !DigitsOnly.IsMatch(text))
+            if (!NameRegex.IsMatch(text))
+            {
                 e.CancelCommand();
+                FieldValidation.SetError(NameBox, "Разрешены буквы/цифры/пробел/дефис/подчёркивание");
+                return;
+            }
+
+            FieldValidation.EnforceMaxLen_OnPaste(sender, e, FieldValidation.MaxNameLen);
         }
+
+        // -------- Account (20 digits) --------
+        private void AccountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+            => FieldValidation.OrgAccount_PreviewTextInput(sender, e);
+
+        private void AccountBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // при вводе — максимум 20, снимаем ошибки
+            FieldValidation.EnforceMaxLen_TextChanged(AccountBox, FieldValidation.OrgAccountLen, "Счёт организации");
+            if (!string.IsNullOrWhiteSpace(AccountBox.Text))
+                FieldValidation.ClearError(AccountBox);
+        }
+
+        private void AccountBox_OnPaste(object sender, DataObjectPastingEventArgs e)
+            => FieldValidation.OrgAccount_OnPaste(sender, e);
+
+        private void AccountBox_LostFocus(object sender, RoutedEventArgs e)
+            => FieldValidation.OrgAccount_LostFocus(AccountBox);
 
         private bool ValidateForm()
         {
-            var name = (NameBox.Text ?? "").Trim();
-            name = Regex.Replace(name, @"\s+", " ");
-
-            var account = (AccountBox.Text ?? "").Trim();
-
+            // Name
+            var name = Regex.Replace((NameBox.Text ?? "").Trim(), @"\s+", " ");
             if (string.IsNullOrWhiteSpace(name))
             {
                 FieldValidation.SetError(NameBox, "Название не должно быть пустым");
+                return false;
+            }
+            if (name.Length > FieldValidation.MaxNameLen)
+            {
+                FieldValidation.SetError(NameBox, $"Название: максимум {FieldValidation.MaxNameLen} символов");
                 return false;
             }
             if (!NameRegex.IsMatch(name))
@@ -117,17 +146,10 @@ namespace _2Cclient.Views.Pages
             FieldValidation.ClearError(NameBox);
             NameBox.Text = name;
 
-            if (string.IsNullOrWhiteSpace(account))
-            {
-                FieldValidation.SetError(AccountBox, "Номер счёта не должен быть пустым");
+            // Account строго 20 цифр
+            FieldValidation.OrgAccount_LostFocus(AccountBox);
+            if (Validation.GetHasError(AccountBox))
                 return false;
-            }
-            if (!DigitsOnly.IsMatch(account))
-            {
-                FieldValidation.SetError(AccountBox, "Номер счёта должен содержать только цифры");
-                return false;
-            }
-            FieldValidation.ClearError(AccountBox);
 
             return true;
         }
@@ -170,7 +192,8 @@ namespace _2Cclient.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения:\n{ex.Message}");
+                MessageBox.Show(ServerErrorPresenter.ToUserMessage(ex),
+                    "Ошибка сохранения", MessageBoxButton.OK, MessageBoxImage.Warning);
                 SetBusy(false);
             }
         }
@@ -185,7 +208,6 @@ namespace _2Cclient.Views.Pages
         {
             NameBox.IsEnabled = !isBusy;
             AccountBox.IsEnabled = !isBusy;
-            IsDeletedCheck.IsEnabled = _editing != null && !isBusy;
             SaveBtn.IsEnabled = !isBusy;
         }
     }
