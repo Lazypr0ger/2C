@@ -294,7 +294,6 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         {
             if ((sender as Button)?.Tag is not RowVM row) return;
 
-            // Сначала пробуем удалить по Id (если есть), иначе по ProductionId
             if (!string.IsNullOrWhiteSpace(row.Id))
             {
                 var idxById = _elements.FindIndex(x => x.Id == row.Id);

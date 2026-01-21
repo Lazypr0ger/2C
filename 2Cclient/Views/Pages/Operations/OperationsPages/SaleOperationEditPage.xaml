@@ -18,7 +18,7 @@
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
-            <TextBlock Text="Проводки сформирует сервер"
+            <TextBlock Text="Итоговая сумма документа будет больше"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
@@ -300,7 +300,7 @@
                                 <ColumnDefinition Width="220"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="Итого (расчёт на клиенте только для отображения):"
+                            <TextBlock Text="Итого (Только реализация):"
                                        Foreground="{StaticResource Text2}"
                                        VerticalAlignment="Center"/>
 

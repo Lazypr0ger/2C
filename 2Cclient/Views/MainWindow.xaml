@@ -16,14 +16,14 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- LEFT SIDEBAR -->
+
         <Border Grid.Column="0"
                 Background="{StaticResource Panel2}"
                 CornerRadius="18"
                 Padding="14">
             <DockPanel LastChildFill="True">
 
-                <!-- Header -->
+
                 <StackPanel DockPanel.Dock="Top" Margin="8,6,8,14">
                     <TextBlock Text="2C ПРЕДПРИЯТИЕ"
                                Foreground="{StaticResource Text}"
@@ -34,7 +34,6 @@
                                Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <!-- NAV -->
                 <ListBox x:Name="NavList"
                          DockPanel.Dock="Top"
                          Style="{StaticResource NavListStyle}"
@@ -55,6 +54,10 @@
 
                     <ListBoxItem Tag="Ledger">
                         <TextBlock Text="Журнал проводок" FontSize="14"/>
+                    </ListBoxItem>
+
+                    <ListBoxItem Tag="Charts">
+                        <TextBlock Text="План счетов" FontSize="14"/>
                     </ListBoxItem>
                 </ListBox>
 

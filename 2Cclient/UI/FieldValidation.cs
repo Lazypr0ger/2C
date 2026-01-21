@@ -15,7 +15,9 @@ namespace _2Cclient.UI
         public const int MaxNameLen = 20;      
         public const int MaxCommentLen = 20;    
         public const int OrgAccountLen = 20;    
-        public const int MaxFutureDays = 7;     
+        public const int MaxFutureDays = 7;
+        public const decimal MaxSalePrice = 100_000_000m;
+
 
         // ===== Regex =====
         public static readonly Regex AmountAllowedRegex = new(@"^[0-9]*([.,][0-9]*)?$", RegexOptions.Compiled);
@@ -45,11 +47,6 @@ namespace _2Cclient.UI
             if (be != null) Validation.ClearInvalid(be);
         }
 
-        // =====================================================================
-        // ===== Universal helpers for text length ограничения =====
-        // =====================================================================
-
-        /// <summary>Универсальный обработчик PreviewTextInput: режем ввод по MaxLen.</summary>
         public static void EnforceMaxLen_PreviewTextInput(object sender, TextCompositionEventArgs e, int maxLen)
         {
             if (sender is not TextBox tb) return;
@@ -120,11 +117,6 @@ namespace _2Cclient.UI
             ClearError(tb);
         }
 
-        // =====================================================================
-        // ===== Name (Документы / Организации / Подразделения / Продукты) =====
-        // =====================================================================
-
-        // Разрешаем: буквы+пробел, длина <= 20
         public static void Name_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             if (!NameAllowedRegex.IsMatch(e.Text))
@@ -172,9 +164,6 @@ namespace _2Cclient.UI
             EnforceMaxLen_TextChanged(tb, MaxNameLen, fieldTitle);
         }
 
-        // =====================================================================
-        // ===== Comment (до 20, без ограничения по символам) =====
-        // =====================================================================
 
         public static void Comment_PreviewTextInput(object sender, TextCompositionEventArgs e)
             => EnforceMaxLen_PreviewTextInput(sender, e, MaxCommentLen);
@@ -184,10 +173,6 @@ namespace _2Cclient.UI
 
         public static void Comment_TextChanged(TextBox tb)
             => EnforceMaxLen_TextChanged(tb, MaxCommentLen, "Комментарий");
-
-        // =====================================================================
-        // ===== Organisation Account (20 digits) =====
-        // =====================================================================
 
         public static void OrgAccount_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
@@ -224,9 +209,6 @@ namespace _2Cclient.UI
             EnforceMaxLen_OnPaste(sender, e, OrgAccountLen);
         }
 
-        /// <summary>
-        /// Валидация по факту (например на LostFocus): строго 20 цифр.
-        /// </summary>
         public static void OrgAccount_LostFocus(TextBox tb)
         {
             var t = (tb.Text ?? "").Trim();
@@ -251,10 +233,6 @@ namespace _2Cclient.UI
 
             ClearError(tb);
         }
-
-        // =====================================================================
-        // ===== Amount =====
-        // =====================================================================
 
         public static void Amount_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -286,8 +264,8 @@ namespace _2Cclient.UI
             if (!AmountAllowedRegex.IsMatch(text)) e.CancelCommand();
         }
 
-        public const decimal MaxPlannedCost = 1_000_000m;                 // плановая стоимость (за единицу)
-        public const decimal MaxSaleTotalAmount = 1_000_000_000_000_000m; // общая сумма реализации (итог документа)
+        public const decimal MaxPlannedCost = 1_000_000m;                
+        public const decimal MaxSaleTotalAmount = 1_000_000_000_000_000m; 
 
         public static bool TryParseDecimalStrict(string? text, out decimal value)
         {
@@ -301,9 +279,6 @@ namespace _2Cclient.UI
             return decimal.TryParse(t, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
         }
 
-        /// <summary>
-        /// Плановая стоимость: 0 < cost <= 1_000_000
-        /// </summary>
         public static bool ValidatePlannedCost(TextBox tb)
         {
             if (!TryParseDecimalStrict(tb.Text, out var val) || val <= 0m)
@@ -323,9 +298,7 @@ namespace _2Cclient.UI
             return true;
         }
 
-        /// <summary>
-        /// Общая сумма реализации: 0 < total <= 1_000_000_000_000_000
-        /// </summary>
+
         public static bool ValidateSaleTotalAmount(decimal total, out string userMessage)
         {
             userMessage = "";
@@ -372,9 +345,6 @@ namespace _2Cclient.UI
             if (!string.IsNullOrWhiteSpace(tb.Text)) ClearError(tb);
         }
 
-        // =====================================================================
-        // ===== Time (HH:mm) with correct caret =====
-        // =====================================================================
 
         public static void Time_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -457,13 +427,24 @@ namespace _2Cclient.UI
             ClearError(tb);
         }
 
-        // =====================================================================
-        // ===== Date ограничение: не позже Today+7 =====
-        // =====================================================================
+        public static bool ValidateSalePrice(TextBox tb)
+        {
+            if (!TryParseDecimalStrict(tb.Text, out var val) || val <= 0m)
+            {
+                SetError(tb, "Цена должна быть числом больше 0");
+                return false;
+            }
 
-        /// <summary>
-        /// Вызывать при изменении даты (SelectedDateChanged) или при подтверждении формы.
-        /// </summary>
+            if (val > MaxSalePrice)
+            {
+                SetError(tb, "Цена слишком велика (не может превышать 100 000 000)");
+                return false;
+            }
+
+            ClearError(tb);
+            tb.Text = val.ToString("0.##", CultureInfo.InvariantCulture);
+            return true;
+        }
         public static bool ValidateDateNotLaterThanWeek(DatePicker dp, string fieldTitle = "Дата")
         {
             var d = dp.SelectedDate;

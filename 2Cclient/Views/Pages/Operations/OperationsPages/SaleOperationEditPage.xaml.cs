@@ -23,7 +23,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
 
         private List<OrganisationVM> _organisations = new();
         private List<ProductionVM> _products = new();
-
+        private readonly List<ElementVM> _elements = new();
         private readonly List<SaleRow> _rows = new();
 
         private static readonly Regex DigitsOnlyRegex = new(@"^\d+$", RegexOptions.Compiled);
@@ -104,10 +104,6 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
 
             _rows.Clear();
 
-            // В OperationVM элементы могут не содержать цену.
-            // Поэтому при редактировании:
-            // - если сервер возвращает totalAmountDocument, кладём это в TotalBox (для отображения)
-            // - строки подтянем по Elements (Count + ProductName/Id), цена по умолчанию 0/пусто
             foreach (var e in op.Elements ?? new List<ElementVM>())
             {
                 _rows.Add(new SaleRow
@@ -215,10 +211,14 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             => FieldValidation.Amount_PreviewTextInput(sender, e);
 
         private void PriceBox_TextChanged(object sender, TextChangedEventArgs e)
-            => FieldValidation.ClearErrorOnTyping(PriceBox);
+        {
+          
+            FieldValidation.ClearErrorOnTyping(PriceBox);
+
+        }
 
         private void PriceBox_LostFocus(object sender, RoutedEventArgs e)
-            => FieldValidation.Amount_LostFocus(PriceBox);
+            => FieldValidation.ValidateSalePrice(PriceBox);
 
         private void PriceBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Amount_OnPaste(sender, e);
@@ -242,13 +242,10 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             }
             FieldValidation.ClearError(CountBox);
 
-            // price
-            if (!FieldValidation.TryParseDecimalStrict(PriceBox.Text, out var price) || price <= 0m)
-            {
-                FieldValidation.SetError(PriceBox, "Цена должна быть числом > 0");
+            if (!FieldValidation.ValidateSalePrice(PriceBox))
                 return;
-            }
-            FieldValidation.ClearError(PriceBox);
+
+            FieldValidation.TryParseDecimalStrict(PriceBox.Text,out var price);
 
             var prodName = ResolveProductName(prodId);
 
@@ -280,11 +277,18 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         {
             if ((sender as Button)?.Tag is not SaleRow row) return;
 
-            _rows.Remove(row);
+            var idx = _rows.FindIndex(r =>
+                r.ProductionId == row.ProductionId &&
+                r.Price == row.Price &&
+                r.Count == row.Count); // или добавь нормальный Id строки
+
+            if (idx >= 0)
+                _rows.RemoveAt(idx);
 
             RefreshItems();
             RecalcTotal();
         }
+
 
         private void RefreshItems()
         {

@@ -114,6 +114,11 @@ namespace _2Cclient.Views
                     PageTitleText.Text = "Журнал проводок";
                     MainFrame.Navigate(new TransactionLogPage());
                     break;
+                
+                case "Charts":
+                    PageTitleText.Text = "План Счетов";
+                    MainFrame.Navigate(new ChartsOfAccountPage());
+                    break;
             }
         }
     }
