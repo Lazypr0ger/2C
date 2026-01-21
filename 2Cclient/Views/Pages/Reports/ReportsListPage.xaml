@@ -3,59 +3,6 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="Transparent">
 
-    <Page.Resources>
-        <Style TargetType="GridViewColumnHeader">
-            <Setter Property="Background" Value="#0F141B"/>
-            <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-            <Setter Property="BorderBrush" Value="#243142"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-
-        <Style x:Key="RowStyle" TargetType="ListViewItem">
-            <Setter Property="Margin" Value="0,2,0,2"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListViewItem">
-                        <Border x:Name="Bd"
-                                Background="#0F141B"
-                                BorderBrush="#243142"
-                                BorderThickness="1"
-                                CornerRadius="10"
-                                Padding="8">
-                            <GridViewRowPresenter
-                                Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"
-                                Content="{TemplateBinding Content}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#162235"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="CellWrap" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource Text}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-        </Style>
-
-        <Style x:Key="CellMutedWrap" TargetType="TextBlock" BasedOn="{StaticResource CellWrap}">
-            <Setter Property="Foreground" Value="{StaticResource Text2}"/>
-        </Style>
-    </Page.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -65,28 +12,31 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
+
             <TextBlock x:Name="SubtitleText"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
 
+        <!-- Card -->
         <Border Grid.Row="2"
-                Background="#10151C"
-                CornerRadius="14"
-                Padding="12">
+                Style="{StaticResource CardStyle}"
+                Padding="16">
 
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="12"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
+                <!-- Toolbar -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -131,78 +81,89 @@
                     </StackPanel>
                 </Grid>
 
-                <ListView x:Name="ReportsList"
-                          Grid.Row="2"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          Margin="0,6,0,0"
-                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          ItemContainerStyle="{StaticResource RowStyle}"
-                          SelectionChanged="ReportsList_SelectionChanged"
-                          PreviewMouseDown="ReportsList_PreviewMouseDown">
+                <!-- Table -->
+                <ContentControl Grid.Row="2">
+                    <ListView x:Name="ReportsList"
+                              Style="{StaticResource ReportTableListStyle}"
+                              Margin="0"
+                              SelectionChanged="ReportsList_SelectionChanged"
+                              PreviewMouseDown="ReportsList_PreviewMouseDown">
 
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="Название" Width="420">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellWrap}"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding Name}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                        <!-- если в Theme стиль строки называется иначе:
+                             1) если у тебя ReportRowStyle — поменяй ключ ниже
+                             2) если ты уже задаёшь ItemContainerStyle в ReportTableListStyle — можно убрать эту строку -->
+                        <ListView.ItemContainerStyle>
+                            <StaticResource ResourceKey="ReportTableRowStyle"/>
+                        </ListView.ItemContainerStyle>
 
-                            <GridViewColumn Header="Период" Width="260">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellMutedWrap}"
-                                                   Text="{Binding PeriodText}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                        <ListView.View>
+                            <GridView ColumnHeaderContainerStyle="{StaticResource ReportGridHeaderStyle}">
 
-                            <GridViewColumn Header="Дата формирования" Width="190">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellWrap}"
-                                                   Text="{Binding BuildDate, StringFormat={}{0:dd.MM.yyyy}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                <GridViewColumn Header="Название" Width="420">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       FontWeight="SemiBold"
+                                                       Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
-                            <GridViewColumn Header="Создан" Width="190">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellWrap}"
-                                                   Text="{Binding CreatedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                <GridViewColumn Header="Период" Width="260">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       Foreground="{StaticResource Text2}"
+                                                       Text="{Binding PeriodText}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
-                            <GridViewColumn Header="Статус" Width="140">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellWrap}"
-                                                   Text="{Binding Status}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                <GridViewColumn Header="Дата формирования" Width="190">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       Text="{Binding BuildDate, StringFormat={}{0:dd.MM.yyyy}}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
-                            <GridViewColumn Header="Комментарий" Width="420">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellMutedWrap}"
-                                                   Text="{Binding Comment}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                                <GridViewColumn Header="Создан" Width="190">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       Text="{Binding CreatedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+
+                                <GridViewColumn Header="Статус" Width="140">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       Text="{Binding Status}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+
+                                <GridViewColumn Header="Комментарий" Width="420">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Style="{StaticResource ReportCellTextStyle}"
+                                                       Foreground="{StaticResource Text2}"
+                                                       Text="{Binding Comment}"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </ContentControl>
             </Grid>
         </Border>
 
+        <!-- Bottom -->
         <Button Grid.Row="4"
                 Content="Назад"
                 Height="40"

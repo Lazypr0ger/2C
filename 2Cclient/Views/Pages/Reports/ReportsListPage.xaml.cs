@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using _2Cclient.Services.Api;
+using Contracts.Enums;
+using Contracts.ViewModels.Reports;
 
 namespace _2Cclient.Views.Pages.Reports
 {
@@ -21,6 +24,9 @@ namespace _2Cclient.Views.Pages.Reports
             public DateTime? From { get; set; }
             public DateTime? To { get; set; }
             public DateTime BuildDate { get; set; }
+
+            // у нас на сервере пока нет CreatedAt/Status/Comment в list item,
+            // поэтому делаем совместимость:
             public DateTime CreatedAt { get; set; }
             public string Status { get; set; } = "Готов";
             public string? Comment { get; set; }
@@ -48,45 +54,41 @@ namespace _2Cclient.Views.Pages.Reports
             };
         }
 
+        // Маппим string из UI в enum сервера
+        private static ReportTypeCodes MapTypeCode(string typeCode) => typeCode switch
+        {
+            "actual_cost_distribution" => ReportTypeCodes.ActualCostDistribution,
+            "sales_statement" => ReportTypeCodes.SalesStatement,
+            "realised_deviation" => ReportTypeCodes.RealisedDeviationStatement,
+            _ => ReportTypeCodes.ActualCostDistribution
+        };
+
         private async Task LoadAsync()
         {
             try
             {
-                // TODO: заменить на реальный API:
-                // var api = App.Services.GetRequiredService<ReportApi>();
-                // _all = (await api.GetListAsync(_typeCode)).ToList();
+                var api = (ReportApi)App.Services.GetService(typeof(ReportApi))!;
+                var typeEnum = MapTypeCode(_typeCode);
 
-                await Task.Delay(50);
+                var list = await api.GetListAsync(typeEnum);
 
-                // DEMO
-                var now = DateTime.Now;
-                _all = new()
-                {
-                    new()
+
+                _all = (list)
+                    .Select(x => new ReportListItemVM
                     {
-                        Id="r1",
-                        TypeCode=_typeCode,
-                        Name=_typeTitle,
-                        From=DateTime.Today.AddDays(-30),
-                        To=DateTime.Today,
-                        BuildDate=DateTime.Today,
-                        CreatedAt=now.AddHours(-2),
-                        Status="Готов",
-                        Comment="Авто"
-                    },
-                    new()
-                    {
-                        Id="r2",
-                        TypeCode=_typeCode,
-                        Name=_typeTitle,
-                        From=DateTime.Today.AddDays(-7),
-                        To=DateTime.Today,
-                        BuildDate=DateTime.Today,
-                        CreatedAt=now.AddDays(-1),
-                        Status="Готов",
-                        Comment="По запросу"
-                    }
-                };
+                        Id = x.Id,
+                        TypeCode = x.TypeCode.ToString(),
+                        Name = x.Name,
+                        From = x.From,
+                        To = x.To,
+                        BuildDate = x.BuildDate,
+
+                        // совместимость с колонками на UI:
+                        CreatedAt = x.BuildDate,
+                        Status = "Готов",
+                        Comment = null
+                    })
+                    .ToList();
 
                 ApplyFilter();
                 ReportsList.SelectedItem = null;
@@ -113,7 +115,7 @@ namespace _2Cclient.Views.Pages.Reports
             }
 
             _filtered = data
-                .OrderByDescending(x => x.CreatedAt)
+                .OrderByDescending(x => x.BuildDate)
                 .ThenByDescending(x => x.Id)
                 .ToList();
 
@@ -165,7 +167,9 @@ namespace _2Cclient.Views.Pages.Reports
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             if (ReportsList.SelectedItem is not ReportListItemVM r) return;
-           // NavigationService?.Navigate(new ReportViewerPage(r.Id, r.TypeCode, r.Name));
+
+            // ✅ открываем по Id — Viewer сам загрузит /ms/api/Report/id/{id}
+            NavigationService?.Navigate(new ReportViewerPage(r.Id));
         }
 
         private async void Delete_Click(object sender, RoutedEventArgs e)
@@ -178,13 +182,8 @@ namespace _2Cclient.Views.Pages.Reports
 
             try
             {
-                // TODO: api.DeleteAsync(r.Id);
-                await Task.Delay(50);
-
-                _all.RemoveAll(x => x.Id == r.Id);
-                ApplyFilter();
-                ReportsList.SelectedItem = null;
-                UpdateButtons();
+                var api = (ReportApi)App.Services.GetService(typeof(ReportApi))!;
+                await api.DeleteAsync(r.Id);
             }
             catch (Exception ex)
             {

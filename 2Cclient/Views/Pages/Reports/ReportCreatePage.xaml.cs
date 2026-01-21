@@ -119,7 +119,8 @@ namespace _2Cclient.Views.Pages.Reports
                 var report = await api.BuildAsync(bm);
 
                 // Переход на новый Viewer (который принимает ReportResultVM)
-                NavigationService?.Navigate(new ReportViewerPage(report, bm.Comment ?? ""));
+                NavigationService?.Navigate(new ReportViewerPage(report.Id));
+
             }
             catch (Exception ex)
             {

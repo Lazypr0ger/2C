@@ -1,158 +1,244 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using Contracts.DTO.Reports;
 using Contracts.Enums;
-using Contracts.ViewModels.Reports;
+using Microsoft.Extensions.DependencyInjection;
+using _2Cclient.Services.Api;
 
 namespace _2Cclient.Views.Pages.Reports
 {
     public partial class ReportViewerPage : Page
     {
-        private readonly ReportResultVM _report;
-        private readonly string _comment;
+        private readonly string _reportId;
 
-        public ReportViewerPage(ReportResultVM report, string comment)
+        private CancellationTokenSource? _cts;
+
+        // ✅ Основной конструктор: открытие уже сохранённого отчёта по Id
+        public ReportViewerPage(string reportId)
         {
             InitializeComponent();
-            _report = report ?? throw new ArgumentNullException(nameof(report));
-            _comment = comment ?? "";
+            _reportId = reportId;
 
-            Loaded += (_, __) =>
+            Loaded += async (_, __) =>
             {
-                TitleText.Text = _report.Name;
-                PeriodText.Text = $"за период с {_report.From:dd.MM.yyyy} по {_report.To:dd.MM.yyyy}";
-                ExtraLineText.Text =
-                    $"Дата формирования: {_report.BuildDate:dd.MM.yyyy}" +
-                    (string.IsNullOrWhiteSpace(_comment) ? "" : $" • {_comment}");
-                ExtraLineText.Visibility = Visibility.Visible;
-
-                Render(_report);
+                await LoadAndRenderAsync();
             };
         }
 
-        private void Render(ReportResultVM report)
+        // ✅ Совместимость с твоей страницей создания (7 аргументов)
+        // Можно оставить, чтобы ReportCreatePage не ломался.
+        public ReportViewerPage(string reportId, string typeCode, string name, DateTime from, DateTime to, DateTime buildDate, string comment)
+            : this(reportId)
         {
-            Total1Text.Text = "";
-            Total2Text.Text = "";
-            Total3Text.Text = "";
+            // если XAML содержит эти элементы — покажем сразу "шапку",
+            // а данные таблицы подтянем уже LoadAndRenderAsync()
+            Loaded += (_, __) =>
+            {
+                TitleText.Text = name;
+                PeriodText.Text = $"за период с {from:dd.MM.yyyy} по {to:dd.MM.yyyy}";
 
+                var extra = $"Дата формирования: {buildDate:dd.MM.yyyy}";
+                if (!string.IsNullOrWhiteSpace(comment))
+                    extra += $" • {comment.Trim()}";
+
+                ExtraLineText.Text = extra;
+                ExtraLineText.Visibility = Visibility.Visible;
+
+                // TableTitleText есть в новой XAML, в старой может не быть — проверяем
+                if (TryGetTableTitle(out var t))
+                    t.Text = "Таблица отчёта";
+            };
+        }
+
+        private async Task LoadAndRenderAsync()
+        {
+            _cts?.Cancel();
+            _cts = new CancellationTokenSource();
+
+            try
+            {
+                SetLoadingState(true);
+
+                var api = App.Services.GetRequiredService<ApiClient>();
+
+                // ✅ здесь отчёт приходит ровно в формате как ты показал
+                var report = await api.GetAsync<ReportResultDto>($"/ms/api/Report/id/{_reportId}", _cts.Token);
+
+                Render(report);
+            }
+            catch (OperationCanceledException)
+            {
+                // ignore
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки отчёта:\n{ex.Message}", "Отчёты", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                SetLoadingState(false);
+            }
+        }
+
+        private void Render(ReportResultDto report)
+        {
+            // Заголовок/период
+            TitleText.Text = report.Name;
+
+            PeriodText.Text = $"за период с {report.From:dd.MM.yyyy} по {report.To:dd.MM.yyyy}";
+
+            ExtraLineText.Text = $"Дата формирования: {report.BuildDate:dd.MM.yyyy HH:mm}";
+            ExtraLineText.Visibility = Visibility.Visible;
+
+            if (TryGetTableTitle(out var tableTitle))
+                tableTitle.Text = GetTableTitle(report.TypeCode);
+
+            // Таблица + итоги
             switch (report.TypeCode)
             {
                 case ReportTypeCodes.ActualCostDistribution:
-                    RenderReport1(report);
+                    RenderActualCostDistribution(report);
                     break;
 
                 case ReportTypeCodes.SalesStatement:
-                    RenderReport2(report);
+                    RenderSalesStatement(report);
                     break;
 
                 case ReportTypeCodes.RealisedDeviationStatement:
-                    RenderReport3(report);
+                    RenderRealisedDeviation(report);
                     break;
 
                 default:
-                    RenderReport1(report);
+                    TableHost.Content = MakeInfoBlock($"Неизвестный тип отчёта: {report.TypeCode}");
+                    SetTotals("", "", "");
                     break;
             }
         }
 
-        // 1) распределение фактических затрат
-        private void RenderReport1(ReportResultVM report)
+        // ---------------------------
+        // Report 1: ActualCostDistribution
+        // ---------------------------
+        private void RenderActualCostDistribution(ReportResultDto r)
         {
-            var rows = report.ActualCostDistributionRows ?? new();
-
-            var list = new ListView
-            {
-                Background = System.Windows.Media.Brushes.Transparent,
-                BorderThickness = new Thickness(0),
-                ItemContainerStyle = (Style)Resources["RowStyle"],
-                Margin = new Thickness(0, 6, 0, 0)
-            };
+            var list = CreateTable();
 
             var gv = new GridView();
-            gv.Columns.Add(MakeCol("Код продукции", 120, "ProductionCode"));
-            gv.Columns.Add(MakeCol("Название продукции", 220, "ProductionName"));
-            gv.Columns.Add(MakeColRight("Количество выпущенной продукции", 170, "Quantity", "{0:N0}"));
-            gv.Columns.Add(MakeColRight("Плановая себестоимость продукции", 200, "PlanCost", "{0:N2}"));
-            gv.Columns.Add(MakeColRight("Отклонение от плановой себестоимости", 220, "Deviation", "{0:N2}"));
-            gv.Columns.Add(MakeColRight("Фактическая себестоимость", 190, "ActualCost", "{0:N2}"));
+            ApplyHeaderStyle(gv);
 
-            list.View = gv;
-            list.ItemsSource = rows;
-            TableHost.Content = list;
-
-            if (report.TotalActualCosts.HasValue)
-            {
-                Total1Text.Text = $"Общая сумма фактических затрат: {report.TotalActualCosts.Value:N2}";
-            }
-            else
-            {
-                Total1Text.Text = $"Кол-во: {report.TotalQty:N0}";
-            }
-
-            Total2Text.Text = $"План: {report.Total1:N2} • Откл.: {report.Total2:N2}";
-            Total3Text.Text = $"Факт: {report.Total3:N2}";
-        }
-
-        // 2) ведомость продаж
-        private void RenderReport2(ReportResultVM report)
-        {
-            var rows = report.SalesStatementRows ?? new();
-
-            var list = new ListView
-            {
-                Background = System.Windows.Media.Brushes.Transparent,
-                BorderThickness = new Thickness(0),
-                ItemContainerStyle = (Style)Resources["RowStyle"],
-                Margin = new Thickness(0, 6, 0, 0)
-            };
-
-            var gv = new GridView();
             gv.Columns.Add(MakeCol("Код продукции", 140, "ProductionCode"));
             gv.Columns.Add(MakeCol("Название продукции", 260, "ProductionName"));
-            gv.Columns.Add(MakeColRight("Продано на сумму", 180, "SoldAmount", "{0:N2}"));
+            gv.Columns.Add(MakeColRight("Количество выпущенной продукции", 220, "Quantity", "{0:N0}"));
+            gv.Columns.Add(MakeColRight("Плановая себестоимость продукции", 240, "PlanCost", "{0:N2}"));
+            gv.Columns.Add(MakeColRight("Отклонение от плановой себестоимости", 260, "Deviation", "{0:N4}"));
+            gv.Columns.Add(MakeColRight("Фактическая себестоимость", 220, "ActualCost", "{0:N4}"));
+
+            list.View = gv;
+            list.ItemsSource = r.ActualCostDistributionRows ?? [];
+
+            TableHost.Content = list;
+
+            // Итоги: у тебя уже приходят Total1/Total2/Total3 и TotalQty, TotalActualCosts
+            var totalQty = r.TotalQty;
+            var totalPlan = r.Total1;
+            var totalDev = r.Total2;
+            var totalFact = r.Total3;
+
+            // totalActualCosts может быть равен totalFact — но показываем, как в ТЗ
+            var totalActualCosts = r.TotalActualCosts ?? totalFact;
+
+            SetTotals(
+                $"Кол-во: {FormatNumber(totalQty, "N0")}",
+                $"План: {FormatNumber(totalPlan, "N2")} • Откл.: {FormatNumber(totalDev, "N4")}",
+                $"Факт: {FormatNumber(totalFact, "N4")} • Общ. факт. затраты: {FormatNumber(totalActualCosts, "N2")}"
+            );
+        }
+
+        // ---------------------------
+        // Report 2: SalesStatement
+        // ---------------------------
+        private void RenderSalesStatement(ReportResultDto r)
+        {
+            var list = CreateTable();
+
+            var gv = new GridView();
+            ApplyHeaderStyle(gv);
+
+            gv.Columns.Add(MakeCol("Код продукции", 140, "ProductionCode"));
+            gv.Columns.Add(MakeCol("Название продукции", 280, "ProductionName"));
+            gv.Columns.Add(MakeColRight("Продано на сумму", 200, "SoldAmount", "{0:N2}"));
             gv.Columns.Add(MakeColRight("Себестоимость продаж", 220, "SalesCost", "{0:N2}"));
             gv.Columns.Add(MakeColRight("Прибыль/убыток", 200, "ProfitOrLoss", "{0:N2}"));
 
             list.View = gv;
-            list.ItemsSource = rows;
+            list.ItemsSource = r.SalesStatementRows ?? [];
+
             TableHost.Content = list;
 
-            Total1Text.Text = $"Продажи: {report.Total1:N2}";
-            Total2Text.Text = $"Себест.: {report.Total2:N2}";
-            Total3Text.Text = $"П/У: {report.Total3:N2}";
+            SetTotals(
+                $"Продано: {FormatNumber(r.Total1, "N2")}",
+                $"Себест.: {FormatNumber(r.Total2, "N2")}",
+                $"П/У: {FormatNumber(r.Total3, "N2")}"
+            );
         }
 
-        // 3) отклонения по реализованной продукции
-        private void RenderReport3(ReportResultVM report)
+        // ---------------------------
+        // Report 3: RealisedDeviationStatement
+        // ---------------------------
+        private void RenderRealisedDeviation(ReportResultDto r)
         {
-            var rows = report.RealisedDeviationRows ?? new();
-
-            var list = new ListView
-            {
-                Background = System.Windows.Media.Brushes.Transparent,
-                BorderThickness = new Thickness(0),
-                ItemContainerStyle = (Style)Resources["RowStyle"],
-                Margin = new Thickness(0, 6, 0, 0)
-            };
+            var list = CreateTable();
 
             var gv = new GridView();
+            ApplyHeaderStyle(gv);
+
             gv.Columns.Add(MakeCol("Код продукции", 140, "ProductionCode"));
-            gv.Columns.Add(MakeCol("Название продукции", 260, "ProductionName"));
-            gv.Columns.Add(MakeColRight("Количество реализованной продукции", 220, "Quantity", "{0:N0}"));
-            gv.Columns.Add(MakeColRight("Плановая себестоимость продажи", 240, "PlanSalesCost", "{0:N2}"));
-            gv.Columns.Add(MakeColRight("Отклонение от плановой себестоимости", 240, "Deviation", "{0:N2}"));
-            gv.Columns.Add(MakeColRight("Фактическая себестоимость", 220, "ActualSalesCost", "{0:N2}"));
+            gv.Columns.Add(MakeCol("Название продукции", 280, "ProductionName"));
+            gv.Columns.Add(MakeColRight("Количество реализованной продукции", 240, "Quantity", "{0:N0}"));
+            gv.Columns.Add(MakeColRight("Плановая себестоимость продажи", 260, "PlanSalesCost", "{0:N2}"));
+            gv.Columns.Add(MakeColRight("Отклонение от плановой себестоимости", 260, "Deviation", "{0:N4}"));
+            gv.Columns.Add(MakeColRight("Фактическая себестоимость", 240, "ActualSalesCost", "{0:N4}"));
 
             list.View = gv;
-            list.ItemsSource = rows;
+            list.ItemsSource = r.RealisedDeviationRows ?? [];
+
             TableHost.Content = list;
 
-            Total1Text.Text = $"План: {report.Total1:N2}";
-            Total2Text.Text = $"Откл.: {report.Total2:N2}";
-            Total3Text.Text = $"Факт: {report.Total3:N2}";
+            SetTotals(
+                $"Кол-во: {FormatNumber(r.TotalQty, "N0")}",
+                $"План: {FormatNumber(r.Total1, "N2")} • Откл.: {FormatNumber(r.Total2, "N4")}",
+                $"Факт: {FormatNumber(r.Total3, "N4")}"
+            );
+        }
+
+        // ---------------------------
+        // UI helpers
+        // ---------------------------
+
+        private ListView CreateTable()
+        {
+            var list = new ListView
+            {
+                BorderThickness = new Thickness(0),
+                Margin = new Thickness(0)
+            };
+
+            if (Application.Current.Resources["ReportTableListStyle"] is Style tableStyle)
+                list.Style = tableStyle;
+
+            return list;
+        }
+
+
+        private void ApplyHeaderStyle(GridView gv)
+        {
+            // ✅ стиль заголовка колонок из Theme
+            if (Application.Current.Resources["ReportGridHeaderStyle"] is Style headerStyle)
+                gv.ColumnHeaderContainerStyle = headerStyle;
         }
 
         private static GridViewColumn MakeCol(string header, double width, string path)
@@ -178,17 +264,22 @@ namespace _2Cclient.Views.Pages.Reports
         private static DataTemplate MakeTemplate(string path, string? stringFormat, bool horizontalRight)
         {
             var f = new FrameworkElementFactory(typeof(TextBlock));
-            f.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
-            f.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
-            f.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
 
-            if (horizontalRight)
+            // ✅ стиль текста ячейки из Theme
+            if (Application.Current.Resources["ReportCellTextStyle"] is Style cellStyle)
+                f.SetValue(FrameworkElement.StyleProperty, cellStyle);
+            else
             {
-                f.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Right);
-                f.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+                // fallback (если стиль забыли добавить)
+                f.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
+                f.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+                f.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
             }
 
-            var b = new System.Windows.Data.Binding(path);
+            if (horizontalRight)
+                f.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Right);
+
+            var b = new Binding(path);
             if (!string.IsNullOrWhiteSpace(stringFormat))
                 b.StringFormat = stringFormat;
 
@@ -197,11 +288,69 @@ namespace _2Cclient.Views.Pages.Reports
             return new DataTemplate { VisualTree = f };
         }
 
-        private void Reload_Click(object sender, RoutedEventArgs e)
+        private void SetTotals(string t1, string t2, string t3)
         {
-            // Сейчас отчёт уже сформирован и отдан сервером.
-            // Если хочешь реальную перезагрузку с API — добавим GetById и storage отчётов.
-            Render(_report);
+            Total1Text.Text = t1 ?? "";
+            Total2Text.Text = t2 ?? "";
+            Total3Text.Text = t3 ?? "";
+        }
+
+        private void SetLoadingState(bool loading)
+        {
+            // Можно сюда добавить индикатор, если есть.
+            // Пока просто блокируем кнопку обновить, если она существует.
+        }
+
+        private UIElement MakeInfoBlock(string text)
+        {
+            return new Border
+            {
+                Padding = new Thickness(12),
+                Child = new TextBlock
+                {
+                    Text = text,
+                    TextWrapping = TextWrapping.Wrap
+                }
+            };
+        }
+
+        private static string GetTableTitle(ReportTypeCodes type)
+        {
+            return type switch
+            {
+                ReportTypeCodes.ActualCostDistribution => "Ведомость распределения фактических затрат",
+                ReportTypeCodes.SalesStatement => "Ведомость продаж продукции",
+                ReportTypeCodes.RealisedDeviationStatement => "Ведомость отклонений фактической себестоимости (реализация)",
+                _ => "Таблица отчёта"
+            };
+        }
+
+        private static string FormatNumber(decimal value, string format)
+            => value.ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
+
+        private static string FormatNumber(decimal? value, string format)
+            => (value ?? 0m).ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
+
+        private static string FormatNumber(int value, string format)
+            => value.ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
+
+        private bool TryGetTableTitle(out TextBlock tb)
+        {
+            tb = null!;
+            try
+            {
+                tb = (TextBlock)FindName("TableTitleText");
+                return tb != null;
+            }
+            catch { return false; }
+        }
+
+        // ---------------------------
+        // Buttons
+        // ---------------------------ф
+        private async void Reload_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadAndRenderAsync();
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

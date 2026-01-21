@@ -3,11 +3,10 @@ using Contracts.Enums;
 
 namespace Contracts.Interfaces.Business;
 
-public interface IReportBusinessLogic
+public interface IReportStore
 {
-    // Строит отчёт и возвращает готовые строки + итоги
-    ReportResultDto Build(ReportBuildRequestDto request);
-
+    void Save(ReportResultDto report);
+    ReportResultDto GetById(string id);
     List<ReportListItemDto> GetList(ReportTypeCodes? typeCode = null);
 
     void Delete(string id);

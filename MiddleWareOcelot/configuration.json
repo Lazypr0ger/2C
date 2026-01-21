@@ -643,7 +643,60 @@
                 }
             ],
             "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Report/build-and-save",
+            "UpstreamHttpMethod": [ "POST" ],
+            "DownstreamPathTemplate": "/api/Report/build-and-save",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Report/list",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/Report/list",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Report/id/{id}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "DownstreamPathTemplate": "/api/Report/id/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
+        },
+        {
+            "UpstreamPathTemplate": "/ms/api/Report/{id}",
+            "UpstreamHttpMethod": [ "DELETE" ],
+            "DownstreamPathTemplate": "/api/Report/{id}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5218
+                }
+            ],
+            "SwaggerKey": "middleserver"
         }
+
 
 
 

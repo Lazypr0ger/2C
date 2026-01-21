@@ -16,6 +16,7 @@ using Contracts.Interfaces.Storages.HistoryStorageContracts;
 using DataBase.Implementation.HistoryImp;
 using MainServer.Adapters.HistoryAdapters;
 using BusinessLogic.HistoryBusinessImp;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -89,21 +90,23 @@ builder.Services.AddScoped<IProductionHistoryAdapterContract, ProductionHistoryA
 
 builder.Services.AddScoped<IReportAdapterContract, ReportAdapter>();
 builder.Services.AddScoped<IReportBusinessLogic, ReportBusinessLogic>();
+builder.Services.AddSingleton<IReportStore, ReportStoreFile>();
 
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 var app = builder.Build();
 
-// adapters
 
 
-// business
 
-
-// storage
 
 
 

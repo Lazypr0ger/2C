@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace BusinessLogic;
 
 public class ReportBusinessLogic(
-    IOperationStorageContract operationStorage,
+    IOperationStorageContract operationStorage, IReportStore store,
     ILogger<ReportBusinessLogic> logger) : IReportBusinessLogic
 {
     public ReportResultDto Build(ReportBuildRequestDto request)
@@ -24,15 +24,24 @@ public class ReportBusinessLogic(
 
         if (request.From > request.To) throw new ValidationException("From must be <= To");
 
-        return request.TypeCode switch
+        var result = request.TypeCode switch
         {
             ReportTypeCodes.ActualCostDistribution => BuildActualCostDistribution(request),
             ReportTypeCodes.SalesStatement => BuildSalesStatement(request),
             ReportTypeCodes.RealisedDeviationStatement => BuildRealisedDeviationStatement(request),
             _ => throw new ValidationException($"Unknown report type: {request.TypeCode}")
         };
-    }
 
+        store.Save(result);
+
+        return result;
+    }
+    public void Delete(string id)
+    {
+        store.Delete(id);
+    }
+    public List<ReportListItemDto> GetList(ReportTypeCodes? typeCode = null)
+        => store.GetList(typeCode);
     private static DateTime NormalizeUtc(DateTime dt) => dt.Kind switch
     {
         DateTimeKind.Utc => dt,

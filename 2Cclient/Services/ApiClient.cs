@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace _2Cclient.Services.Api
 {
@@ -69,7 +71,11 @@ namespace _2Cclient.Services.Api
             var body = await resp.Content.ReadAsStringAsync(ct);
             throw new HttpRequestException($"{method} {path} -> {(int)resp.StatusCode} {resp.ReasonPhrase}\n{body}");
         }
-
+        private static readonly JsonSerializerOptions _json = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new JsonStringEnumConverter() }
+        };
         public async Task<TResponse> PostAsync<TResponse, TPayload>(string path, TPayload payload, CancellationToken ct = default)
         {
             using var resp = await _http.PostAsync(path, ToJson(payload), ct);
