@@ -12,19 +12,19 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
-                       Text="Подразделение"
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
             <TextBlock x:Name="SubtitleText"
-                       Text="Заполните поля"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
 
-        <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="16">
+        <!-- Form -->
+        <Border Grid.Row="2" Background="{StaticResource Panel2}" CornerRadius="14" Padding="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -35,31 +35,30 @@
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="Название" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="NameBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="100"
+                             PreviewTextInput="NameBox_PreviewTextInput"
+                             TextChanged="NameBox_TextChanged"/>
                 </StackPanel>
 
                 <CheckBox Grid.Row="2"
                           x:Name="IsDeletedCheck"
-                          Content="Пометить как удалённое (неактивное)"
+                          Content="Пометить как удалённую (неактивную)"
                           Foreground="{StaticResource Text2}"
                           Margin="2,8,0,0"/>
             </Grid>
         </Border>
 
-        <DockPanel Grid.Row="4" LastChildFill="False">
+        <!-- Actions -->
+        <DockPanel Grid.Row="4" LastChildFill="False" HorizontalAlignment="Right">
             <Button Content="Отмена"
                     Style="{StaticResource ToolbarButtonBase}"
                     Width="140"
                     Margin="0,0,10,0"
                     Click="Cancel_Click"/>
 
-            <Button Content="Сохранить"
+            <Button x:Name="SaveBtn"
+                    Content="Сохранить"
                     Style="{StaticResource ToolbarButtonPrimary}"
                     Width="160"
                     Click="Save_Click"/>

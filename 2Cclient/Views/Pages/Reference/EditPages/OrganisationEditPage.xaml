@@ -15,18 +15,16 @@
         <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
-                       Text="Организация"
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
             <TextBlock x:Name="SubtitleText"
-                       Text="Заполните поля"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
 
         <!-- Form -->
-        <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="16">
+        <Border Grid.Row="2" Background="{StaticResource Panel2}" CornerRadius="14" Padding="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -39,25 +37,20 @@
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="Название" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="NameBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="200"
+                             PreviewTextInput="NameBox_PreviewTextInput"
+                             TextChanged="NameBox_TextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2">
                     <TextBlock Text="Счёт организации" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="AccountBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="25"
+                             PreviewTextInput="AccountBox_PreviewTextInput"
+                             TextChanged="AccountBox_TextChanged"
+                             ToolTip="Только цифры (например 40702810...)"/>
                 </StackPanel>
 
                 <CheckBox Grid.Row="4"
@@ -69,14 +62,15 @@
         </Border>
 
         <!-- Actions -->
-        <DockPanel Grid.Row="4" LastChildFill="False">
+        <DockPanel Grid.Row="4" LastChildFill="False" HorizontalAlignment="Right">
             <Button Content="Отмена"
                     Style="{StaticResource ToolbarButtonBase}"
                     Width="140"
                     Margin="0,0,10,0"
                     Click="Cancel_Click"/>
 
-            <Button Content="Сохранить"
+            <Button x:Name="SaveBtn"
+                    Content="Сохранить"
                     Style="{StaticResource ToolbarButtonPrimary}"
                     Width="160"
                     Click="Save_Click"/>

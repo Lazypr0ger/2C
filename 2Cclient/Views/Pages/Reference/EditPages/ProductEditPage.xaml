@@ -14,86 +14,74 @@
 
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
-                       Text="Продукт"
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
             <TextBlock x:Name="SubtitleText"
-                       Text="Заполните поля"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
 
-        <Border Grid.Row="2" Background="#10151C" CornerRadius="14" Padding="16">
+        <Border Grid.Row="2" Background="{StaticResource Panel2}" CornerRadius="14" Padding="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- Code -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
-                    <!-- Name -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
-                    <!-- Type -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
-                    <!-- Departament -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
-                    <!-- Cost -->
                     <RowDefinition Height="12"/>
                     <RowDefinition Height="Auto"/>
-                    <!-- IsDeleted -->
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="Код" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="CodeBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="50"
+                             PreviewTextInput="CodeBox_PreviewTextInput"
+                             TextChanged="CodeBox_TextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2">
                     <TextBlock Text="Название" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="NameBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="200"
+                             PreviewTextInput="NameBox_PreviewTextInput"
+                             TextChanged="NameBox_TextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="4">
                     <TextBlock Text="Тип продукта" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="TypeBox"
-                              Style="{StaticResource DarkComboBoxStyle}"/>
+                              Style="{StaticResource DarkComboBoxValidatedStyle}"
+                              SelectionChanged="TypeBox_SelectionChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="6">
                     <TextBlock Text="Подразделение" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <ComboBox x:Name="DepartamentBox"
-                              Style="{StaticResource DarkComboBoxStyle}"
+                              Style="{StaticResource DarkComboBoxValidatedStyle}"
                               DisplayMemberPath="Name"
-                              SelectedValuePath="Id"/>
+                              SelectedValuePath="Id"
+                              SelectionChanged="DepartamentBox_SelectionChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="8">
                     <TextBlock Text="Плановая стоимость" Foreground="{StaticResource Text2}" Margin="0,0,0,6"/>
                     <TextBox x:Name="CostBox"
-                             Height="38"
-                             VerticalContentAlignment="Center"
-                             Background="#0F141B"
-                             Foreground="{StaticResource Text}"
-                             BorderBrush="#243142"
-                             BorderThickness="1"
-                             Padding="12,0"/>
+                             Style="{StaticResource FormTextBoxValidatedStyle}"
+                             MaxLength="30"
+                             PreviewTextInput="CostBox_PreviewTextInput"
+                             PreviewKeyDown="CostBox_PreviewKeyDown"
+                             TextChanged="CostBox_TextChanged"
+                             LostFocus="CostBox_LostFocus"
+                             ToolTip="Число > 0, разделитель '.' или ','"/>
                 </StackPanel>
 
                 <CheckBox Grid.Row="10"
@@ -104,14 +92,15 @@
             </Grid>
         </Border>
 
-        <DockPanel Grid.Row="4" LastChildFill="False">
+        <DockPanel Grid.Row="4" LastChildFill="False" HorizontalAlignment="Right">
             <Button Content="Отмена"
                     Style="{StaticResource ToolbarButtonBase}"
                     Width="140"
                     Margin="0,0,10,0"
                     Click="Cancel_Click"/>
 
-            <Button Content="Сохранить"
+            <Button x:Name="SaveBtn"
+                    Content="Сохранить"
                     Style="{StaticResource ToolbarButtonPrimary}"
                     Width="160"
                     Click="Save_Click"/>

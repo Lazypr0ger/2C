@@ -5,14 +5,13 @@
 
     <Page.Resources>
 
-        <!-- Единый стиль Label -->
         <Style x:Key="FormLabel" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource Text2}"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
-        <!-- Dark DatePicker без ломания команд -->
-        <Style x:Key="DarkDatePicker" TargetType="DatePicker">
+        <!-- ✅ Самодостаточный Dark DatePicker + Validation -->
+        <Style x:Key="DarkDatePickerValidated" TargetType="DatePicker">
             <Setter Property="Height" Value="38"/>
             <Setter Property="Foreground" Value="{StaticResource Text}"/>
             <Setter Property="Background" Value="#0F141B"/>
@@ -20,15 +19,40 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,0,12,0"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+            <!-- Tooltip = текст ошибки -->
+            <Setter Property="ToolTipService.ShowDuration" Value="60000"/>
+            <Setter Property="ToolTip">
+                <Setter.Value>
+                    <ToolTip Content="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"
+                         Background="#1B2430"
+                         Foreground="{StaticResource Text}"
+                         BorderBrush="{StaticResource Danger}"
+                         BorderThickness="1"
+                         Padding="10,6"
+                         Placement="Bottom"
+                         HasDropShadow="True"/>
+                </Setter.Value>
+            </Setter>
+
+            <!-- Убираем стандартный красный адорнер -->
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <AdornedElementPlaceholder/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="DatePicker">
                         <Grid>
                             <Border x:Name="Bd"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="10">
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -36,40 +60,40 @@
                                     </Grid.ColumnDefinitions>
 
                                     <DatePickerTextBox x:Name="PART_TextBox"
-                                                       Grid.Column="0"
-                                                       Background="Transparent"
-                                                       Foreground="{TemplateBinding Foreground}"
-                                                       BorderThickness="0"
-                                                       Padding="{TemplateBinding Padding}"
-                                                       VerticalContentAlignment="Center"/>
+                                                   Grid.Column="0"
+                                                   Background="Transparent"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   BorderThickness="0"
+                                                   Padding="{TemplateBinding Padding}"
+                                                   VerticalContentAlignment="Center"/>
 
                                     <Button x:Name="PART_Button"
-                                            Grid.Column="1"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            Focusable="False">
+                                        Grid.Column="1"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Focusable="False">
                                         <Path Data="M 0 0 L 6 6 L 12 0 Z"
-                                              Fill="{StaticResource Text2}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                                          Fill="{StaticResource Text2}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
                                     </Button>
                                 </Grid>
                             </Border>
 
                             <Popup x:Name="PART_Popup"
-                                   Placement="Bottom"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                   PopupAnimation="Fade">
+                               Placement="Bottom"
+                               AllowsTransparency="True"
+                               Focusable="False"
+                               IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                               PopupAnimation="Fade">
                                 <Border Background="#0F141B"
-                                        BorderBrush="#243142"
-                                        BorderThickness="1"
-                                        CornerRadius="10"
-                                        Padding="6">
+                                    BorderBrush="#243142"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="6">
                                     <Calendar x:Name="PART_Calendar"
-                                              Foreground="{StaticResource Text}"
-                                              Background="#0F141B"/>
+                                          Foreground="{StaticResource Text}"
+                                          Background="#0F141B"/>
                                 </Border>
                             </Popup>
                         </Grid>
@@ -83,6 +107,15 @@
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+
+                            <!-- ✅ красная рамка при ошибке -->
+                            <Trigger Property="Validation.HasError" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Danger}"/>
+                                <Setter Property="ToolTipService.IsEnabled" Value="True"/>
+                            </Trigger>
+                            <Trigger Property="Validation.HasError" Value="False">
+                                <Setter Property="ToolTipService.IsEnabled" Value="False"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -103,12 +136,10 @@
         <!-- Header -->
         <StackPanel Grid.Row="0">
             <TextBlock x:Name="TitleText"
-                       Text="Создание отчёта"
                        Foreground="{StaticResource Text}"
                        FontSize="18"
                        FontWeight="SemiBold"/>
             <TextBlock x:Name="SubtitleText"
-                       Text="Введите параметры и сформируйте отчёт"
                        Foreground="{StaticResource Text2}"
                        Margin="0,6,0,0"/>
         </StackPanel>
@@ -136,19 +167,20 @@
                     <StackPanel Grid.Column="0" Margin="0,0,12,0">
                         <TextBlock Text="Название отчёта" Style="{StaticResource FormLabel}"/>
                         <TextBox x:Name="NameBox"
-                                 Style="{StaticResource FormTextBoxStyle}"/>
+                                 Style="{StaticResource FormTextBoxValidatedStyle}"
+                                 MaxLength="200"/>
 
                         <TextBlock Text="Дата от" Style="{StaticResource FormLabel}" Margin="0,14,0,6"/>
-                        <DatePicker x:Name="FromDate" Style="{StaticResource DarkDatePicker}"/>
+                        <DatePicker x:Name="FromDate" Style="{StaticResource DarkDatePickerValidated}"/>
 
                         <TextBlock Text="Дата по" Style="{StaticResource FormLabel}" Margin="0,14,0,6"/>
-                        <DatePicker x:Name="ToDate" Style="{StaticResource DarkDatePicker}"/>
+                        <DatePicker x:Name="ToDate" Style="{StaticResource DarkDatePickerValidated}"/>
                     </StackPanel>
 
                     <!-- Right -->
                     <StackPanel Grid.Column="1" Margin="12,0,0,0">
                         <TextBlock Text="Дата формирования" Style="{StaticResource FormLabel}"/>
-                        <DatePicker x:Name="BuildDate" Style="{StaticResource DarkDatePicker}"/>
+                        <DatePicker x:Name="BuildDate" Style="{StaticResource DarkDatePickerValidated}"/>
 
                         <TextBlock Text="Комментарий (опционально)" Style="{StaticResource FormLabel}" Margin="0,14,0,6"/>
                         <TextBox x:Name="CommentBox"
@@ -156,7 +188,8 @@
                                  Height="120"
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
-                                 VerticalContentAlignment="Top"/>
+                                 VerticalContentAlignment="Top"
+                                 MaxLength="400"/>
                     </StackPanel>
                 </Grid>
 

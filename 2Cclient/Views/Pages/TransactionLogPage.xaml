@@ -16,6 +16,15 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
+        <!-- Centered header content (IMPORTANT: BasedOn общий стиль, чтобы не было белого фона) -->
+        <Style x:Key="HeaderCenter" TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#0F141B"/>
+            <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+            <Setter Property="BorderBrush" Value="#243142"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        </Style>
+
         <!-- Row style that DOES NOT break GridView -->
         <Style x:Key="TxRowStyle" TargetType="ListViewItem">
             <Setter Property="Margin" Value="0,2,0,2"/>
@@ -31,7 +40,6 @@
                                 CornerRadius="10"
                                 Padding="8"
                                 SnapsToDevicePixels="True">
-                            <!-- IMPORTANT: GridViewRowPresenter, иначе будет ToString() -->
                             <GridViewRowPresenter
                                 Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"
                                 Content="{TemplateBinding Content}"
@@ -74,8 +82,9 @@
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
 
-        <Style x:Key="CellTextRight" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
-            <Setter Property="TextAlignment" Value="Right"/>
+        <Style x:Key="CellTextCenter" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
         <Style x:Key="CellTextMuted" TargetType="TextBlock" BasedOn="{StaticResource CellText}">
@@ -117,67 +126,96 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Toolbar -->
+                <!-- Toolbar (2 rows) -->
                 <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                    <StackPanel Orientation="Horizontal" Grid.Column="0">
-                        <TextBlock Text="Период:"
-                                   Foreground="{StaticResource Text2}"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"/>
+                    <!-- Row 1: period + search + apply/reset (растягиваем кнопки) -->
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <!-- Период -->
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="*"/>
+                            <!-- Поиск (растягиваемый) -->
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="200"/>
+                            <!-- Применить -->
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="200"/>
+                            <!-- Сброс -->
+                        </Grid.ColumnDefinitions>
 
-                        <DatePicker x:Name="FromDate"
-                                    Width="140"
-                                    Margin="0,0,8,0"/>
+                        <!-- Period -->
+                        <StackPanel Orientation="Horizontal" Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Период:"
+                                       Foreground="{StaticResource Text2}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0"/>
 
-                        <TextBlock Text="—"
-                                   Foreground="{StaticResource Text2}"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"/>
+                            <DatePicker x:Name="FromDate" Width="150" Margin="0,0,8,0"/>
+                            <TextBlock Text="—" Foreground="{StaticResource Text2}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <DatePicker x:Name="ToDate" Width="150" Margin="0,0,12,0"/>
+                        </StackPanel>
 
-                        <DatePicker x:Name="ToDate"
-                                    Width="140"
-                                    Margin="0,0,12,0"/>
+                        <!-- Период (оставь как у тебя) -->
 
                         <TextBox x:Name="SearchBox"
-                                 Width="320"
+                                 Grid.Column="2"
+                                 Style="{StaticResource SearchBoxStyle}"
                                  Height="34"
                                  VerticalContentAlignment="Center"
-                                 Background="#0F141B"
-                                 Foreground="{StaticResource Text}"
-                                 BorderBrush="#243142"
-                                 BorderThickness="1"
-                                 Padding="12,0"
+                                 HorizontalAlignment="Stretch"
+                                 MinWidth="260"
+                                 MaxWidth="520"
+                                 Margin="0"
                                  TextChanged="SearchBox_TextChanged"
-                                 ToolTip="Поиск по комментарию/счетам/аналитике"
-                                 Margin="0,0,10,0"/>
+                                 ToolTip="Поиск по комментарию/счетам/аналитике/ID операции"/>
 
-                        <Button Content="Обновить"
+                        <Button x:Name="ApplyBtn"
+                                Grid.Column="4"
+                                Content="Применить"
                                 Style="{StaticResource ToolbarButtonBase}"
-                                Click="Reload_Click"
-                                Margin="0,0,10,0"/>
+                                Height="36"
+                                HorizontalAlignment="Stretch"
+                                Click="Apply_Click"/>
 
-                        <Button Content="Сброс"
+                        <Button Grid.Column="6"
+                                Content="Сброс"
                                 Style="{StaticResource ToolbarButtonBase}"
+                                Height="36"
+                                HorizontalAlignment="Stretch"
                                 Click="Reset_Click"/>
-                    </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Grid.Column="1">
-                        <Button Content="Ручная проводка"
+                    </Grid>
+
+                    <!-- Row 2: actions (без Обновить) -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Content="Ручная проводка"
                                 Style="{StaticResource ToolbarButtonPrimary}"
-                                Click="ManualPosting_Click"
-                                Margin="0,0,8,0"/>
+                                MinWidth="180"
+                                Click="ManualPosting_Click"/>
 
-                        <Button x:Name="OpenOpBtn"
+                        <Button Grid.Column="2"
+                                x:Name="OpenOpBtn"
                                 Content="Открыть документ"
                                 Style="{StaticResource ToolbarButtonBase}"
+                                MinWidth="180"
                                 Click="OpenOperation_Click"
                                 IsEnabled="False"/>
-                    </StackPanel>
+                    </Grid>
                 </Grid>
 
                 <!-- Table -->
@@ -202,7 +240,7 @@
                                             <TextBlock x:Name="DateHeaderArrow"
                                                        Text=" ▼"
                                                        Foreground="{StaticResource Text2}"
-                                                       FontWeight="SemiBold"/>  
+                                                       FontWeight="SemiBold"/>
                                         </StackPanel>
                                     </GridViewColumnHeader>
                                 </GridViewColumn.Header>
@@ -215,12 +253,14 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-
-                            <!-- Дт/Кт только номер -->
-                            <GridViewColumn Header="Дт" Width="50">
+                            <!-- Дт/Кт -->
+                            <GridViewColumn Width="50">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Дт" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellText}"
+                                        <TextBlock Style="{StaticResource CellTextCenter}"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding ChartDebNum}"/>
                                     </DataTemplate>
@@ -236,10 +276,13 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Кт" Width="50">
+                            <GridViewColumn Width="50">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Кт" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellText}"
+                                        <TextBlock Style="{StaticResource CellTextCenter}"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding ChartCredNum}"/>
                                     </DataTemplate>
@@ -255,41 +298,52 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <!-- Вариант 1 по суммам -->
-                            <GridViewColumn Header="Сумма Дт" Width="120">
+                            <!-- Суммы/кол-во по центру -->
+                            <GridViewColumn Width="120">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Сумма Дт" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellTextRight}"
+                                        <TextBlock Style="{StaticResource CellTextCenter}"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding Amount, StringFormat={}{0:N2}}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Сумма Кт" Width="120">
+                            <GridViewColumn Width="120">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Сумма Кт" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellTextRight}"
-                                                   Foreground="{StaticResource Text2}"
-                                                   Text=""/>
+                                        <!-- НЕ отображаем Amount в Кт -->
+                                        <TextBlock Style="{StaticResource CellTextCenter}" Text=""/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Общая" Width="120">
+                            <GridViewColumn Width="120">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Общая" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellTextRight}"
+                                        <TextBlock Style="{StaticResource CellTextCenter}"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding Amount, StringFormat={}{0:N2}}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Кол-во" Width="70">
+                            <GridViewColumn Width="70">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Content="Кол-во" Style="{StaticResource HeaderCenter}"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Style="{StaticResource CellTextRight}"
+                                        <TextBlock Style="{StaticResource CellTextCenter}"
                                                    Text="{Binding Count}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>

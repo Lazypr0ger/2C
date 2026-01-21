@@ -1,5 +1,4 @@
-﻿// TransactionLogPage.xaml.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +6,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using _2Cclient.Services.Api;
+using _2Cclient.Views.Pages.Operations.OperationsPages;
 using Contracts.ViewModels;
+using Contracts.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace _2Cclient.Views.Pages
@@ -39,7 +40,7 @@ namespace _2Cclient.Views.Pages
             ToDate.SelectedDate = new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
         }
 
-        // DatePicker дает Kind=Unspecified → конвертим в UTC перед запросом
+        // DatePicker -> Unspecified => Local => UTC
         private static DateTime? ToUtcStart(DateTime? d)
         {
             if (!d.HasValue) return null;
@@ -73,6 +74,10 @@ namespace _2Cclient.Views.Pages
                 MessageBox.Show($"Ошибка загрузки журнала проводок:\n{ex.Message}");
             }
         }
+
+        private async void Apply_Click(object sender, RoutedEventArgs e)
+            => await LoadFromServerAsync();
+
         private void DateHeader_Click(object sender, RoutedEventArgs e)
         {
             _sortDateDesc = !_sortDateDesc;
@@ -97,7 +102,6 @@ namespace _2Cclient.Views.Pages
                 );
             }
 
-            // сортировка по дате (стабильно + вторичный ключ, чтобы не "прыгало")
             data = _sortDateDesc
                 ? data.OrderByDescending(x => x.DateOperation).ThenByDescending(x => x.Id)
                 : data.OrderBy(x => x.DateOperation).ThenBy(x => x.Id);
@@ -107,22 +111,19 @@ namespace _2Cclient.Views.Pages
 
             UpdateDateHeaderUi();
         }
+
         private void UpdateDateHeaderUi()
         {
             if (LogsList?.View is not GridView gv) return;
 
-            // Первая колонка у тебя "Дата" - если не первая, поменяй индекс
+            // первая колонка - Дата
             var col = gv.Columns.FirstOrDefault();
             if (col?.Header is GridViewColumnHeader header)
             {
-                // header.Content у нас StackPanel -> [TextBlock "Дата", TextBlock arrow]
                 if (header.Content is StackPanel sp && sp.Children.Count >= 2 && sp.Children[1] is TextBlock arrow)
-                {
                     arrow.Text = _sortDateDesc ? " ▼" : " ▲";
-                }
             }
         }
-
 
         private void UpdateButtons()
         {
@@ -155,9 +156,6 @@ namespace _2Cclient.Views.Pages
             return null;
         }
 
-        private async void Reload_Click(object sender, RoutedEventArgs e)
-            => await LoadFromServerAsync();
-
         private async void Reset_Click(object sender, RoutedEventArgs e)
         {
             SearchBox.Text = string.Empty;
@@ -170,9 +168,9 @@ namespace _2Cclient.Views.Pages
 
         private void ManualPosting_Click(object sender, RoutedEventArgs e)
         {
-          //  NavigationService?.Navigate(new ManualPostingPage());
+            // Create manual posting
+            NavigationService?.Navigate(new ManualPostingPage());
         }
-
 
         private async void OpenOperation_Click(object sender, RoutedEventArgs e)
         {
@@ -186,28 +184,27 @@ namespace _2Cclient.Views.Pages
                 var opApi = App.Services.GetRequiredService<OperationApi>();
                 var op = await opApi.GetByIdAsync(s.OperationId);
 
-                // Роутер по типу
                 switch (op.Type)
                 {
-                    //case Contracts.Enums.OperationType.ActualCosts:
-                    //    NavigationService?.Navigate(new ManualPostingPage(op));
-                    //    break;
+                    case OperationType.ActualCosts:
+                        NavigationService?.Navigate(new ManualPostingPage(op));
+                        break;
 
-                    //case Contracts.Enums.OperationType.ReceiptFromProduction:
-                    //    NavigationService?.Navigate(new IncomeOperationEditPage(op));
-                    //    break;
+                    case OperationType.ReceiptFromProduction:
+                        NavigationService?.Navigate(new IncomeOperationEditPage(op));
+                        break;
 
-                    //case Contracts.Enums.OperationType.Sale:
-                    //    NavigationService?.Navigate(new SaleOperationEditPage(op));
-                    //    break;
+                    case OperationType.Sale:
+                        NavigationService?.Navigate(new SaleOperationEditPage(op));
+                        break;
 
-                    //case Contracts.Enums.OperationType.AllocateActualCost:
-                    //    NavigationService?.Navigate(new CostDistributionOperationEditPage(op));
-                    //    break;
+                    case OperationType.AllocateActualCost:
+                        NavigationService?.Navigate(new CostDistributionOperationEditPage(op));
+                        break;
 
-                    //case Contracts.Enums.OperationType.WriteOffDeviations:
-                    //    NavigationService?.Navigate(new WriteOffDeviationOperationEditPage(op));
-                    //    break;
+                    case OperationType.WriteOffDeviations:
+                        NavigationService?.Navigate(new WriteOffDeviationOperationEditPage(op));
+                        break;
 
                     default:
                         MessageBox.Show($"Неизвестный тип операции: {op.Type}");
@@ -223,7 +220,6 @@ namespace _2Cclient.Views.Pages
                 OpenOpBtn.IsEnabled = true;
             }
         }
-
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {

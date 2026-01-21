@@ -46,14 +46,22 @@
             </Setter>
         </Style>
 
-        <Style x:Key="CellWrap" TargetType="TextBlock">
+        <Style x:Key="Cell" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource Text}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
 
-        <Style x:Key="TotalText" TargetType="TextBlock" BasedOn="{StaticResource CellWrap}">
+        <Style x:Key="CellMuted" TargetType="TextBlock" BasedOn="{StaticResource Cell}">
+            <Setter Property="Foreground" Value="{StaticResource Text2}"/>
+        </Style>
+
+        <Style x:Key="CellRight" TargetType="TextBlock" BasedOn="{StaticResource Cell}">
+            <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="TotalText" TargetType="TextBlock" BasedOn="{StaticResource Cell}">
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
 
@@ -81,12 +89,10 @@
                            FontSize="18"
                            FontWeight="SemiBold"/>
 
-                <!-- ✅ ВАЖНО: x:Name существует -->
                 <TextBlock x:Name="PeriodText"
                            Foreground="{StaticResource Text2}"
                            Margin="0,6,0,0"/>
 
-                <!-- ✅ ВАЖНО: x:Name существует -->
                 <TextBlock x:Name="ExtraLineText"
                            Foreground="{StaticResource Text2}"
                            Margin="0,6,0,0"
@@ -118,7 +124,6 @@
                 <TextBlock Text="Табличная часть"
                            Foreground="{StaticResource Text2}"/>
 
-                <!-- ✅ ВАЖНО: x:Name существует -->
                 <ContentControl x:Name="TableHost" Grid.Row="2"/>
 
                 <!-- Totals -->
@@ -137,7 +142,6 @@
                         <TextBlock Text="Итого" Style="{StaticResource TotalText}"/>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <!-- ✅ ВАЖНО: x:Name существуют -->
                             <TextBlock x:Name="Total1Text"
                                        Style="{StaticResource TotalText}"
                                        Margin="0,0,18,0"/>
