@@ -379,4 +379,29 @@ public class OperationStorageContract : IOperationStorageContract
             .Select(x => x.Name)
             .FirstOrDefault();
     }
+
+    public Dictionary<string, decimal> GetSalesDeviation90_43(DateTime from, DateTime to, string acc90Id, string acc43Id)
+    => _db.TransactionLogs.AsNoTracking()
+        .Where(t => !t.IsDeleted
+            && t.DateOperation >= from && t.DateOperation <= to
+            && t.ChartOfAccountDebId == acc90Id
+            && t.ChartOfAccountCredId == acc43Id
+            && t.Count == 0
+            && t.Subconto1Cred != null)
+        .GroupBy(t => t.Subconto1Cred!)
+        .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+    public Dictionary<string, (string code, string name)> GetProductionInfoByIds(IEnumerable<string> productIds)
+    {
+        var ids = productIds?.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList() ?? new();
+        if (ids.Count == 0) return new Dictionary<string, (string code, string name)>();
+
+        return _db.Productions.AsNoTracking()
+            .Where(p => ids.Contains(p.Id))
+            .ToDictionary(
+                p => p.Id,
+                p => (code: p.Code ?? string.Empty, name: p.Name ?? string.Empty)
+            );
+    }
+
 }

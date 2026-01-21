@@ -21,5 +21,10 @@ public interface IOperationStorageContract
     Dictionary<string, (int qty, decimal sum)> GetSalesCogs90_43_Plan(DateTime from, DateTime to, string acc90Id, string acc43Id);
     Dictionary<string, string> GetProductionDepartaments(IEnumerable<string> productionIds);
 
+    Dictionary<string, decimal> GetSalesDeviation90_43(DateTime from, DateTime to, string acc90Id, string acc43Id);
+
+    Dictionary<string, (string code, string name)> GetProductionInfoByIds(IEnumerable<string> productIds);
+
+
     decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id);
 }

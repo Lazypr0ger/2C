@@ -2,8 +2,10 @@
 using AutoMapper;
 using Contracts.DTO;
 using Contracts.DTO.HistoriesDto;
+using Contracts.DTO.Reports;
 using Contracts.ViewModels;
 using Contracts.ViewModels.HistoryModels;
+using Contracts.ViewModels.Reports;
 
 namespace Contracts;
 
@@ -21,6 +23,12 @@ public class DtoToVmProfile : Profile
         CreateMap<OrganisationDto, OrganisationVM>().ReverseMap();
         CreateMap<OrganisationHistoryDto, OrganisationHistoryVM>().ReverseMap();
         CreateMap<TransactionLogDto, TransactionLogVM>().ReverseMap();
+
+
+        CreateMap<ReportResultDto, ReportResultVM>().ReverseMap();
+        CreateMap<ActualCostDistributionRowDto, ActualCostDistributionRowVM>().ReverseMap();
+        CreateMap<SalesStatementRowDto, SalesStatementRowVM>().ReverseMap();
+        CreateMap<RealisedDeviationRowDto, RealisedDeviationRowVM>().ReverseMap();
     }
 
 }

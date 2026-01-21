@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts.BindingModels;
 using Contracts.DTO;
+using Contracts.DTO.Reports;
 using Contracts.ViewModels;
 
 namespace Contracts
@@ -16,6 +17,7 @@ namespace Contracts
             CreateMap<ElementBM, ElementDto>().ReverseMap();
             CreateMap<TransactionLogBM, TransactionLogDto>().ReverseMap();
             CreateMap<ChartOfAccountBM, ChartOfAccountDto>().ReverseMap();
+            CreateMap<ReportBuildBM, ReportBuildRequestDto>().ReverseMap();
 
         }
     }

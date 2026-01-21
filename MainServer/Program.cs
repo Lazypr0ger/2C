@@ -87,7 +87,8 @@ builder.Services.AddScoped<IDepartamentHistoryAdapterContract, DepartamentHistor
 builder.Services.AddScoped<IOrganisationHistoryAdapterContract, OrganisationHistoryAdapter>();
 builder.Services.AddScoped<IProductionHistoryAdapterContract, ProductionHistoryAdapter>();
 
-
+builder.Services.AddScoped<IReportAdapterContract, ReportAdapter>();
+builder.Services.AddScoped<IReportBusinessLogic, ReportBusinessLogic>();
 
 
 builder.Services.AddEndpointsApiExplorer();

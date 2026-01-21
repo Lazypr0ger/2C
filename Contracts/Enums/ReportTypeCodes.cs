@@ -8,8 +8,9 @@ namespace Contracts.Enums
 {
     public enum ReportTypeCodes
     {
-        RealisedDeviationStatement = 1,
+        ActualCostDistribution= 1,
         SalesStatement = 2,
-        ActualCostDistribution = 3
+        RealisedDeviation = 3,
+        RealisedDeviationStatement = 4,
     }
 }
