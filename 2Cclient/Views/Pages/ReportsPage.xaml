@@ -25,7 +25,8 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <ContentPresenter VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}"/>
 
                                 <TextBlock Grid.Column="1"
                                            Text="›"
@@ -84,10 +85,6 @@
                                    Foreground="{StaticResource Text}"
                                    FontWeight="SemiBold"
                                    FontSize="14"/>
-                        <TextBlock Text="Период с ... по ... • Общая сумма фактических затрат • План/Отклонение/Факт"
-                                   Foreground="{StaticResource Text2}"
-                                   Margin="0,6,0,0"
-                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Button>
 
@@ -96,14 +93,12 @@
                         Click="Type_Click"
                         Margin="0,0,0,12">
                     <StackPanel>
-                        <TextBlock Text="Ведомость продаж продукции"
+                        <TextBlock Text="Ведомость продаж продукции"                                   
                                    Foreground="{StaticResource Text}"
                                    FontWeight="SemiBold"
                                    FontSize="14"/>
-                        <TextBlock Text="Период ... • Продано на сумму • Себестоимость продаж • Прибыль/убыток"
-                                   Foreground="{StaticResource Text2}"
-                                   Margin="0,6,0,0"
-                                   TextWrapping="Wrap"/>
+                        
+
                     </StackPanel>
                 </Button>
 
@@ -115,10 +110,6 @@
                                    Foreground="{StaticResource Text}"
                                    FontWeight="SemiBold"
                                    FontSize="14"/>
-                        <TextBlock Text="Период с ... по ... • План/Отклонение/Факт по реализованной продукции"
-                                   Foreground="{StaticResource Text2}"
-                                   Margin="0,6,0,0"
-                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Button>
 

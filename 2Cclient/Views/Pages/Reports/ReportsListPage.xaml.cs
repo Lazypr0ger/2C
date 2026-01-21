@@ -168,7 +168,6 @@ namespace _2Cclient.Views.Pages.Reports
         {
             if (ReportsList.SelectedItem is not ReportListItemVM r) return;
 
-            // ✅ открываем по Id — Viewer сам загрузит /ms/api/Report/id/{id}
             NavigationService?.Navigate(new ReportViewerPage(r.Id));
         }
 

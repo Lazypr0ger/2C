@@ -59,11 +59,7 @@
                             Margin="0,0,10,0"
                             Click="Reload_Click"/>
 
-                    <!-- если позже добавишь экспорт -->
-                    <!--<Button Style="{StaticResource ToolbarButtonPrimary}"
-                            MinWidth="120"
-                            Content="Экспорт"
-                            Click="Export_Click"/>-->
+             
                 </StackPanel>
             </Grid>
         </Border>

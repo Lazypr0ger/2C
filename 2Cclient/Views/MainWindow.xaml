@@ -109,13 +109,10 @@
                                    Foreground="{StaticResource Text}"
                                    FontSize="22"
                                    FontWeight="SemiBold"/>
-                        <TextBlock Text="Выберите раздел слева"
+                        <TextBlock Text=""
                                    Foreground="{StaticResource Text2}"
                                    Margin="0,6,0,0"/>
                     </StackPanel>
-
-                    <TextBox Grid.Column="1"
-                             Style="{StaticResource SearchBoxStyle}"/>
                 </Grid>
 
                 <!-- Content -->

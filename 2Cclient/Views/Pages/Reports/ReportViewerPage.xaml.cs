@@ -18,7 +18,7 @@ namespace _2Cclient.Views.Pages.Reports
 
         private CancellationTokenSource? _cts;
 
-        // ✅ Основной конструктор: открытие уже сохранённого отчёта по Id
+ 
         public ReportViewerPage(string reportId)
         {
             InitializeComponent();
@@ -30,13 +30,10 @@ namespace _2Cclient.Views.Pages.Reports
             };
         }
 
-        // ✅ Совместимость с твоей страницей создания (7 аргументов)
-        // Можно оставить, чтобы ReportCreatePage не ломался.
         public ReportViewerPage(string reportId, string typeCode, string name, DateTime from, DateTime to, DateTime buildDate, string comment)
             : this(reportId)
         {
-            // если XAML содержит эти элементы — покажем сразу "шапку",
-            // а данные таблицы подтянем уже LoadAndRenderAsync()
+
             Loaded += (_, __) =>
             {
                 TitleText.Text = name;
@@ -49,7 +46,6 @@ namespace _2Cclient.Views.Pages.Reports
                 ExtraLineText.Text = extra;
                 ExtraLineText.Visibility = Visibility.Visible;
 
-                // TableTitleText есть в новой XAML, в старой может не быть — проверяем
                 if (TryGetTableTitle(out var t))
                     t.Text = "Таблица отчёта";
             };
@@ -66,7 +62,7 @@ namespace _2Cclient.Views.Pages.Reports
 
                 var api = App.Services.GetRequiredService<ApiClient>();
 
-                // ✅ здесь отчёт приходит ровно в формате как ты показал
+   
                 var report = await api.GetAsync<ReportResultDto>($"/ms/api/Report/id/{_reportId}", _cts.Token);
 
                 Render(report);
@@ -87,7 +83,7 @@ namespace _2Cclient.Views.Pages.Reports
 
         private void Render(ReportResultDto report)
         {
-            // Заголовок/период
+
             TitleText.Text = report.Name;
 
             PeriodText.Text = $"за период с {report.From:dd.MM.yyyy} по {report.To:dd.MM.yyyy}";
@@ -120,9 +116,6 @@ namespace _2Cclient.Views.Pages.Reports
             }
         }
 
-        // ---------------------------
-        // Report 1: ActualCostDistribution
-        // ---------------------------
         private void RenderActualCostDistribution(ReportResultDto r)
         {
             var list = CreateTable();
@@ -142,13 +135,12 @@ namespace _2Cclient.Views.Pages.Reports
 
             TableHost.Content = list;
 
-            // Итоги: у тебя уже приходят Total1/Total2/Total3 и TotalQty, TotalActualCosts
+     
             var totalQty = r.TotalQty;
             var totalPlan = r.Total1;
             var totalDev = r.Total2;
             var totalFact = r.Total3;
 
-            // totalActualCosts может быть равен totalFact — но показываем, как в ТЗ
             var totalActualCosts = r.TotalActualCosts ?? totalFact;
 
             SetTotals(
@@ -158,9 +150,6 @@ namespace _2Cclient.Views.Pages.Reports
             );
         }
 
-        // ---------------------------
-        // Report 2: SalesStatement
-        // ---------------------------
         private void RenderSalesStatement(ReportResultDto r)
         {
             var list = CreateTable();
@@ -215,9 +204,7 @@ namespace _2Cclient.Views.Pages.Reports
             );
         }
 
-        // ---------------------------
-        // UI helpers
-        // ---------------------------
+      
 
         private ListView CreateTable()
         {
@@ -236,7 +223,7 @@ namespace _2Cclient.Views.Pages.Reports
 
         private void ApplyHeaderStyle(GridView gv)
         {
-            // ✅ стиль заголовка колонок из Theme
+
             if (Application.Current.Resources["ReportGridHeaderStyle"] is Style headerStyle)
                 gv.ColumnHeaderContainerStyle = headerStyle;
         }
@@ -265,12 +252,10 @@ namespace _2Cclient.Views.Pages.Reports
         {
             var f = new FrameworkElementFactory(typeof(TextBlock));
 
-            // ✅ стиль текста ячейки из Theme
             if (Application.Current.Resources["ReportCellTextStyle"] is Style cellStyle)
                 f.SetValue(FrameworkElement.StyleProperty, cellStyle);
             else
             {
-                // fallback (если стиль забыли добавить)
                 f.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
                 f.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
                 f.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
@@ -297,8 +282,7 @@ namespace _2Cclient.Views.Pages.Reports
 
         private void SetLoadingState(bool loading)
         {
-            // Можно сюда добавить индикатор, если есть.
-            // Пока просто блокируем кнопку обновить, если она существует.
+
         }
 
         private UIElement MakeInfoBlock(string text)
@@ -326,12 +310,6 @@ namespace _2Cclient.Views.Pages.Reports
         }
 
         private static string FormatNumber(decimal value, string format)
-            => value.ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
-
-        private static string FormatNumber(decimal? value, string format)
-            => (value ?? 0m).ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
-
-        private static string FormatNumber(int value, string format)
             => value.ToString(format, CultureInfo.GetCultureInfo("ru-RU"));
 
         private bool TryGetTableTitle(out TextBlock tb)
