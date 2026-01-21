@@ -202,7 +202,9 @@ public class TransactionLogStorageContract(TwoCDbContext db, IMapper mapper) : I
                     Subconto1Cred = t.Subconto1Cred,
                     Subconto2Cred = t.Subconto2Cred,
 
-                    Amount = t.Amount,
+                    DebitAmount = t.DebitAmount,
+                    CreditAmount = t.CreditAmount,
+
                     Count = t.Count,
                     Comment = t.Comment,
                     OperationId = t.OperationId,
@@ -220,6 +222,7 @@ public class TransactionLogStorageContract(TwoCDbContext db, IMapper mapper) : I
                     Subconto1DebName = orgDebName ?? depDebName ?? prodDebName,
                     Subconto1CredName = orgCredName ?? depCredName ?? prodCredName,
                 };
+
 
             return query
                 .OrderBy(x => x.DateOperation)

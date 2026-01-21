@@ -11,7 +11,18 @@ public class TransactionLogVM
     public string? Subconto1Cred { get; set; }
     public string? Subconto2Cred { get; set; }
 
-    public decimal Amount { get; set; }
+    public decimal DebitAmount { get; set; }
+    public decimal CreditAmount { get; set; }
+
+    public decimal Amount
+    {
+        get => DebitAmount;
+        set
+        {
+            DebitAmount = value;
+            CreditAmount = value;
+        }
+    }
     public int Count { get; set; }
 
     public string? Comment { get; set; }

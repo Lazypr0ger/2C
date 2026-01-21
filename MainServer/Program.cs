@@ -17,6 +17,9 @@ using DataBase.Implementation.HistoryImp;
 using MainServer.Adapters.HistoryAdapters;
 using BusinessLogic.HistoryBusinessImp;
 using System.Text.Json.Serialization;
+using Contracts.Validations;
+using BusinessLogic.Validations.Validators;
+using Contracts.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -51,6 +54,9 @@ catch (ReflectionTypeLoadException ex)
 }
 
 builder.Services.AddSingleton<IConfigurationDatabase, ConfigurationDatabase>();
+//validation
+builder.Services.AddScoped<ValidationService>();
+builder.Services.AddScoped<IValidator<TransactionLogDto>, TransactionLogDtoValidator>();
 
 //business registrate
 builder.Services.AddTransient<IChartOfAccountBusinessLogic, ChartOfAccountBusinessLogic>();

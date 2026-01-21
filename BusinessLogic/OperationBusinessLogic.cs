@@ -923,6 +923,51 @@ public class OperationBusinessLogic(
 
         return logs;
     }
+    private TransactionLogDto MakePostingSigned(
+    OperationDto op,
+    string debId,
+    string credId,
+    decimal signedAmount,
+    int count,
+    string? sub1Deb,
+    string? sub1Cred,
+    string comment)
+    {
+        if (signedAmount == 0m)
+            throw new ValidationException("Posting amount cannot be 0");
+
+        // В 1С отрицательных сумм нет: знак отражаем направлением проводки
+        var amount = Math.Abs(signedAmount);
+
+        // если signedAmount < 0 => меняем местами Дт/Кт и субконто
+        var finalDeb = signedAmount >= 0m ? debId : credId;
+        var finalCred = signedAmount >= 0m ? credId : debId;
+
+        var finalSubDeb = signedAmount >= 0m ? sub1Deb : sub1Cred;
+        var finalSubCred = signedAmount >= 0m ? sub1Cred : sub1Deb;
+
+        return new TransactionLogDto
+        {
+            Id = Guid.NewGuid().ToString(),
+            OperationId = op.Id,
+            DateOperation = op.DateOperation,
+
+            ChartOfAccountDebId = finalDeb,
+            ChartOfAccountCredId = finalCred,
+
+            Subconto1Deb = finalSubDeb,
+            Subconto1Cred = finalSubCred,
+
+            // правило 1С: суммы не отрицательные
+            DebitAmount = amount,
+            CreditAmount = amount,
+
+            // для отклонений count=0, для плановых строк count>0
+            Count = count,
+            Comment = comment,
+            IsDeleted = false
+        };
+    }
 
     private static (DateTime from, DateTime to) MonthRangeUtc(DateTime dt)
     {

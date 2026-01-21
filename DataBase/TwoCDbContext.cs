@@ -153,9 +153,6 @@ public class TwoCDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.Amount)
-                  .HasPrecision(18, 4);
-
             entity.Property(x => x.Comment)
                   .HasMaxLength(500);
 

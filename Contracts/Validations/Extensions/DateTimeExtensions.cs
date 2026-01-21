@@ -1,4 +1,4 @@
-﻿namespace Contracts.Extensions;
+﻿namespace Contracts.Validations.Extensions;
 
 public static class DateTimeExtensions
 {
