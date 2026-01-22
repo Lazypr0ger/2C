@@ -38,7 +38,7 @@ public class OperationStorageContract : IOperationStorageContract
 
             var dtos = list.Select(_mapper.Map<OperationDto>).ToList();
 
-            // Историчность "на дату операции"
+            // Историчность на дату операции
             foreach (var dto in dtos)
                 FillNamesByHistoryAt(dto);
 
@@ -64,7 +64,7 @@ public class OperationStorageContract : IOperationStorageContract
 
             var dto = _mapper.Map<OperationDto>(entity);
 
-            // Историчность "на дату операции"
+            // Историчность на дату операции
             FillNamesByHistoryAt(dto);
 
             return dto;
@@ -171,12 +171,12 @@ public class OperationStorageContract : IOperationStorageContract
 
             entity.IsDeleted = true;
 
-            // ✅ каскадно "удаляем" проводки
+            // 
             var logs = _db.TransactionLogs.Where(x => x.OperationId == id).ToList();
             foreach (var l in logs)
                 l.IsDeleted = true;
 
-            // (опционально) элементы тоже
+            // элементы тоже
             var els = _db.Elements.Where(x => x.OperationId == id).ToList();
             foreach (var e in els)
                 e.IsDeleted = true;
@@ -202,16 +202,15 @@ public class OperationStorageContract : IOperationStorageContract
                          ?? throw new ElementNotFoundException(id);
 
             if (!entity.IsDeleted)
-                return; // уже восстановлено
+                return; 
 
             entity.IsDeleted = false;
 
-            // ✅ каскадно "восстанавливаем" проводки
             var logs = _db.TransactionLogs.Where(x => x.OperationId == id).ToList();
             foreach (var l in logs)
                 l.IsDeleted = false;
 
-            // (опционально) элементы тоже
+            // элементы тоже
             var els = _db.Elements.Where(x => x.OperationId == id).ToList();
             foreach (var e in els)
                 e.IsDeleted = false;
@@ -226,8 +225,6 @@ public class OperationStorageContract : IOperationStorageContract
             throw new StorageException(ex);
         }
     }
-
-    // --------- helpers for business-logic ---------
 
     public Dictionary<string, string> GetAccountIdsByNums(IEnumerable<string> nums)
     {
@@ -261,10 +258,8 @@ public class OperationStorageContract : IOperationStorageContract
         }
     }
 
-    /// <summary>
     /// Нужен для валидации: продукция должна принадлежать подразделению.
     /// productId -> departamentId
-    /// </summary>
     public Dictionary<string, string?> GetProductionDepartaments(IEnumerable<string> productIds)
     {
         try
@@ -321,7 +316,7 @@ public class OperationStorageContract : IOperationStorageContract
                 && t.ChartOfAccountDebId == acc20Id)
             .Sum(t => (decimal?)t.Amount) ?? 0m;
 
-    // --------- "историчность на дату операции" ---------
+    //  историчность на дату операции
 
     private void FillNamesByHistoryAt(OperationDto dto)
     {
@@ -463,7 +458,7 @@ public class OperationStorageContract : IOperationStorageContract
                 && t.ChartOfAccountDebId == acc43Id
                 && t.ChartOfAccountCredId == acc20Id
                 && t.Count > 0
-                && t.Subconto1Cred == departamentId) // важно: ты уже ставишь Subconto1Cred=DepartamentId
+                && t.Subconto1Cred == departamentId) 
             .Sum(t => (decimal?)t.Amount) ?? 0m;
 
     public Dictionary<string, int> GetProducedQty43_20_ByProduct(DateTime to, string acc43Id, string acc20Id, IEnumerable<string> productIds)

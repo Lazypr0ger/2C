@@ -174,7 +174,7 @@
         </Setter>
     </Style>
 
-    <!-- ✅ NEW: Validated TextBox (modern): красная рамка + tooltip из Validation.Errors -->
+    <!--  NEW: Validated TextBox (modern): красная рамка + tooltip из Validation.Errors -->
     <Style x:Key="FormTextBoxValidatedStyle" TargetType="TextBox" BasedOn="{StaticResource FormTextBoxStyle}">
         <Setter Property="ToolTip">
             <Setter.Value>
@@ -426,7 +426,7 @@
         </Style.Resources>
     </Style>
 
-    <!-- ✅ NEW: Validated ComboBox -->
+    <!--  NEW: Validated ComboBox -->
     <Style x:Key="DarkComboBoxValidatedStyle"
            TargetType="ComboBox"
            BasedOn="{StaticResource DarkComboBoxStyle}">
@@ -499,7 +499,7 @@
         <Setter Property="Margin" Value="10,6,10,6"/>
     </Style>
 
-    <!-- ✅ Row style for ListView + GridView (IMPORTANT FIX) -->
+    <!--  Row style for ListView + GridView (IMPORTANT FIX) -->
     <Style x:Key="ReportTableRowStyle" TargetType="ListViewItem">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
@@ -548,7 +548,7 @@
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
 
-        <!-- ✅ apply correct row template -->
+        <!--  apply correct row template -->
         <Setter Property="ItemContainerStyle" Value="{StaticResource ReportTableRowStyle}"/>
 
         <!-- 🚫 ВАЖНО: здесь НЕ должно быть ItemTemplate и DisplayMemberPath -->

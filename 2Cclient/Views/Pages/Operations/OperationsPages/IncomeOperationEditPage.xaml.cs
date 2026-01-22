@@ -122,7 +122,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             FieldValidation.ClearError(CountBox);
         }
 
-        // -------------------- Name --------------------
+        // Name
         private void NameDocumentBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
             => FieldValidation.Name_PreviewTextInput(sender, e);
 
@@ -132,7 +132,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void NameDocumentBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Name_OnPaste(sender, e);
 
-        // -------------------- Time --------------------
+        // Time
         private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Time_PreviewKeyDown(sender, e);
 
@@ -148,7 +148,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Time_OnPasteDigitsOnly(sender, e);
 
-        // -------------------- Departament/Product --------------------
+        // Departament/Product
         private void DepartamentBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FieldValidation.ClearError(DepartamentBox);
@@ -169,7 +169,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             ProductBox.SelectedIndex = list.Count > 0 ? 0 : -1;
         }
 
-        // -------------------- Count (int > 0) --------------------
+        // Count (int > 0)
         private void CountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             // только цифры
@@ -213,7 +213,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out value) && value > 0;
         }
 
-        // -------------------- Items list --------------------
+        // Items list
         private void RefreshItems()
         {
             var map = _allProducts.ToDictionary(x => x.Id, x => x.Name ?? x.Id);
@@ -308,14 +308,14 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             RefreshItems();
         }
 
-        // -------------------- Date + Time -> UTC --------------------
+        // Date + Time -> UTC
         private bool TryGetUtcDateTime(out DateTime utc)
         {
             utc = default;
 
             if (DatePicker.SelectedDate == null)
             {
-                // DatePicker у тебя без validated-style — просто message/return
+               
                 MessageBox.Show("Дата не выбрана.");
                 return false;
             }
@@ -340,7 +340,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return true;
         }
 
-        // -------------------- Save --------------------
+        // Save
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
             try

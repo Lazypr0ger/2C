@@ -10,7 +10,7 @@
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
-        <!-- ✅ Самодостаточный Dark DatePicker + Validation -->
+        <!--  Самодостаточный Dark DatePicker + Validation -->
         <Style x:Key="DarkDatePickerValidated" TargetType="DatePicker">
             <Setter Property="Height" Value="38"/>
             <Setter Property="Foreground" Value="{StaticResource Text}"/>
@@ -109,7 +109,7 @@
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
                             </Trigger>
 
-                            <!-- ✅ красная рамка при ошибке -->
+                            <!--  красная рамка при ошибке -->
                             <Trigger Property="Validation.HasError" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Danger}"/>
                                 <Setter Property="ToolTipService.IsEnabled" Value="True"/>

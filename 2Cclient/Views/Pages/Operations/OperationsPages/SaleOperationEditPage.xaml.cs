@@ -129,7 +129,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private string ResolveProductName(string productId)
             => _products.FirstOrDefault(x => x.Id == productId)?.Name ?? productId;
 
-        // -------------------- Name --------------------
+        //  Name 
         private void NameDocumentBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
             => FieldValidation.Name_PreviewTextInput(sender, e);
 
@@ -139,7 +139,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void NameDocumentBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Name_OnPaste(sender, e);
 
-        // -------------------- Time --------------------
+        //  Time 
         private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Time_PreviewKeyDown(sender, e);
 
@@ -155,13 +155,13 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Time_OnPasteDigitsOnly(sender, e);
 
-        // -------------------- Organisation --------------------
+        //  Organisation 
         private void OrganisationBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             FieldValidation.ClearError(OrganisationBox);
         }
 
-        // -------------------- Count (int > 0) --------------------
+        //  Count (int > 0)
         private void CountBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             e.Handled = e.Text.Any(ch => !char.IsDigit(ch));
@@ -203,7 +203,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out value) && value > 0;
         }
 
-        // -------------------- Price (decimal > 0) --------------------
+        //  Price 
         private void PriceBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Amount_PreviewKeyDown(sender, e);
 
@@ -223,7 +223,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void PriceBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Amount_OnPaste(sender, e);
 
-        // -------------------- Rows --------------------
+        // Rows
         private void AddRow_Click(object sender, RoutedEventArgs e)
         {
             // product
@@ -280,7 +280,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             var idx = _rows.FindIndex(r =>
                 r.ProductionId == row.ProductionId &&
                 r.Price == row.Price &&
-                r.Count == row.Count); // или добавь нормальный Id строки
+                r.Count == row.Count);
 
             if (idx >= 0)
                 _rows.RemoveAt(idx);
@@ -309,7 +309,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             TotalBox.Text = total.ToString("0.##", CultureInfo.InvariantCulture);
         }
 
-        // -------------------- Date + Time -> UTC --------------------
+        // Date + Time -> UTC 
         private bool TryGetUtcDateTime(out DateTime utc)
         {
             utc = default;
@@ -340,7 +340,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return true;
         }
 
-        // -------------------- Save --------------------
+        // Save 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -384,7 +384,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
                 if (!TryGetUtcDateTime(out var utc))
                     return;
 
-                // total for server (может пригодиться для контроля)
+               
                 var total = _rows.Sum(x => x.Sum);
 
                 var bm = new OperationBM
@@ -392,7 +392,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
                     Id = _editing?.Id,
                     NameDocument = name,
                     DateOperation = utc,
-                    Type = OperationType.Sale, // <-- ВАЖНО: проверь, что enum именно так называется у тебя
+                    Type = OperationType.Sale, 
                     Comment = (CommentBox.Text ?? "").Trim(),
                     OrganisationId = orgId,
                     DepartamentId = null,

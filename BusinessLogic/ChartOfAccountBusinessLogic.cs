@@ -21,7 +21,7 @@ public class ChartOfAccountBusinessLogic(IChartOfAccountStorageContract chartOfA
             throw new ValidationException("Name is empty");
 
         if (string.IsNullOrWhiteSpace(chartOfAccountDto.Id))
-            chartOfAccountDto.Id = Guid.NewGuid().ToString();   // ✅ ВОТ ЭТО НЕ ХВАТАЛО
+            chartOfAccountDto.Id = Guid.NewGuid().ToString(); 
 
 
         chartOfAccount.Create(chartOfAccountDto);

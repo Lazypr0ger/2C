@@ -15,7 +15,7 @@ namespace _2Cclient.Services.Api
     {
         private readonly ApiClient _api;
 
-        // Важно: это путь MiddleServer (Ocelot): /ms/api/Operation
+        
         private const string BasePath = "/ms/api/Operation";
 
         public OperationApi(ApiClient api)
@@ -23,19 +23,17 @@ namespace _2Cclient.Services.Api
             _api = api;
         }
 
-        /// <summary>
+       
         /// Получить все операции (опционально по периоду).
-        /// Сервер сортирует по DateOperation desc/Id desc (у тебя в storage так).
-        /// </summary>
+        /// Сервер сортирует по DateOperation desc/Id desc 
+   
         public Task<List<OperationVM>> GetAllAsync(DateTime? fromUtc = null, DateTime? toUtc = null, CancellationToken ct = default)
         {
             var path = BasePath + BuildPeriodQuery(fromUtc, toUtc);
             return _api.GetAsync<List<OperationVM>>(path, ct);
         }
 
-        /// <summary>
-        /// Получить операции конкретного типа (фильтр делаем на клиенте, т.к. эндпоинта type=... у сервера сейчас нет).
-        /// </summary>
+
         public async Task<List<OperationVM>> GetByTypeAsync(OperationType type, DateTime? fromUtc = null, DateTime? toUtc = null, CancellationToken ct = default)
         {
             var all = await GetAllAsync(fromUtc, toUtc, ct);
@@ -46,9 +44,9 @@ namespace _2Cclient.Services.Api
                 .ToList();
         }
 
-        /// <summary>
+       
         /// Получить операцию по Id: GET /ms/api/Operation/id/{id}
-        /// </summary>
+   
         public Task<OperationVM> GetByIdAsync(string id, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -57,28 +55,28 @@ namespace _2Cclient.Services.Api
             return _api.GetAsync<OperationVM>($"{BasePath}/id/{id}", ct);
         }
 
-        /// <summary>
+       
         /// Создать: POST /ms/api/Operation
-        /// </summary>
+   
         public Task CreateAsync(OperationBM bm, CancellationToken ct = default)
         {
             if (bm is null) throw new ArgumentNullException(nameof(bm));
             return _api.PostAsync(BasePath, bm, ct);
         }
 
-        /// <summary>
+       
         /// Обновить: PUT /ms/api/Operation
-        /// </summary>
+   
         public Task UpdateAsync(OperationBM bm, CancellationToken ct = default)
         {
             if (bm is null) throw new ArgumentNullException(nameof(bm));
             return _api.PutAsync(BasePath, bm, ct);
         }
 
-        /// <summary>
+       
         /// Удалить (пометка): DELETE /ms/api/Operation/{id}
         /// В твоем ApiClient DeleteAsync требует body — отправим пустой объект.
-        /// </summary>
+   
         public Task DeleteAsync(string id, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -87,10 +85,10 @@ namespace _2Cclient.Services.Api
             return _api.DeleteAsync($"{BasePath}/{id}", new { }, ct);
         }
 
-        /// <summary>
+       
         /// Восстановить: PATCH /ms/api/Operation/{id}
         /// PATCH в ApiClient тоже с body — отправим пустой объект.
-        /// </summary>
+   
         public Task RecoveryAsync(string id, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(id))

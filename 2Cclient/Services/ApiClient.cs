@@ -51,8 +51,7 @@ namespace _2Cclient.Services.Api
 
         public async Task DeleteAsync<T>(string path, T payload, CancellationToken ct = default)
         {
-            // У тебя в Ocelot DELETE идёт на /ms/api/... без id
-            // Поэтому делаем DELETE с body (если сервер так ожидает).
+      
             var req = new HttpRequestMessage(HttpMethod.Delete, path)
             {
                 Content = ToJson(payload)

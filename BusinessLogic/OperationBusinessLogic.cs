@@ -106,10 +106,10 @@ public class OperationBusinessLogic(
             // Проверка общей суммы
             ValidateTotalAmount(dto);
 
-            // ✅ Месячные ограничения по операциям 4/5
+            // Месячные ограничения по операциям 4/5
             ValidateMonthlyRulesOnCreate(dto);
 
-            // ✅ Ограничения "остатков" (без хранения в БД)
+            // Ограничения "остатков" (без хранения в БД)
             ValidateComputedBalances(dto, oldForUpdate: null);
 
             var logs = BuildPostings(dto);
@@ -159,10 +159,10 @@ public class OperationBusinessLogic(
             // Проверка общей суммы
             ValidateTotalAmount(dto);
 
-            // ✅ Месячные ограничения по операциям 4/5 (учитываем, что это update существующей)
+            // Месячные ограничения по операциям 4/5 (учитываем, что это update существующей)
             ValidateMonthlyRulesOnUpdate(dto, old);
 
-            // ✅ Ограничения "остатков" (без хранения в БД) — с поправкой на старую операцию
+            //  Ограничения "остатков" (без хранения в БД) — с поправкой на старую операцию
             ValidateComputedBalances(dto, oldForUpdate: old);
 
             var logs = BuildPostings(dto);
@@ -198,7 +198,7 @@ public class OperationBusinessLogic(
             if (operation == null)
                 throw new ElementNotFoundException(id);
 
-            // ✅ storage должен помечать удалёнными и проводки
+            // storage должен помечать удалёнными и проводки
             storage.Delete(id);
             logger.LogInformation("Operation deleted. Id={Id}", id);
         }
@@ -224,7 +224,7 @@ public class OperationBusinessLogic(
             if (string.IsNullOrWhiteSpace(id))
                 throw new ValidationException("ID операции не может быть пустым");
 
-            // ✅ storage должен восстанавливать и проводки
+            //  storage должен восстанавливать и проводки
             storage.Recovery(id);
             logger.LogInformation("Operation recovered. Id={Id}", id);
         }
@@ -239,9 +239,8 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
     // Валидация DTO
-    // =========================================================
+
 
     private void ValidateOperationDto(OperationDto dto, bool isCreate)
     {
@@ -253,10 +252,8 @@ public class OperationBusinessLogic(
             throw new ValidationException("ID операции не может быть пустым при обновлении");
     }
 
-    // =========================================================
     // Header / validation
-    // =========================================================
-
+ 
     private static void NormalizeAndValidateHeader(OperationDto dto, bool isCreate)
     {
         if (string.IsNullOrWhiteSpace(dto.NameDocument))
@@ -274,7 +271,7 @@ public class OperationBusinessLogic(
         else if (dto.DateOperation.Kind == DateTimeKind.Local)
             dto.DateOperation = dto.DateOperation.ToUniversalTime();
 
-        // Проверка даты (не в будущем больше чем на 1 день и не раньше 2000 года)
+        // Проверка даты
         var now = DateTime.UtcNow;
         if (dto.DateOperation > now.AddDays(1))
             throw new ValidationException("Дата операции не может быть в будущем больше чем на 1 день");
@@ -328,7 +325,7 @@ public class OperationBusinessLogic(
 
             case OperationType.AllocateActualCost:
             case OperationType.WriteOffDeviations:
-                // эти операции обычно без строк
+ 
                 if (op.Elements != null && op.Elements.Count > 0)
                     throw new ValidationException($"Для операции типа {op.Type} не должно быть элементов");
                 break;
@@ -338,9 +335,8 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
     // Валидация элементов
-    // =========================================================
+
 
     private void ValidateElements(List<ElementDto> elements, OperationType operationType)
     {
@@ -381,7 +377,6 @@ public class OperationBusinessLogic(
                 if (element.Price > MaxSingleElementAmount)
                     throw new ValidationException($"Цена элемента не может превышать {MaxSingleElementAmount:N0}");
 
-                // Проверка суммы по элементу
                 var elementAmount = element.CountElement * element.Price.Value;
                 if (elementAmount > MaxSingleElementAmount)
                     throw new ValidationException($"Сумма по элементу не может превышать {MaxSingleElementAmount:N0}");
@@ -394,9 +389,9 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
+
     // Валидация общей суммы
-    // =========================================================
+
 
     private void ValidateTotalAmount(OperationDto dto)
     {
@@ -422,9 +417,9 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
-    // ✅ Monthly rules for op4 / op5
-    // =========================================================
+
+    //  Monthly rules for op4 / op5
+  
 
     private void ValidateMonthlyRulesOnCreate(OperationDto dto)
     {
@@ -486,9 +481,8 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
-    // ✅ Computed balances validation (no DB stocks)
-    // =========================================================
+
+    // Computed balances validation 
 
     private void ValidateComputedBalances(OperationDto dto, OperationDto? oldForUpdate)
     {
@@ -507,10 +501,9 @@ public class OperationBusinessLogic(
         }
     }
 
-    /// <summary>
+
     /// ReceiptFromProduction:
     /// (Материалы 20-10 по подразделению) - (Произведено 43-20 по подразделению, в плановой оценке) >= (плановая оценка выпуска текущей операции)
-    /// </summary>
     private void ValidateProductionCapacity(OperationDto dto, OperationDto? oldForUpdate)
     {
         if (string.IsNullOrWhiteSpace(dto.DepartamentId))
@@ -556,7 +549,7 @@ public class OperationBusinessLogic(
         var materials = storage.GetMaterialsInput20_10_Department(to, acc20, acc10, dto.DepartamentId!);
         var produced = storage.GetProducedPlanCost43_20_Department(to, acc43, acc20, dto.DepartamentId!);
 
-        // ✅ поправка для Update: вернём вклад старой операции, т.к. produced уже включает её
+
         if (oldForUpdate != null
             && oldForUpdate.Type == OperationType.ReceiptFromProduction
             && !oldForUpdate.IsDeleted
@@ -590,10 +583,9 @@ public class OperationBusinessLogic(
                 $"Недостаточно материалов для выпуска. Доступно: {available:N2}, требуется: {needed:N2}.");
     }
 
-    /// <summary>
     /// Sale:
     /// (Произведено qty 43-20) - (Продано qty 90-43) >= (qty продажи по каждому продукту)
-    /// </summary>
+
     private void ValidateSaleStock(OperationDto dto, OperationDto? oldForUpdate)
     {
         var acc = storage.GetAccountIdsByNums(new[] { "43", "20", "90" });
@@ -616,7 +608,7 @@ public class OperationBusinessLogic(
         var producedQty = storage.GetProducedQty43_20_ByProduct(to, acc43, acc20, productIds);
         var soldQty = storage.GetSoldQty90_43_ByProduct(to, acc90, acc43, productIds);
 
-        // ✅ поправка для Update: вернём вклад старой операции продажи, т.к. soldQty уже включает её
+        
         Dictionary<string, int> oldSoldByProduct = new();
         if (oldForUpdate != null
             && oldForUpdate.Type == OperationType.Sale
@@ -655,9 +647,7 @@ public class OperationBusinessLogic(
         }
     }
 
-    // =========================================================
-    // Postings builder (как у тебя было)
-    // =========================================================
+    // Postings builder 
 
     private List<TransactionLogDto> BuildPostings(OperationDto op)
     {

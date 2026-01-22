@@ -25,8 +25,7 @@ namespace _2Cclient.Views.Pages.Reports
             public DateTime? To { get; set; }
             public DateTime BuildDate { get; set; }
 
-            // у нас на сервере пока нет CreatedAt/Status/Comment в list item,
-            // поэтому делаем совместимость:
+            // у нас на сервере пока н
             public DateTime CreatedAt { get; set; }
             public string Status { get; set; } = "Готов";
             public string? Comment { get; set; }

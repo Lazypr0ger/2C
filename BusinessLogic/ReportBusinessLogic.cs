@@ -50,7 +50,6 @@ public class ReportBusinessLogic(
         _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
     };
 
-    // -------------------- REPORT 1 --------------------
     // Ведомость распределения фактических затрат по видам выпущенной продукции
     private ReportResultDto BuildActualCostDistribution(ReportBuildRequestDto request)
     {
@@ -125,7 +124,6 @@ public class ReportBusinessLogic(
         };
     }
 
-    // -------------------- REPORT 2 --------------------
     // Ведомость продаж продукции
     private ReportResultDto BuildSalesStatement(ReportBuildRequestDto request)
     {
@@ -206,7 +204,7 @@ public class ReportBusinessLogic(
         };
     }
 
-    // -------------------- REPORT 3 --------------------
+
     // Отклонения фактической себестоимости от плановой по реализованной продукции
     private ReportResultDto BuildRealisedDeviationStatement(ReportBuildRequestDto request)
     {

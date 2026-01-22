@@ -7,7 +7,6 @@ public class OperationBM
     public string? Id { get; set; }
     public string? NameDocument { get; set; }
 
-    // важно: клиент должен иметь возможность прислать время
     public DateTime? DateOperation { get; set; }
 
     public OperationType Type { get; set; }

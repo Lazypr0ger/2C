@@ -34,11 +34,11 @@ public class ProductionBusinessLogic(
         if (productionDto.PlannedCost < 0)
             throw new ValidationException("PlannedCost cannot be negative");
 
-        // ✅ Id генерируем на сервере
+        //  Id генерируем на сервере
         if (string.IsNullOrWhiteSpace(productionDto.Id))
             productionDto.Id = Guid.NewGuid().ToString();
 
-        // ✅ при создании всегда активный
+        //  при создании всегда активный
         productionDto.IsDeleted = false;
 
         logger.LogInformation("Creating product. Code={Code}, Name={Name}, Type={Type}, Id={Id}",

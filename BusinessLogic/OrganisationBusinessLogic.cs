@@ -21,11 +21,11 @@ public class OrganisationBusinessLogic(
         if (string.IsNullOrWhiteSpace(organisationDto.AccountNumOrg))
             throw new ValidationException("Organisation account number is empty");
 
-        // ✅ Id генерируется в BL
+        //  Id генерируется в BL
         if (string.IsNullOrWhiteSpace(organisationDto.Id))
             organisationDto.Id = Guid.NewGuid().ToString();
 
-        // ✅ при создании всегда активная
+        //  при создании всегда активная
         organisationDto.IsDeleted = false;
 
         logger.LogInformation("Creating organisation. Name={Name}, Account={Account}, Id={Id}",

@@ -56,7 +56,7 @@ public class ReportStoreFile : IReportStore
         catch (Exception ex) { throw new StorageException(ex); }
     }
 
-    // ✅ читаем все файлы, фильтруем по TypeCode
+    //  читаем все файлы, фильтруем по TypeCode
     public List<ReportListItemDto> GetList(ReportTypeCodes? typeCode = null)
     {
         lock (_lock)

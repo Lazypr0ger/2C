@@ -90,7 +90,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             FieldValidation.ClearError(DepartamentBox);
         }
 
-        // -------------------- Name --------------------
+        //  Name 
         private void NameDocumentBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
             => FieldValidation.Name_PreviewTextInput(sender, e);
 
@@ -100,7 +100,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void NameDocumentBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Name_OnPaste(sender, e);
 
-        // -------------------- Time --------------------
+        //  Time 
         private void TimeBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Time_PreviewKeyDown(sender, e);
 
@@ -116,7 +116,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void TimeBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Time_OnPasteDigitsOnly(sender, e);
 
-        // -------------------- Amount --------------------
+        //  Amount 
         private void AmountBox_PreviewKeyDown(object sender, KeyEventArgs e)
             => FieldValidation.Amount_PreviewKeyDown(sender, e);
 
@@ -132,7 +132,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
         private void AmountBox_OnPaste(object sender, DataObjectPastingEventArgs e)
             => FieldValidation.Amount_OnPaste(sender, e);
 
-        // -------------------- Date + Time -> UTC --------------------
+        //  Date + Time -> UTC 
         private bool TryGetUtcDateTime(out DateTime utc, out string error)
         {
             utc = default;
@@ -163,7 +163,7 @@ namespace _2Cclient.Views.Pages.Operations.OperationsPages
             return true;
         }
 
-        // -------------------- Save --------------------
+        //  Save 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
             try
