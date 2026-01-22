@@ -174,7 +174,7 @@
         </Setter>
     </Style>
 
-    <!--  NEW: Validated TextBox (modern): красная рамка + tooltip из Validation.Errors -->
+    <!--  Validated TextBox (modern): красная рамка + tooltip из Validation.Errors -->
     <Style x:Key="FormTextBoxValidatedStyle" TargetType="TextBox" BasedOn="{StaticResource FormTextBoxStyle}">
         <Setter Property="ToolTip">
             <Setter.Value>
@@ -426,7 +426,7 @@
         </Style.Resources>
     </Style>
 
-    <!--  NEW: Validated ComboBox -->
+    <!--  Validated ComboBox -->
     <Style x:Key="DarkComboBoxValidatedStyle"
            TargetType="ComboBox"
            BasedOn="{StaticResource DarkComboBoxStyle}">
@@ -463,9 +463,9 @@
         </Style.Triggers>
     </Style>
 
-    <!-- ===================================================== -->
+    
     <!-- Reports table styles (FIXED) -->
-    <!-- ===================================================== -->
+    
 
     <!-- GridView header -->
     <Style x:Key="ReportGridHeaderStyle" TargetType="GridViewColumnHeader">
@@ -514,7 +514,7 @@
                             Background="{TemplateBinding Background}"
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
-                        <!-- 🔥 KEY: GridViewRowPresenter + Content binding -->
+                        <!-- GridViewRowPresenter + Content binding -->
                         <GridViewRowPresenter
                             Columns="{Binding RelativeSource={RelativeSource AncestorType=ListView}, Path=View.Columns}"
                             Content="{TemplateBinding Content}"/>
@@ -551,7 +551,6 @@
         <!--  apply correct row template -->
         <Setter Property="ItemContainerStyle" Value="{StaticResource ReportTableRowStyle}"/>
 
-        <!-- 🚫 ВАЖНО: здесь НЕ должно быть ItemTemplate и DisplayMemberPath -->
     </Style>
 
 </ResourceDictionary>

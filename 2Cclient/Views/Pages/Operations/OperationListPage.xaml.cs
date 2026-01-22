@@ -137,7 +137,7 @@ namespace _2Cclient.Views.Pages
             RestoreBtn.IsEnabled = row.IsDeleted;
         }
 
-        // --- NEW: period apply ---
+        // --- period apply ---
         private async void ApplyPeriod_Click(object sender, RoutedEventArgs e)
         {
             await LoadAsync();
