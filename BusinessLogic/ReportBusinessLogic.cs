@@ -53,8 +53,8 @@ public class ReportBusinessLogic(
     // Ведомость распределения фактических затрат по видам выпущенной продукции
     private ReportResultDto BuildActualCostDistribution(ReportBuildRequestDto request)
     {
-        var acc = operationStorage.GetAccountIdsByNums(new[] { "20", "43" });
-        if (!acc.TryGetValue("20", out var acc20) || !acc.TryGetValue("43", out var acc43))
+        var acc = operationStorage.GetAccountIdsByNums(new[] { "20", "43", "10" });
+        if (!acc.TryGetValue("20", out var acc20) || !acc.TryGetValue("43", out var acc43) || !acc.TryGetValue("10", out var acc10))
             throw new ValidationException("Accounts 20/43 not found in ChartOfAccount");
 
         var receipts = operationStorage.GetReceipts43_20_Plan(request.From, request.To, acc43, acc20);
@@ -99,7 +99,7 @@ public class ReportBusinessLogic(
         var totalFact = rows.Sum(x => x.ActualCost);
 
         // "Общая сумма фактических затрат" (из дебетового оборота 20)
-        var totalActualCostsHeader = operationStorage.GetDebitTurnover20(request.From, request.To, acc20);
+        var totalActualCostsHeader = operationStorage.GetDebitTurnover20(request.From, request.To, acc20, acc10);
 
         return new ReportResultDto
         {

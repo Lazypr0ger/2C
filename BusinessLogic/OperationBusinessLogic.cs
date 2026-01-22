@@ -658,7 +658,7 @@ public class OperationBusinessLogic(
                 OperationType.ActualCosts => new[] { "20", "10" },
                 OperationType.ReceiptFromProduction => new[] { "43", "20" },
                 OperationType.Sale => new[] { "90", "43", "62" },
-                OperationType.AllocateActualCost => new[] { "43", "20" },
+                OperationType.AllocateActualCost => new[] { "43", "20", "10" },
                 OperationType.WriteOffDeviations => new[] { "90", "43", "20" },
                 _ => throw new ValidationException($"Operation type {op.Type} not supported yet")
             };
@@ -822,7 +822,8 @@ public class OperationBusinessLogic(
         if (receipts.Count == 0)
             throw new ValidationException("Операция 4: нет поступлений Дт43 Кт20 за месяц");
 
-        var do20 = storage.GetDebitTurnover20(from, to, acc20);
+        var acc10 = acc["10"];
+        var do20 = storage.GetDebitTurnover20(from, to, acc20, acc10);
         var sumPlanAll = receipts.Values.Sum(x => x.sum);
         if (sumPlanAll == 0m)
             throw new ValidationException("Операция 4: сумма плановых поступлений = 0");
@@ -838,20 +839,18 @@ public class OperationBusinessLogic(
             var delta = sumFact - sumPlan;
             if (Math.Abs(delta) < 0.0001m) continue;
 
-            logs.Add(new TransactionLogDto
-            {
-                Id = Guid.NewGuid().ToString(),
-                OperationId = op.Id,
-                DateOperation = op.DateOperation,
-                ChartOfAccountDebId = acc43,
-                ChartOfAccountCredId = acc20,
-                Subconto1Deb = productId,
-                Amount = delta,
-                Count = 0,
-                Comment = "Распределение фактической себестоимости: отклонение Дт43 Кт20" +
-                          (string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}"),
-                IsDeleted = false
-            });
+            AddPostingNormalized(
+                 logs,
+                 op.DateOperation,
+                 op.Id,
+                 acc43,
+                 acc20,
+                 delta,
+                 0,
+                 productId,     // Subconto1Deb
+                 null,          // Subconto1Cred
+                 "Распределение фактической себестоимости: отклонение ...");
+
         }
 
         return logs;
@@ -895,23 +894,59 @@ public class OperationBusinessLogic(
             var deltaSold = (factUnit - planUnit) * qtySold;
             if (Math.Abs(deltaSold) < 0.0001m) continue;
 
-            logs.Add(new TransactionLogDto
-            {
-                Id = Guid.NewGuid().ToString(),
-                OperationId = op.Id,
-                DateOperation = op.DateOperation,
-                ChartOfAccountDebId = acc90,
-                ChartOfAccountCredId = acc43,
-                Subconto1Cred = productId,
-                Amount = deltaSold,
-                Count = 0,
-                Comment = "Списание отклонений фактической себестоимости реализованной продукции: Дт90 Кт43" +
-                          (string.IsNullOrWhiteSpace(op.Comment) ? "" : $" | {op.Comment}"),
-                IsDeleted = false
-            });
+            AddPostingNormalized(
+            logs,
+            op.DateOperation,
+            op.Id,
+            acc90,
+            acc43,
+            deltaSold,
+            0,
+            null,
+            productId,  // Subconto1Cred (аналитика продукции на кредите)
+            "Списание отклонений ...");
+
         }
 
         return logs;
+    }
+    private static void AddPostingNormalized(
+    List<TransactionLogDto> logs,
+    DateTime date,
+    string opId,
+    string debAcc,
+    string credAcc,
+    decimal amount,
+    int count,
+    string? subcontoDeb1,
+    string? subcontoCred1,
+    string comment,
+    bool isDeleted = false)
+    {
+        if (Math.Abs(amount) < 0.0001m) return;
+
+        // если отрицательная — меняем местами дебет/кредит и аналитики, сумму делаем положительной
+        if (amount < 0m)
+        {
+            (debAcc, credAcc) = (credAcc, debAcc);
+            (subcontoDeb1, subcontoCred1) = (subcontoCred1, subcontoDeb1);
+            amount = -amount;
+        }
+
+        logs.Add(new TransactionLogDto
+        {
+            Id = Guid.NewGuid().ToString(),
+            OperationId = opId,
+            DateOperation = date,
+            ChartOfAccountDebId = debAcc,
+            ChartOfAccountCredId = credAcc,
+            Subconto1Deb = subcontoDeb1,
+            Subconto1Cred = subcontoCred1,
+            Amount = amount,       // всегда положительная
+            Count = count,
+            Comment = comment,
+            IsDeleted = isDeleted
+        });
     }
 
     private static (DateTime from, DateTime to) MonthRangeUtc(DateTime dt)

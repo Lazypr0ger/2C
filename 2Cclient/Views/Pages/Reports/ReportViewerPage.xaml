@@ -6,6 +6,12 @@
       mc:Ignorable="d"
       Background="{StaticResource Bg}">
 
+    <!--
+        Добавил горизонтальный скролл "снизу" (ползунок).
+        Таблица живёт внутри ScrollViewer с HorizontalScrollBarVisibility="Auto".
+        Вертикальный скролл тоже включён, чтобы можно было смотреть длинные отчёты.
+    -->
+
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -58,8 +64,6 @@
                             Content="Обновить"
                             Margin="0,0,10,0"
                             Click="Reload_Click"/>
-
-             
                 </StackPanel>
             </Grid>
         </Border>
@@ -74,10 +78,24 @@
                        Text="Таблица отчёта"/>
         </Border>
 
-        <!-- Table host -->
+        <!-- Table host + bottom horizontal scrollbar -->
         <Border Grid.Row="2"
-                Background="Transparent">
-            <ContentControl x:Name="TableHost"/>
+                Background="Transparent"
+                ClipToBounds="True">
+
+            <!-- Ползунок снизу появится автоматически, если контент шире -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          CanContentScroll="False"
+                          PanningMode="Both"
+                          ClipToBounds="True">
+
+               
+                <ContentControl x:Name="TableHost"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                ClipToBounds="True"/>
+            </ScrollViewer>
         </Border>
 
         <!-- Totals footer -->
@@ -114,28 +132,6 @@
                                FontSize="12"
                                Text=""/>
                 </StackPanel>
-
-                <Border Grid.Column="1"
-                        Background="{StaticResource Panel2}"
-                        BorderBrush="#243142"
-                        BorderThickness="1"
-                        CornerRadius="12"
-                        Padding="14"
-                        VerticalAlignment="Center"
-                        Margin="16,0,0,0">
-                    <StackPanel>
-                        <TextBlock Text="Подсказка"
-                                   Foreground="{StaticResource Text}"
-                                   FontWeight="SemiBold"
-                                   FontSize="12"/>
-                        <TextBlock Text="Двойной клик по строке — можно сделать позже (при необходимости)."
-                                   Foreground="{StaticResource Text2}"
-                                   Margin="0,6,0,0"
-                                   FontSize="11"
-                                   TextWrapping="Wrap"
-                                   Width="260"/>
-                    </StackPanel>
-                </Border>
             </Grid>
         </Border>
     </Grid>

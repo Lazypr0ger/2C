@@ -301,25 +301,13 @@
                             <!-- Суммы/кол-во по центру -->
                             <GridViewColumn Width="120">
                                 <GridViewColumn.Header>
-                                    <GridViewColumnHeader Content="Сумма Дт" Style="{StaticResource HeaderCenter}"/>
+                                    <GridViewColumnHeader Content="Сумма" Style="{StaticResource HeaderCenter}"/>
                                 </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Style="{StaticResource CellTextCenter}"
                                                    FontWeight="SemiBold"
                                                    Text="{Binding Amount, StringFormat={}{0:N2}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-
-                            <GridViewColumn Width="120">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Content="Сумма Кт" Style="{StaticResource HeaderCenter}"/>
-                                </GridViewColumn.Header>
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <!-- НЕ отображаем Amount в Кт -->
-                                        <TextBlock Style="{StaticResource CellTextCenter}" Text=""/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>

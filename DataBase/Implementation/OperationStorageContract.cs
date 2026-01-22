@@ -288,7 +288,8 @@ public class OperationStorageContract : IOperationStorageContract
             .ToDictionary(g => g.Key, g => (qty: g.Sum(x => x.Count), sum: g.Sum(x => x.Amount)));
 
     public Dictionary<string, decimal> GetAllocDeltas43_20(DateTime from, DateTime to, string acc43Id, string acc20Id)
-        => _db.TransactionLogs.AsNoTracking()
+    {
+        var plus = _db.TransactionLogs.AsNoTracking()
             .Where(t => !t.IsDeleted
                 && t.DateOperation >= from && t.DateOperation <= to
                 && t.ChartOfAccountDebId == acc43Id
@@ -297,6 +298,25 @@ public class OperationStorageContract : IOperationStorageContract
                 && t.Subconto1Deb != null)
             .GroupBy(t => t.Subconto1Deb!)
             .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+        var minus = _db.TransactionLogs.AsNoTracking()
+            .Where(t => !t.IsDeleted
+                && t.DateOperation >= from && t.DateOperation <= to
+                && t.ChartOfAccountDebId == acc20Id
+                && t.ChartOfAccountCredId == acc43Id
+                && t.Count == 0
+                && t.Subconto1Cred != null) // продукт будет на кредите после разворота
+            .GroupBy(t => t.Subconto1Cred!)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
+
+        foreach (var kv in minus)
+        {
+            plus.TryGetValue(kv.Key, out var cur);
+            plus[kv.Key] = cur - kv.Value;
+        }
+
+        return plus;
+    }
 
     public Dictionary<string, (int qty, decimal sum)> GetSalesCogs90_43_Plan(DateTime from, DateTime to, string acc90Id, string acc43Id)
         => _db.TransactionLogs.AsNoTracking()
@@ -309,13 +329,21 @@ public class OperationStorageContract : IOperationStorageContract
             .GroupBy(t => t.Subconto1Cred!)
             .ToDictionary(g => g.Key, g => (qty: g.Sum(x => x.Count), sum: g.Sum(x => x.Amount)));
 
-    public decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id)
-        => _db.TransactionLogs.AsNoTracking()
-            .Where(t => !t.IsDeleted
-                && t.DateOperation >= from && t.DateOperation <= to
-                && t.ChartOfAccountDebId == acc20Id)
-            .Sum(t => (decimal?)t.Amount) ?? 0m;
+    public decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id, string acc10Id)
+    => _db.TransactionLogs.AsNoTracking()
+        .Where(t => !t.IsDeleted
+            && t.DateOperation >= from && t.DateOperation <= to
+            && t.ChartOfAccountDebId == acc20Id
+            && t.ChartOfAccountCredId == acc10Id)
+        .Sum(t => (decimal?)t.Amount) ?? 0m;
 
+    public decimal GetActualCostsDebitTurnover20(DateTime from, DateTime to, string acc20Id, string acc10Id)
+    => _db.TransactionLogs.AsNoTracking()
+        .Where(t => !t.IsDeleted
+            && t.DateOperation >= from && t.DateOperation <= to
+            && t.ChartOfAccountDebId == acc20Id
+            && t.ChartOfAccountCredId == acc10Id)
+        .Sum(t => (decimal?)t.Amount) ?? 0m;
     //  историчность на дату операции
 
     private void FillNamesByHistoryAt(OperationDto dto)

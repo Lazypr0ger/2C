@@ -37,5 +37,5 @@ public interface IOperationStorageContract
 
     Dictionary<string, int> GetSoldQty90_43_ByProduct(DateTime to, string acc90Id, string acc43Id, IEnumerable<string> productIds);
 
-    decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id);
+    decimal GetDebitTurnover20(DateTime from, DateTime to, string acc20Id, string acc10);
 }
